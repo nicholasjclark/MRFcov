@@ -52,7 +52,6 @@
 #'    \item \code{lambda1}: Vector of lambda l1 regularization values
 #'    }
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'
 #'@seealso \code{\link{MRFcov}},\code{\link{predict_MRF}},
 #'\code{\link{cv_MRF_diag}}, \code{\link[penalized]{penalized}}

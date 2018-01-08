@@ -59,7 +59,6 @@
 #'   be considered useful if all covariates are on a similar scale!
 #' }
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'
 #'@seealso \code{\link{MRFcov}},
 #'\code{\link[penalized]{penalized}}

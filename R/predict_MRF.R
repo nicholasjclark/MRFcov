@@ -17,7 +17,6 @@
 #'    \item \code{linear_predictions}: Data.frame containing the linear predicted values
 #'    for node variable observations in data
 #'    }
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{cv_MRF}}
 #'

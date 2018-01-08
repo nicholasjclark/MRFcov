@@ -45,7 +45,6 @@
 #'    \item \code{param_names}: Character string of covariate parameter names
 #'    }
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'
 #'@references Ising, E. (1925). Beitrag zur theorie des ferromagnetismus.
 #'Zeitschrift für Physik A Hadrons and Nuclei, 31, 253-258.\cr\cr

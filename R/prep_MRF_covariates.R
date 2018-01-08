@@ -15,7 +15,6 @@
 #'@return Dataframe of the prepped response and covariate variables necessary for
 #'input in \code{\link{MRFcov}} models
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'
 #'@export
 #'

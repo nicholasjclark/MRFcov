@@ -12,7 +12,6 @@
 #'@param y Integer for indexing columns in \code{data}
 #'@return Matrix containing proportions of replicates in which each coefficient was retained
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'@seealso \code{\link{bootstrap_MRF}}
 #'
 #'@export

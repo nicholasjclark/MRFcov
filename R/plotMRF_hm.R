@@ -13,7 +13,6 @@
 #'will be plotted. Default is \strong{FALSE}
 #'@return A \code{ggplot2} object
 #'
-#'@author Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 #'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
 #'@export
 #'
