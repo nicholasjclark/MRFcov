@@ -26,6 +26,8 @@ Load the Bird.parasites dataset
 data("Bird.parasites")
 ```
 
+Visualise the dataset to see how analysis data needs to be structured. In short, node variable (i.e. species) occurrences need to included as binary variables (1s and 0s) as the left-most variables in the `data`. Any covariates can be included as the right-most variables. Note, these covariates should all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar)
+
 Run an MRF model using a single continuous covariate (scale.prop.zos). Here w and a weak penalization parameter (`lambda1`) for LASSO variable selection
 
 ``` r
@@ -38,7 +40,7 @@ Plot the estimated species interaction coefficients
 plotMRF_hm(MRF_mod = MRF_mod)
 ```
 
-<img src="README-unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
 
 Visualise how species interactions change across covariate magnitudes
 
@@ -47,7 +49,7 @@ plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.par
                 main = 'Estimated interactions across host relative densities')
 ```
 
-<img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 References
 ----------
