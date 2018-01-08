@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Overview of `MRFcov`
---------------------
+Overview
+--------
 
 The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients
 
@@ -33,7 +33,7 @@ help("Bird.parasites")
 View(Bird.parasites)
 ```
 
-Run an MRF model using a single continuous covariate (`scale.prop.zos`). Here specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate
+Run an MRF model using a single continuous covariate (`scale.prop.zos`). Here we specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate
 
 ``` r
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
