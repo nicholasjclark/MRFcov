@@ -43,7 +43,8 @@ plotMRF_hm(MRF_mod = MRF_mod)
 Visualise how species interactions change across covariate magnitudes
 
 ``` r
-plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites)
+plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
+                main = 'Estimated interactions across host relative densities')
 ```
 
 <img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
