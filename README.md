@@ -28,6 +28,11 @@ data("Bird.parasites")
 
 Visualise the dataset to see how analysis data needs to be structured. In short, node variable (i.e. species) occurrences need to included as binary variables (1s and 0s) as the left-most variables in the `data`. Any covariates can be included as the right-most variables. Note, these covariates should all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar)
 
+``` r
+help("Bird.parasites")
+View(Bird.parasites)
+```
+
 Run an MRF model using a single continuous covariate (scale.prop.zos). Here w and a weak penalization parameter (`lambda1`) for LASSO variable selection
 
 ``` r
