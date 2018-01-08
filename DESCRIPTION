@@ -3,7 +3,7 @@ Type: Package
 Title: Markov Random Fields with additional covariates 
 Version: 1.0
 Date/Publication: 2018-01-08
-URL: http://nicholasjclark.weebly.com/
+URL: https://github.com/nicholasjclark/MRFcov
 Authors@R: c(
     person("Nicholas J", "Clark", email = "nicholas.j.clark1214@gmail.com", role = c("aut", "cre")),
     person("Konstans", "Wells", email = "konswells@gmail.com", role = "aut"),
