@@ -33,13 +33,13 @@ help("Bird.parasites")
 View(Bird.parasites)
 ```
 
-Run an MRF model using a single continuous covariate (scale.prop.zos). Here w and a weak penalization parameter (`lambda1`) for LASSO variable selection
+Run an MRF model using a single continuous covariate (`scale.prop.zos`). Here specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate
 
 ``` r
-MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 1)
+MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
 ```
 
-Plot the estimated species interaction coefficients
+Visualise the estimated species interaction coefficients as a heatmap
 
 ``` r
 plotMRF_hm(MRF_mod = MRF_mod)
@@ -47,7 +47,7 @@ plotMRF_hm(MRF_mod = MRF_mod)
 
 <img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
 
-Visualise how species interactions change across covariate magnitudes
+Visualise how species interactions are predicted to change across covariate magnitudes
 
 ``` r
 plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
