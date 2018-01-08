@@ -1,0 +1,32 @@
+Package: MRFcov
+Type: Package
+Title: Markov Random Fields with additional covariates 
+Version: 1.0
+Date/Publication: 2018-01-08
+URL: http://nicholasjclark.weebly.com/
+Authors@R: c(
+    person("Nicholas J", "Clark", email = "nicholas.j.clark1214@gmail.com", role = c("aut", "cre")),
+    person("Konstans", "Wells", email = "konswells@gmail.com", role = "aut"),
+    person("Oscar", "Lindberg", email = "o.lindberg@gmail.com", role = "aut"))
+Maintainer: Nicholas Clark <nicholas.j.clark1214@gmail.com>
+Description: Approximate node interaction parameters of Markov Random Fields 
+    graphs. Models can incorporate covariates, allowing users to estimate
+    how interactions between nodes in the graph are predicted to change across
+    covariate gradients.
+Depends: R (>= 3.3.3), penalized
+Imports: purrr,
+    parallel,
+    plyr,
+    ggplot2,
+    dplyr,
+    caret,
+    gridExtra,
+    rosalia,
+    magrittr,
+    reshape2,
+    sfsmisc
+Remotes: davharris/rosalia
+License: MIT
+Encoding: UTF-8
+RoxygenNote: 6.0.1
+LazyData: true
