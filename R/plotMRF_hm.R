@@ -94,8 +94,11 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
       rownames(MRF_mod$direct_coef_means) <- rownames(MRF_mod$direct_coef_means)
     } else {
       rownames(MRF_mod$direct_coef_means) <- node_names
+      colnames(MRF_mod$direct_coef_means[, 2:(n_nodes + 1)]) <- node_names
       rownames(MRF_mod$direct_coef_upper90) <- node_names
+      colnames(MRF_mod$direct_coef_upper90[, 2:(n_nodes + 1)]) <- node_names
       rownames(MRF_mod$direct_coef_lower90) <- node_names
+      colnames(MRF_mod$direct_coef_lower90[, 2:(n_nodes + 1)]) <- node_names
     }
 
     #Extract summary statistics of interaction coefficients
