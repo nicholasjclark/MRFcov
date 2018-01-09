@@ -5,6 +5,8 @@ Overview
 
 The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (a class of models known as *Conditional Markov Random Fields*; following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
+Markov random fields interaction parameters are approximated using separate regressions for individual nodes (species) within a joint modelling framework. Because all combinations of covariates and additional nodes are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) package
+
 Installation
 ------------
 
@@ -18,11 +20,10 @@ devtools::install_github("nicholasjclark/MRFcov")
 Usage
 -----
 
-Markov random fields interaction parameters are approximated using separate regressions for individual nodes (species) within a joint modelling framework. Because all combinations of covariates and additional nodes are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) package
-
-Load the `Bird.parasites` dataset, which contains binary occurrences of four avian blood parasites in New Caledonian *Zosterops* species ([available in its original form at Dryad](http://dx.doi.org/10.5061/dryad.pp6k4); Clark *et al* 2016). A single continuous covariate is also included (`scale.prop.zos`), which reflects the relative abundance of *Zosterops* species among different sample sites
+We can explore the model's primary functions using a test dataset that is available with the package. Load the `Bird.parasites` dataset, which contains binary occurrences of four avian blood parasites in New Caledonian *Zosterops* species ([available in its original form at Dryad](http://dx.doi.org/10.5061/dryad.pp6k4); Clark *et al* 2016). A single continuous covariate is also included (`scale.prop.zos`), which reflects the relative abundance of *Zosterops* species among different sample sites
 
 ``` r
+library(MRFcov)
 data("Bird.parasites")
 ```
 
@@ -47,7 +48,7 @@ Visualise the estimated species interaction coefficients as a heatmap
 plotMRF_hm(MRF_mod = MRF_mod)
 ```
 
-<img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
 
 Visualise how species interactions are predicted to change across covariate magnitudes
 
@@ -56,7 +57,7 @@ plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.par
                 main = 'Estimated interactions across host relative densities')
 ```
 
-<img src="README-unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
 
 ### Choosing penalization parameters
 
@@ -66,7 +67,7 @@ Choosing the appropriate `lambda1` value often requires exploration of model pre
 cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, n_cores = 3)
 ```
 
-<img src="README-unnamed-chunk-8-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ### Bootstrapping the data and running models across a range of penalization values
 
@@ -82,7 +83,7 @@ Now we can visualise confidence intervals of interaction coefficients that were 
 plotMRF_hm(MRF_mod = booted_MRF, plot_booted_coefs = TRUE)
 ```
 
-<img src="README-unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
+<img src="README-unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 
 ### Exploring regression coefficients and interpreting results
 
@@ -91,45 +92,46 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.67848476 -3.4502142
-#> 7 scale.prop.zos_Microfilaria     0.10664903 -1.3679004
-#> 3                Microfilaria     0.07927827  1.1793782
-#> 4              scale.prop.zos     0.05245054 -0.9592924
-#> 6         scale.prop.zos_Plas     0.03466231  0.7798386
-#> 2                        Plas     0.02514577 -0.6642147
-#> 5   scale.prop.zos_Hkillangoi     0.02332931 -0.6397745
+#> 1                  Hkillangoi     0.66442539 -3.2929259
+#> 7 scale.prop.zos_Microfilaria     0.10323615 -1.2980002
+#> 3                Microfilaria     0.09568069  1.2496000
+#> 4              scale.prop.zos     0.05625043 -0.9581241
+#> 6         scale.prop.zos_Plas     0.04172403  0.8251862
+#> 2                        Plas     0.02683722 -0.6618013
+#> 5   scale.prop.zos_Hkillangoi     0.01184610 -0.4396899
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.71005759 -3.4502142
-#> 5        scale.prop.zos_Plas     0.11652220  1.3976667
-#> 2               Microfilaria     0.09850066 -1.2850465
-#> 3             scale.prop.zos     0.04791423 -0.8962549
-#> 4 scale.prop.zos_Hzosteropis     0.02441492 -0.6397745
+#> 1                Hzosteropis     0.72440675 -3.2929259
+#> 5        scale.prop.zos_Plas     0.10577297  1.2582823
+#> 2               Microfilaria     0.09886745 -1.2165148
+#> 3             scale.prop.zos     0.04933770 -0.8593700
+#> 4 scale.prop.zos_Hzosteropis     0.01291551 -0.4396899
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.42513993  1.9156717
-#> 5   scale.prop.zos_Hkillangoi     0.22630647  1.3976667
-#> 3              scale.prop.zos     0.17057017 -1.2134075
-#> 4  scale.prop.zos_Hzosteropis     0.07045296  0.7798386
-#> 6 scale.prop.zos_Microfilaria     0.05300278  0.6764013
-#> 1                 Hzosteropis     0.05111010 -0.6642147
+#> 3                Microfilaria     0.40996585  1.7267332
+#> 6   scale.prop.zos_Hkillangoi     0.21769745  1.2582823
+#> 4              scale.prop.zos     0.17989253 -1.1438207
+#> 5  scale.prop.zos_Hzosteropis     0.09362700  0.8251862
+#> 1                 Hzosteropis     0.06022161 -0.6618013
+#> 7 scale.prop.zos_Microfilaria     0.02451420  0.4222409
+#> 2                  Hkillangoi     0.01408136 -0.3200175
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.35259398  1.9156717
-#> 5 scale.prop.zos_Hzosteropis     0.17978013 -1.3679004
-#> 2                 Hkillangoi     0.15866108 -1.2850465
-#> 1                Hzosteropis     0.13364076  1.1793782
-#> 4             scale.prop.zos     0.13002757 -1.1633258
-#> 6        scale.prop.zos_Plas     0.04395837  0.6764013
+#> 3                       Plas     0.32434511  1.7267332
+#> 5 scale.prop.zos_Hzosteropis     0.18327632 -1.2980002
+#> 1                Hzosteropis     0.16986304  1.2496000
+#> 2                 Hkillangoi     0.16098731 -1.2165148
+#> 4             scale.prop.zos     0.13910855 -1.1308330
+#> 6        scale.prop.zos_Plas     0.01939445  0.4222409
 ```
 
 References
