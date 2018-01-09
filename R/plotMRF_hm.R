@@ -52,7 +52,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
     dimnames(interaction_coefficients) <- list(rownames(interaction_coefficients),
                                      rownames(interaction_coefficients))
   } else {
-    dimnames(interaction_coefficients) <- node_names
+    dimnames(interaction_coefficients) <- list(node_names, node_names)
   }
 
   if(missing(main)){
@@ -88,6 +88,12 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
 
     if(missing(main)){
       main <- 'Summary statistics of estimated node interactions'
+    }
+
+    if(missing(node_names)){
+      rownames(MRF_mod$direct_coef_means) <- rownames(MRF_mod$direct_coef_means)
+    } else {
+      rownames(MRF_mod$direct_coef_means) <- node_names
     }
 
     #Extract summary statistics of interaction coefficients
