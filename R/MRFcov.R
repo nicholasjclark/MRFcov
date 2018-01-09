@@ -135,7 +135,11 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
   node_names <- colnames(mrf_data[, 1:n_nodes])
 
   #Gather covariate names
+  if(n_covariates > 0){
   cov_names <- colnames(mrf_data)[(n_nodes + 1):ncol(mrf_data)]
+  } else {
+    cov_names <- NULL
+  }
 
   #### If n_cores > 1, check for parallel loading before initiating parallel clusters ####
   if(n_cores > 1){
