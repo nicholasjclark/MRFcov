@@ -6,7 +6,7 @@
 #'
 #'@param data Dataframe. The input data where the
 #'left-most variables are binary occurrences that are represented by nodes in the graph
-#'@param MRF_mod A fitted \code{MRFcov} object
+#'@param MRF_mod A fitted \code{MRFcov} or \code{bootstrap_MRF} object
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param covariate Character representing the continuous covariate name
@@ -47,7 +47,7 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
     node_names <- list(rownames(interaction_coefficients),
                  rownames(interaction_coefficients))
   }
-  dimnames(interaction_coefficients) <- node_names
+  dimnames(interaction_coefficients) <- list(node_names, node_names)
 
   if(missing(main)){
     main <- paste('Estimated node interactions at varying',
@@ -65,16 +65,15 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
     #### If plot_booted_coefs = TRUE, extract and plot mean coefficients ####
     #### Extract model coefficients ####
     coef_matrix <- MRF_mod$direct_coef_means
-    interaction_coefficients <- coef_matrix[,2:(nrow(coef_matrix)+ 1)]  +
+    interaction_coefficients <- coef_matrix[, 2:(nrow(coef_matrix) + 1)]  +
       (Reduce(`+`, MRF_mod$indirect_coef_mean) /
          length(MRF_mod$indirect_coef_mean))
 
     #### Specify default parameter settings ####
     if(missing(node_names)){
-      node_names <- list(rownames(interaction_coefficients),
-                         rownames(interaction_coefficients))
+      node_names <- rownames(interaction_coefficients)
     }
-    dimnames(interaction_coefficients) <- node_names
+    dimnames(interaction_coefficients) <- list(node_names, node_names)
 
     if(missing(main)){
       main <- paste('Mean estimated node interactions at varying',
@@ -86,6 +85,8 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
     indirect_coef_names <- names(MRF_mod$indirect_coef_mean)
     which_matrix_keep <- grepl(covariate, indirect_coef_names)
     covariate_matrix <- MRF_mod$indirect_coef_mean[which_matrix_keep][[1]]
+    rownames(covariate_matrix) <- node_names
+    colnames(covariate_matrix) <- node_names
     melted_cov_matrix <- reshape2::melt(get_upper_tri(as.matrix(covariate_matrix)), na.rm = T)
     melted_baseinteraction_matrix = reshape2::melt(get_upper_tri(as.matrix(interaction_coefficients)),
                                                    na.rm = T)

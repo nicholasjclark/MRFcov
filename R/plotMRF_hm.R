@@ -4,7 +4,7 @@
 #'plot a heatmap of node interaction coefficients.
 #'
 #'
-#'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{BootstrapCoefs} object
+#'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF} object
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param main An optional character title for the plot
