@@ -145,6 +145,8 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
       } else {
         nas_present <- FALSE
   }
+  } else {
+    nas_present <- FALSE
   }
 
   if(missing(sample_seed)) {
