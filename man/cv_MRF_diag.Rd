@@ -5,7 +5,8 @@
 \title{MRF cross validation plots to optimise regularization parameters}
 \usage{
 cv_MRF_diag(data, min_lambda1, max_lambda1, by_lambda1, separate_min, n_nodes,
-  lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates)
+  lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates,
+  compare_null)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -48,6 +49,8 @@ between 1 and 100000}
 l1 regularization parameter. Defaults to \code{n_folds}}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication}
+
+\item{compare_null}{Logical. If true, null models}
 }
 \value{
 A \code{ggplot2} object plotting LOESS regressions of

@@ -35,6 +35,9 @@
 #'for dividing data into folds. Default is a random seed
 #'between 1 and 100000
 #'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication
+#'@param compare_null Logical. If \code{TRUE}, null models will also be run and plotted to
+#'assess the influence of including covariates on model predictive performance.
+#'Default is \code{FALSE}
 #'@return A \code{ggplot2} object plotting LOESS regressions of
 #'relationships between l1−regularization values and predictive metrics
 #'
@@ -46,11 +49,16 @@
 #'
 cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                         separate_min, n_nodes, lambda2, n_cores,
-                        sample_seed, n_folds, n_fold_runs, n_covariates){
+                        sample_seed, n_folds, n_fold_runs, n_covariates,
+                        compare_null){
 
   #### Specify default parameter values and initiate warnings ####
   if(missing(separate_min)) {
     separate_min <- FALSE
+  }
+
+  if(missing(compare_null)) {
+    compare_null <- FALSE
   }
 
   if(missing(n_folds)) {
@@ -142,6 +150,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                     'mean_sensitivity',
                     'mean_specificity'))
 
+  if(!compare_null){
   #### Plot predictive metrics with LOESS smoohts and return as a grid ####
   scaleFUN <- function(x) sprintf("%.3f", x)
 
@@ -195,6 +204,97 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     ggplot2::labs(y = 'Sensitivity',
          x = expression(paste("Regularization parameter ", lambda)))
 
-  return(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
+  output(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
                       heights = c(1, 1, 1, 1)))
+  } else {
+    #### If compare_null = TRUE, run models using no covariates for comparison
+    crossval_mrf_nulls <- cv_MRF(data = data[ ,1:n_nodes], min_lambda1 = min_lambda1,
+                            max_lambda1 = max_lambda1,
+                            by_lambda1 = by_lambda1, separate_min = separate_min,
+                            lambda2 = lambda2,
+                            n_nodes = n_nodes, n_cores = n_cores,
+                            sample_seed = sample_seed,
+                            n_folds = n_folds, n_fold_runs = n_fold_runs,
+                            n_covariates = 0)
+
+    ### Extract null predictive metrics and combine with full metrics from above
+    plot_dat_null <- purrr::map_df(crossval_mrf_nulls, magrittr::extract,
+                              c('mean_pos_pred', 'mean_tot_pred',
+                                'mean_sensitivity',
+                                'mean_specificity'))
+
+    colnames(plot_dat_null) <- c('mean_pos_pred_null','mean_tot_pred_null',
+                                 'mean_sensitivity_null','mean_specificity_null')
+    plot_dat <- cbind(plot_dat, plot_dat_null)
+
+    #### Plot predictive metrics with LOESS smoohts and return as a grid ####
+    scaleFUN <- function(x) sprintf("%.3f", x)
+
+    plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_tot_pred)) +
+      ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::geom_smooth(aes(y = mean_tot_pred_null), method = 'loess',
+                           col = 'blue', fill = 'blue',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels=scaleFUN) +
+      ggplot2::labs(y = 'True predictions',
+                    x = '') +
+      ggplot2::theme(legend.position = "none")
+
+    plot2 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_pos_pred)) +
+      ggplot2::geom_smooth(method = 'loess',col = 'red4', fill = 'red4',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::geom_smooth(aes(y = mean_pos_pred_null), method = 'loess',
+                           col = 'blue', fill = 'blue',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'PPV',
+                    x = '')
+
+    plot3 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_specificity)) +
+      ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
+                           size=0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::geom_smooth(aes(y = mean_specificity_null), method = 'loess',
+                           col = 'blue', fill = 'blue',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Specificity',
+                    x = '')
+
+    plot4 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1,
+                                                    y = mean_sensitivity)) +
+      ggplot2::geom_smooth(method = 'loess',col = 'red4',fill = 'red4',
+                           size=0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::geom_smooth(aes(y = mean_sensitivity_null), method = 'loess',
+                           col = 'blue', fill = 'blue',
+                           size = 0.5, level = 0.99, alpha = 0.3) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Sensitivity',
+                    x = expression(paste("Regularization parameter ", lambda)))
+
+    output(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
+                                   heights = c(1, 1, 1, 1)))
+  }
+
+  return(output)
 }

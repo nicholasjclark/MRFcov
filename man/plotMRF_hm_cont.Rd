@@ -11,7 +11,7 @@ plotMRF_hm_cont(data, MRF_mod, node_names, covariate, main, n_plot_columns,
 \item{data}{Dataframe. The input data where the
 left-most variables are binary occurrences that are represented by nodes in the graph}
 
-\item{MRF_mod}{A fitted \code{MRFcov} object}
+\item{MRF_mod}{A fitted \code{MRFcov} or \code{bootstrap_MRF} object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
 is to use rownames from the \code{MRFcov$graph} slot}

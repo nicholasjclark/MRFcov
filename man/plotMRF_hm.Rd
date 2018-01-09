@@ -7,7 +7,7 @@
 plotMRF_hm(MRF_mod, node_names, main, plot_booted_coefs)
 }
 \arguments{
-\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{BootstrapCoefs} object}
+\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF} object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
 is to use rownames from the \code{MRFcov$graph} slot}
