@@ -81,6 +81,3 @@ the dataset is bootstrapped a user-specified number of times at each l1 value.
 \code{\link{MRFcov}},
 \code{\link[penalized]{penalized}}
 }
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
-}

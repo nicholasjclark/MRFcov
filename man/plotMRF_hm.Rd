@@ -7,7 +7,7 @@
 plotMRF_hm(MRF_mod, node_names, main, plot_booted_coefs)
 }
 \arguments{
-\item{MRF_mod}{A fitted \code{MRFcov} or \code{BootstrapCoefs} object}
+\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{BootstrapCoefs} object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
 is to use rownames from the \code{MRFcov$graph} slot}
@@ -27,7 +27,4 @@ plot a heatmap of node interaction coefficients.
 }
 \seealso{
 \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
-}
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
 }

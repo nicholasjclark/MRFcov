@@ -33,6 +33,3 @@ using equations from a \code{\link{MRFcov}}.
 \seealso{
 \code{\link{MRFcov}}, \code{\link{cv_MRF}}
 }
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
-}

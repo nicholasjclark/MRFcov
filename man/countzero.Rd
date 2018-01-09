@@ -25,6 +25,3 @@ this function is not called directly, but is used in the function
 \seealso{
 \code{\link{bootstrap_MRF}}
 }
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
-}

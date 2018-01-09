@@ -24,6 +24,3 @@ This function performs the cross-multiplication necessary
 for prepping datasets to be used in \code{\link{MRFcov}} models. This
 function is called by several of the functions within the package.
 }
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
-}

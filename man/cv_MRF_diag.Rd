@@ -63,6 +63,3 @@ to assess model predictive performance at each l1 value.
 \code{\link{cv_MRF}},
 \code{\link[penalized]{penalized}}
 }
-\author{
-Nicholas Clark: \url{nicholas.j.clark1214@gmail.com}
-}

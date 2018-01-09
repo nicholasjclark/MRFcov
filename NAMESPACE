@@ -2,7 +2,7 @@
 
 export(MRFcov)
 export(bootstrap_MRF)
-export(comp.rosalia.MRF)
+export(comp_rosalia_MRF)
 export(countzero)
 export(cv_MRF)
 export(cv_MRF_diag)
