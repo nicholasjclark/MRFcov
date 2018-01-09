@@ -4,7 +4,7 @@
 #'This function is the workhorse of the \code{MRFcov} package, running
 #'separate penalized logistic regressions for each node to estimate parameters of binary
 #'Markov Random Fields graphs. Covariates can be included, and will be retained in models
-#'based on lasso variable selection.
+#'based on LASSO variable selection.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
 #'@import penalized
@@ -46,7 +46,7 @@
 #'    }
 #'
 #'
-#'@references Ising, E. (1925). Beitrag zur theorie des ferromagnetismus.
+#'@references Ising, E. (1925). Beitrag zur Theorie des Ferromagnetismus.
 #'Zeitschrift für Physik A Hadrons and Nuclei, 31, 253-258.\cr\cr
 #'Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
 #'A sparse Ising model with covariates. Biometrics, 70, 943-953.
