@@ -4,7 +4,7 @@
 #'plot a heatmap of node interaction coefficients.
 #'
 #'
-#'@param MRF_mod A fitted \code{MRFcov} or \code{BootstrapCoefs} object
+#'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{BootstrapCoefs} object
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param main An optional character title for the plot
@@ -28,16 +28,21 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
     plot_booted_coefs <- FALSE
   }
 
+  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
+  if('beta' %in% names(MRF_mod)){
+    MRF_mod$graph <- MRF_mod$beta
+  }
+
   if(!plot_booted_coefs){
-  lastgraphparam <- ncol(MRF_mod$graph)
+  n_nodes <- ncol(MRF_mod$graph)
 
   #If covariates were included, extract interaction coefficients from the direct_coefs slot
   if(length(MRF_mod$direct_coefs) > 0){
   mod.coefs <- MRF_mod$direct_coefs
 
   #Convert node interaction coefficients to a matrix
-  interaction_coefficients <- as.matrix(mod.coefs[1:lastgraphparam,
-                                                  2:(lastgraphparam + 1)])
+  interaction_coefficients <- as.matrix(mod.coefs[1:n_nodes,
+                                                  2:(n_nodes + 1)])
   } else {
     interaction_coefficients <- MRF_mod$graph
   }
