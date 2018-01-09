@@ -10,7 +10,7 @@ Authors@R: c(
     person("Oscar", "Lindberg", email = "o.lindberg@gmail.com", role = "aut"))
 Maintainer: Nicholas Clark <nicholas.j.clark1214@gmail.com>
 Description: Approximate node interaction parameters of undirected Markov Random Fields 
-    graphs. Models can incorporate covariates, allowing users to estimate
+    graphs. Models can incorporate additional covariates, allowing users to estimate
     how interactions between nodes in the graph are predicted to change across
     covariate gradients.
 Depends: R (>= 3.3.3), penalized
