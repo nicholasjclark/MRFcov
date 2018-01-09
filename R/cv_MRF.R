@@ -110,12 +110,16 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
   }
 
-  if(any(is.na(data[, (n_nodes + 1):ncol(data)]))){
-    warning('NAs detected in covariate columns. These will be imputed from rnorm(mean=0,sd=1)',
-            call. = FALSE)
-    nas_present <- TRUE
+  if(missing(n_covariates)){
+    n_covariates <- ncol(data) - n_nodes
   } else {
-    nas_present <- FALSE
+    if(sign(n_covariates) != 1){
+      stop('Please provide a positive integer for n_covariates')
+    } else {
+      if(sfsmisc::is.whole(n_covariates) == FALSE){
+        stop('Please provide a positive integer for n_covariates')
+      }
+    }
   }
 
   if(missing(n_nodes)) {
@@ -133,16 +137,14 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
   }
 
-  if(missing(n_covariates)){
-    n_covariates <- ncol(data) - n_nodes
-  } else {
-    if(sign(n_covariates) != 1){
-      stop('Please provide a positive integer for n_covariates')
-    } else {
-      if(sfsmisc::is.whole(n_covariates) == FALSE){
-        stop('Please provide a positive integer for n_covariates')
-      }
-    }
+  if(n_covariates > 0){
+    if(any(is.na(data[, (n_nodes + 1):ncol(data)]))){
+      warning('NAs detected in covariate columns. These will be imputed from rnorm(mean=0,sd=1)',
+              call. = FALSE)
+      nas_present <- TRUE
+      } else {
+        nas_present <- FALSE
+  }
   }
 
   if(missing(sample_seed)) {
