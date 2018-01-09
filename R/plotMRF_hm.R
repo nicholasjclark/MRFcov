@@ -86,6 +86,8 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
     ggplot2::theme(legend.key.size = ggplot2::unit(0.5, "cm"))
   } else {
 
+    n_nodes <- nrow(MRF_mod$direct_coef_means)
+
     if(missing(main)){
       main <- 'Summary statistics of estimated node interactions'
     }
@@ -102,7 +104,6 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
     }
 
     #Extract summary statistics of interaction coefficients
-    n_nodes <- nrow(MRF_mod$direct_coef_means)
     upper_tri <- get_upper_tri(MRF_mod$direct_coef_means[1:n_nodes, 2:(n_nodes + 1)] +
                                  (Reduce(`+`, MRF_mod$indirect_coef_mean) /
                                     length(MRF_mod$indirect_coef_mean)))
