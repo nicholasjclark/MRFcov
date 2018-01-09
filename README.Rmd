@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (a class of models known as *Conditional Markov Random Fields*; following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients
+The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (a class of models known as *Conditional Markov Random Fields*; following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
 ## Installation
 
@@ -99,6 +99,7 @@ booted_MRF$mean_key_coefs$Microfilaria
 ## References
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.   
   
-Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. 2016. Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.  
+Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.  
   
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.
+

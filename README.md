@@ -3,7 +3,7 @@
 Overview
 --------
 
-The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (a class of models known as *Conditional Markov Random Fields*; following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients
+The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields graphs. Models can incorporate covariates (a class of models known as *Conditional Markov Random Fields*; following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
 Installation
 ------------
@@ -91,45 +91,45 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.67197849 -3.2661095
-#> 7 scale.prop.zos_Microfilaria     0.11870593 -1.3727431
-#> 4              scale.prop.zos     0.06593273 -1.0230659
-#> 3                Microfilaria     0.06179476  0.9904416
-#> 6         scale.prop.zos_Plas     0.04735949  0.8670748
-#> 2                        Plas     0.01807517 -0.5356662
-#> 5   scale.prop.zos_Hkillangoi     0.01615343 -0.5063904
+#> 1                  Hkillangoi     0.67848476 -3.4502142
+#> 7 scale.prop.zos_Microfilaria     0.10664903 -1.3679004
+#> 3                Microfilaria     0.07927827  1.1793782
+#> 4              scale.prop.zos     0.05245054 -0.9592924
+#> 6         scale.prop.zos_Plas     0.03466231  0.7798386
+#> 2                        Plas     0.02514577 -0.6642147
+#> 5   scale.prop.zos_Hkillangoi     0.02332931 -0.6397745
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.71179444 -3.2661095
-#> 2               Microfilaria     0.11248360 -1.2983688
-#> 5        scale.prop.zos_Plas     0.09947298  1.2209729
-#> 3             scale.prop.zos     0.05496011 -0.9075640
-#> 4 scale.prop.zos_Hzosteropis     0.01711055 -0.5063904
+#> 1                Hzosteropis     0.71005759 -3.4502142
+#> 5        scale.prop.zos_Plas     0.11652220  1.3976667
+#> 2               Microfilaria     0.09850066 -1.2850465
+#> 3             scale.prop.zos     0.04791423 -0.8962549
+#> 4 scale.prop.zos_Hzosteropis     0.02441492 -0.6397745
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.48146621  2.1046078
-#> 5   scale.prop.zos_Hkillangoi     0.16204495  1.2209729
-#> 3              scale.prop.zos     0.15160360 -1.1809813
-#> 6 scale.prop.zos_Microfilaria     0.08708085  0.8950547
-#> 4  scale.prop.zos_Hzosteropis     0.08172155  0.8670748
-#> 1                 Hzosteropis     0.03118976 -0.5356662
+#> 2                Microfilaria     0.42513993  1.9156717
+#> 5   scale.prop.zos_Hkillangoi     0.22630647  1.3976667
+#> 3              scale.prop.zos     0.17057017 -1.2134075
+#> 4  scale.prop.zos_Hzosteropis     0.07045296  0.7798386
+#> 6 scale.prop.zos_Microfilaria     0.05300278  0.6764013
+#> 1                 Hzosteropis     0.05111010 -0.6642147
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.39805468  2.1046078
-#> 5 scale.prop.zos_Hzosteropis     0.16934756 -1.3727431
-#> 2                 Hkillangoi     0.15149437 -1.2983688
-#> 4             scale.prop.zos     0.11936954 -1.1525150
-#> 1                Hzosteropis     0.08815727  0.9904416
-#> 6        scale.prop.zos_Plas     0.07199454  0.8950547
+#> 3                       Plas     0.35259398  1.9156717
+#> 5 scale.prop.zos_Hzosteropis     0.17978013 -1.3679004
+#> 2                 Hkillangoi     0.15866108 -1.2850465
+#> 1                Hzosteropis     0.13364076  1.1793782
+#> 4             scale.prop.zos     0.13002757 -1.1633258
+#> 6        scale.prop.zos_Plas     0.04395837  0.6764013
 ```
 
 References
@@ -137,6 +137,6 @@ References
 
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.
 
-Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. 2016. Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
+Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
 
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.
