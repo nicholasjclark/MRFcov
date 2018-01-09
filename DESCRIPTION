@@ -26,7 +26,7 @@ Imports: purrr,
     reshape2,
     sfsmisc
 Remotes: davharris/rosalia
-License: MIT
+License: GPL-3.0+
 Encoding: UTF-8
 RoxygenNote: 6.0.1
 LazyData: true
