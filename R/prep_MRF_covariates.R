@@ -36,7 +36,6 @@ prep_MRF_covariates <- function(data, n_nodes){
 
   #### If no covariates included, return the original dataframe
   if(n_nodes == ncol(data)){
-    warning('No covariates specified, returning original input data')
     output <- data
   } else {
 

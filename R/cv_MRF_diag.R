@@ -214,8 +214,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                             lambda2 = lambda2,
                             n_nodes = n_nodes, n_cores = n_cores,
                             sample_seed = sample_seed,
-                            n_folds = n_folds, n_fold_runs = n_fold_runs,
-                            n_covariates = 0)
+                            n_folds = n_folds, n_fold_runs = n_fold_runs)
 
     ### Extract null predictive metrics and combine with full metrics from above
     plot_dat_null <- purrr::map_df(crossval_mrf_nulls, magrittr::extract,
