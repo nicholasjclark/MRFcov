@@ -229,12 +229,11 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     #### Plot predictive metrics with LOESS smoohts and return as a grid ####
     scaleFUN <- function(x) sprintf("%.3f", x)
 
-    plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1)) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_tot_pred, col = 'MRFcov'),
-                           method = 'loess', fill = 'red4',
+    plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_tot_pred)) +
+      ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
                            size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_tot_pred_null, col = 'MRF'),
-                           method = 'loess', fill = 'blue',
+      ggplot2::geom_smooth(ggplot2::aes(y = mean_tot_pred_null),
+                           method = 'loess', col = 'black', fill = 'black',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
@@ -243,16 +242,13 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                      panel.grid.minor = ggplot2::element_blank()) +
       ggplot2::scale_y_continuous(labels=scaleFUN) +
       ggplot2::labs(y = 'True predictions',
-                    x = '') +
-      ggplot2::scale_colour_manual(name = "", values = c("blue", "red4")) +
-      ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(fill = 'white')))
-      ggplot2::theme(legend.position = "top")
+                    x = '')
 
     plot2 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_pos_pred)) +
       ggplot2::geom_smooth(method = 'loess',col = 'red4', fill = 'red4',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::geom_smooth(ggplot2::aes(y = mean_pos_pred_null), method = 'loess',
-                           col = 'blue', fill = 'blue',
+                           col = 'black', fill = 'black',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
@@ -267,7 +263,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
       ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
                            size=0.5, level = 0.99, alpha = 0.3) +
       ggplot2::geom_smooth(ggplot2::aes(y = mean_specificity_null), method = 'loess',
-                           col = 'blue', fill = 'blue',
+                           col = 'black', fill = 'black',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
@@ -283,7 +279,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
       ggplot2::geom_smooth(method = 'loess',col = 'red4',fill = 'red4',
                            size=0.5, level = 0.99, alpha = 0.3) +
       ggplot2::geom_smooth(ggplot2::aes(y = mean_sensitivity_null), method = 'loess',
-                           col = 'blue', fill = 'blue',
+                           col = 'black', fill = 'black',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
@@ -295,7 +291,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                     x = expression(paste("Regularization parameter ", lambda)))
 
     output <- gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
-                                   heights = c(1.4, 1, 1, 1))
+                                   heights = c(1, 1, 1, 1))
   }
 
   return(output)
