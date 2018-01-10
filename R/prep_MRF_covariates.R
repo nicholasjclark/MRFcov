@@ -34,6 +34,12 @@ prep_MRF_covariates <- function(data, n_nodes){
     }
   }
 
+  #### If no covariates included, return the original dataframe
+  if(n_nodes == ncol(data)){
+    warning('No covariates specified, returning original input data')
+    output <- data
+  } else {
+
   data <- data.frame(data)
 
   #Gather node variable column vectors
@@ -56,7 +62,9 @@ prep_MRF_covariates <- function(data, n_nodes){
   mult_covs <- do.call(cbind, mult_cov_list)
   prepped_mrf_data <- cbind(node_observations, cov_observations, mult_covs)
 
-  return(prepped_mrf_data)
+  output <- prepped_mrf_data
+  }
+  return(output)
 }
 
 
