@@ -232,7 +232,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_tot_pred)) +
       ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
                            size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(aes(y = mean_tot_pred_null), method = 'loess',
+      ggplot2::geom_smooth(ggplot2::aes(y = mean_tot_pred_null), method = 'loess',
                            col = 'blue', fill = 'blue',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
@@ -248,7 +248,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     plot2 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_pos_pred)) +
       ggplot2::geom_smooth(method = 'loess',col = 'red4', fill = 'red4',
                            size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(aes(y = mean_pos_pred_null), method = 'loess',
+      ggplot2::geom_smooth(ggplot2::aes(y = mean_pos_pred_null), method = 'loess',
                            col = 'blue', fill = 'blue',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
@@ -263,7 +263,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     plot3 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_specificity)) +
       ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
                            size=0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(aes(y = mean_specificity_null), method = 'loess',
+      ggplot2::geom_smooth(ggplot2::aes(y = mean_specificity_null), method = 'loess',
                            col = 'blue', fill = 'blue',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
@@ -279,7 +279,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                                                     y = mean_sensitivity)) +
       ggplot2::geom_smooth(method = 'loess',col = 'red4',fill = 'red4',
                            size=0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(aes(y = mean_sensitivity_null), method = 'loess',
+      ggplot2::geom_smooth(ggplot2::aes(y = mean_sensitivity_null), method = 'loess',
                            col = 'blue', fill = 'blue',
                            size = 0.5, level = 0.99, alpha = 0.3) +
       ggplot2::theme_bw() +
