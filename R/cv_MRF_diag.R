@@ -204,8 +204,8 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     ggplot2::labs(y = 'Sensitivity',
          x = expression(paste("Regularization parameter ", lambda)))
 
-  output(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
-                      heights = c(1, 1, 1, 1)))
+  output <- gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
+                      heights = c(1, 1, 1, 1))
   } else {
     #### If compare_null = TRUE, run models using no covariates for comparison
     crossval_mrf_nulls <- cv_MRF(data = data[ ,1:n_nodes], min_lambda1 = min_lambda1,
@@ -291,8 +291,8 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
       ggplot2::labs(y = 'Sensitivity',
                     x = expression(paste("Regularization parameter ", lambda)))
 
-    output(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
-                                   heights = c(1, 1, 1, 1)))
+    output <- gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
+                                   heights = c(1, 1, 1, 1))
   }
 
   return(output)
