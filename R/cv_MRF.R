@@ -141,7 +141,7 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
   }
 
-  if(n_covariates != 0){
+  if(n_covariates > 0){
     if(any(is.na(data[, (n_nodes + 1):ncol(data)]))){
       warning('NAs detected in covariate columns. These will be imputed from rnorm(mean=0,sd=1)',
               call. = FALSE)
