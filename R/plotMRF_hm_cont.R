@@ -17,12 +17,12 @@
 #'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
 #'will be plotted. Default is \strong{FALSE}
 #'@return A \code{ggplot2} object
-#'@seealso \code{\link{MRFcov}}
+#'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
 #'
 #'@export
 #'
 plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
-                             main, n_plot_columns, plot_booted_coefs){
+                           main, n_plot_columns, plot_booted_coefs){
 
   if(missing(n_plot_columns)){
     n_plot_columns <- 2
@@ -39,28 +39,28 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
   }
 
   if(!plot_booted_coefs){
-  #### Extract model coefficients ####
-  interaction_coefficients <- MRF_mod$graph
+    #### Extract model coefficients ####
+    interaction_coefficients <- MRF_mod$graph
 
-  #### Specify default parameter settings ####
-  if(missing(node_names)){
-    node_names <- list(rownames(interaction_coefficients),
-                 rownames(interaction_coefficients))
-  }
-  dimnames(interaction_coefficients) <- list(node_names, node_names)
+    #### Specify default parameter settings ####
+    if(missing(node_names)){
+      node_names <- list(rownames(interaction_coefficients),
+                         rownames(interaction_coefficients))
+    }
+    dimnames(interaction_coefficients) <- list(node_names, node_names)
 
-  if(missing(main)){
-    main <- paste('Estimated node interactions at varying',
-                               covariate,
-                               'magnitudes')
-  }
+    if(missing(main)){
+      main <- paste('Estimated node interactions at varying',
+                    covariate,
+                    'magnitudes')
+    }
 
-  #### Extract indirect effect matrix that matches the covariate name ####
-  indirect_coef_names <- names(MRF_mod$indirect_coefs)
-  which_matrix_keep <- grepl(covariate, indirect_coef_names)
-  covariate_matrix <- MRF_mod$indirect_coefs[which_matrix_keep]
-  melted_cov_matrix <- reshape2::melt(get_upper_tri(as.matrix(covariate_matrix[[1]][[1]])), na.rm = T)
-  melted_baseinteraction_matrix = reshape2::melt(get_upper_tri(as.matrix(MRF_mod$graph)), na.rm = T)
+    #### Extract indirect effect matrix that matches the covariate name ####
+    indirect_coef_names <- names(MRF_mod$indirect_coefs)
+    which_matrix_keep <- grepl(covariate, indirect_coef_names)
+    covariate_matrix <- MRF_mod$indirect_coefs[which_matrix_keep]
+    melted_cov_matrix <- reshape2::melt(get_upper_tri(as.matrix(covariate_matrix[[1]][[1]])), na.rm = T)
+    melted_baseinteraction_matrix = reshape2::melt(get_upper_tri(as.matrix(MRF_mod$graph)), na.rm = T)
   } else {
     #### If plot_booted_coefs = TRUE, extract and plot mean coefficients ####
     #### Extract model coefficients ####
@@ -91,7 +91,7 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
     melted_baseinteraction_matrix = reshape2::melt(get_upper_tri(as.matrix(interaction_coefficients)),
                                                    na.rm = T)
 
-}
+  }
 
   #### Extract quantiles of observed values for the covariate ####
   observed_cov_values <- as.vector(data[[paste(covariate)]])
@@ -119,20 +119,20 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
   plot_dat$Factor <- as.factor(plot_dat$cov.val)
   plot_dat$value <- plot_dat$Correlation
   levels(plot_dat$Factor) <- c('minimum', '25% quantile',
-                                       '75% quantile', 'maximum')
+                               '75% quantile', 'maximum')
 
   plot <- ggplot2::ggplot(data = plot_dat, ggplot2::aes(Var2, Var1, fill = value))+
     ggplot2::geom_tile(color = "gray40") +
     ggplot2::facet_wrap(~Factor, ncol = n_plot_columns) +
     ggplot2::scale_fill_gradient2(low = 'mediumblue', high = "red4", mid = 'white',
-                         midpoint = 0, space = "Lab",
-                         name = "Correlation\ncoefficient") +
+                                  midpoint = 0, space = "Lab",
+                                  name = "Correlation\ncoefficient") +
     ggplot2::theme_dark() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
-                                     size = 7.5, hjust = 1),
-          axis.text.y = ggplot2::element_text(size=7.5),
-          axis.title.x = ggplot2::element_blank(),
-          axis.title.y = ggplot2::element_blank()) +
+                                                       size = 7.5, hjust = 1),
+                   axis.text.y = ggplot2::element_text(size=7.5),
+                   axis.title.x = ggplot2::element_blank(),
+                   axis.title.y = ggplot2::element_blank()) +
     ggplot2::theme(axis.ticks = ggplot2::element_blank()) +
     ggplot2::theme(strip.text.x = ggplot2::element_text(size = 8,
                                                         face = 'bold')) +
@@ -142,10 +142,9 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
     ggplot2::coord_fixed() +
     ggplot2::labs(title = main)+
     ggplot2::theme(plot.title = ggplot2::element_text(face = 'bold',
-                                    margin = ggplot2::margin(b = 0.8),
-                                    hjust = 0.5, size = 10))+
+                                                      margin = ggplot2::margin(b = 0.8),
+                                                      hjust = 0.5, size = 10))+
     ggplot2::theme(legend.key.size = ggplot2::unit(0.5, "cm"))
 
   return(plot)
 }
-

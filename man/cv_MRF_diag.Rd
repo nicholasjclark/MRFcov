@@ -50,7 +50,9 @@ l1 regularization parameter. Defaults to \code{n_folds}}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication}
 
-\item{compare_null}{Logical. If true, null models}
+\item{compare_null}{Logical. If \code{TRUE}, null models will also be run and plotted to
+assess the influence of including covariates on model predictive performance.
+Default is \code{FALSE}}
 }
 \value{
 A \code{ggplot2} object plotting LOESS regressions of
