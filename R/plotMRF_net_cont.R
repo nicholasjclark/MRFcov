@@ -39,7 +39,7 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
   }
 
   #### Function to create network graphs
-  create_netgraph = function(matrix, node_names, cutoff){
+  create_netgraph = function(matrix, node_names){
 
     # Create the adjacency network graph
     comm.net <- igraph::graph.adjacency(matrix, weighted = T, mode = "undirected")
@@ -49,7 +49,6 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
     igraph::E(comm.net)$color <- ifelse(igraph::E(comm.net)$weight < 0,
                                         cols[1],
                                         cols[2])
-    comm.net <- igraph::delete.edges(comm.net, which(abs(igraph::E(comm.net)$weight) <= cutoff))
     igraph::E(comm.net)$width <- abs(igraph::E(comm.net)$weight) * 1.75
     igraph::V(comm.net)$label <- node_names
     igraph::V(comm.net)$size <- 44
@@ -130,8 +129,7 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
   cont.cov.mats <- lapply(observed_cov_quantiles, function(j){
     pred_values <- (covariate_matrix * j) + baseinteraction_matrix
     net.plot <- create_netgraph(matrix = pred_values,
-                                node_names = node_names,
-                                cutoff = cutoff)
+                                node_names = node_names)
   })
   arrows(x0 = -5.3, y0 = 1.4, x1 = 0,
          y1 = 1.4, xpd = NA, length = 0.1)
