@@ -14,13 +14,16 @@
 #'@param plot_booted_coefs Logical. If \strong{TRUE}, mean interaction coefficients,
 #'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
 #'will be plotted. Default is \strong{FALSE}
+#'@param cutoff Positive numeric. Interaction coefficients whose absolute values are
+#'below this threshold will not be plotted. This is useful when many weak interactions
+#'tend to create cluttered and uninterpetable network plots. Default is \code{0}
 #'@return A plot object
 #'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
 #'
 #'@export
 #'
 plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
-                           main, plot_booted_coefs){
+                           main, plot_booted_coefs, cutoff){
 
   if(missing(plot_booted_coefs)){
     plot_booted_coefs <- FALSE
@@ -32,6 +35,10 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
                   'magnitudes')
   }
 
+  if(missing(cutoff)){
+    cutoff <- 0
+  }
+
   #### Function to get the upper triangle of a symmetric matrix ####
   get_upper_tri <- function(cormat){
     cormat[lower.tri(cormat)] <- NA
@@ -39,7 +46,7 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
   }
 
   #### Function to create network graphs
-  create_netgraph = function(matrix, node_names){
+  create_netgraph = function(matrix, node_names, cutoff){
 
     # Create the adjacency network graph
     comm.net <- igraph::graph.adjacency(matrix, weighted = T, mode = "undirected")
@@ -49,6 +56,7 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
     igraph::E(comm.net)$color <- ifelse(igraph::E(comm.net)$weight < 0,
                                         cols[1],
                                         cols[2])
+    comm.net <- igraph::delete.edges(comm.net, which(abs(igraph::E(comm.net)$weight) <= cutoff))
     igraph::E(comm.net)$width <- abs(igraph::E(comm.net)$weight) * 1.75
     igraph::V(comm.net)$label <- node_names
     igraph::V(comm.net)$size <- 44
@@ -129,7 +137,8 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
   cont.cov.mats <- lapply(observed_cov_quantiles, function(j){
     pred_values <- (covariate_matrix * j) + baseinteraction_matrix
     net.plot <- create_netgraph(matrix = pred_values,
-                                node_names = node_names)
+                                node_names = node_names,
+                                cutoff = cutoff)
   })
   arrows(x0 = -5.3, y0 = 1.4, x1 = 0,
          y1 = 1.4, xpd = NA, length = 0.1)
