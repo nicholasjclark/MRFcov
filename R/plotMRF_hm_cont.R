@@ -44,8 +44,7 @@ plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
 
     #### Specify default parameter settings ####
     if(missing(node_names)){
-      node_names <- list(rownames(interaction_coefficients),
-                         rownames(interaction_coefficients))
+      node_names <- rownames(interaction_coefficients)
     }
     dimnames(interaction_coefficients) <- list(node_names, node_names)
 
