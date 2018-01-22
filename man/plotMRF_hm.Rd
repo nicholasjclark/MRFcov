@@ -7,16 +7,17 @@
 plotMRF_hm(MRF_mod, node_names, main, plot_booted_coefs)
 }
 \arguments{
-\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF} object}
+\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
+object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
 is to use rownames from the \code{MRFcov$graph} slot}
 
 \item{main}{An optional character title for the plot}
 
-\item{plot_booted_coefs}{Logical. If \strong{TRUE}, interaction coefficients,
+\item{plot_booted_coefs}{Logical. If \code{TRUE}, interaction coefficients,
 taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \strong{FALSE}}
+will be plotted. Default is \code{FALSE}}
 }
 \value{
 A \code{ggplot2} object
@@ -38,5 +39,5 @@ plotMRF_hm(MRF_mod = CRFmod)}
 
 }
 \seealso{
-\code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
+\code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
 }
