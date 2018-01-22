@@ -95,6 +95,14 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
     }
   }
 
+  if(missing(lambda1)) {
+    stop('Please provide a non-negative numeric value for lambda1')
+  } else {
+    if(lambda1 < 0){
+      stop('Please provide a non-negative numeric value for lambda1')
+    }
+  }
+
   if(missing(n_cores)) {
     n_cores <- 1
   } else {

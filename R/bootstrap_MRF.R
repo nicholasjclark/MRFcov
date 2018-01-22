@@ -102,8 +102,36 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     lambda2 <- 0
   } else {
     if(sign(lambda2) != 1){
-      stop('Please provide a positive numeric value for lambda2')
+      stop('Please provide a non-negative numeric value for lambda2')
     }
+  }
+
+  if(missing(min_lambda1)) {
+    stop('Please provide a non-negative numeric value for min_lambda1')
+  } else {
+    if(min_lambda1 < 0){
+      stop('Please provide a non-negative numeric value for min_lambda1')
+    }
+  }
+
+  if(missing(max_lambda1)) {
+    stop('Please provide a non-negative numeric value for max_lambda1')
+  } else {
+    if(max_lambda1 < 0){
+      stop('Please provide a non-negative numeric value for max_lambda1')
+    }
+  }
+
+  if(missing(by_lambda1)) {
+    stop('Please provide a non-negative numeric value for by_lambda1')
+  } else {
+    if(by_lambda1 < 0){
+      stop('Please provide a non-negative numeric value for by_lambda1')
+    }
+  }
+
+  if(by_lambda1 > max_lambda1){
+    stop('Please provide a by_lambda1 that can be used as an increment between min_lambda1 & max_lambda1')
   }
 
   if(missing(n_nodes)) {
@@ -168,7 +196,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     dplyr::sample_n(data, nrow(data), TRUE)
   }
 
-  #### Function to impute NAs from normal distribution (mean=0; sd=1) ####
+  #### Function to impute NAs from normal distribution (mean = 0; sd = 1) ####
   impute_nas <- function(empty){
     data[is.na(data)] <- sample(rnorm(sum(is.na(data)),
                                       mean = 0, sd = 1),
