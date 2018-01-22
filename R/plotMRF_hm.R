@@ -14,6 +14,17 @@
 #'@return A \code{ggplot2} object
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
+#'
+#'@details Interaction parameters from \code{MRF_mod} are plotted as a heatmap, where
+#'red colours indicate positive interactions and blue indicate negative interactions
+#'
+#'@examples
+#'\dontrun{
+#'data("Bird.parasites")
+#'CRFmod <- MRFcov(data = Bird.parasites,
+#'                 n_nodes = 4, lambda1 = 0.5)
+#'plotMRF_hm(MRF_mod = CRFmod)}
+#'
 #'@export
 #'
 plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){

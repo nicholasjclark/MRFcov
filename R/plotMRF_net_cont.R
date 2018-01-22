@@ -20,6 +20,17 @@
 #'@return A plot object
 #'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
 #'
+#'@details Observed values of the specified \code{covariate} are extracted by
+#'name matching of \code{colnames(data)}. Interaction parameters from \code{MRF_mod} are
+#'are then predicted at \code{min}, \code{median} and \code{max} of observed values, where
+#'red edge colours indicate positive interactions, blue indicate negative interactions, and
+#'the widths of edges indicate strengths of interactions
+#'
+#'@examples
+#'data("Bird.parasites")
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
+#'plotMRF_net_cont(data = Bird.parasites, MRF_mod = CRFmod, covariate = 'scale.prop.zos')
+#'
 #'@export
 #'
 plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,

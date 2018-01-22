@@ -19,6 +19,18 @@
 #'@return A \code{ggplot2} object
 #'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
 #'
+#'@details Observed values of the specified \code{covariate} are extracted by
+#'name matching of \code{colnames(data)}. Interaction parameters from \code{MRF_mod} are
+#'are then predicted at \code{quantile(probs = c(0, 0.25, 0.75, 1))} of observed values, where
+#'red colours indicate positive interactions and blue indicate negative interactions
+#'
+#'@examples
+#'\dontrun{
+#'data("Bird.parasites")
+#'CRFmod <- MRFcov(data = Bird.parasites,
+#'                 n_nodes = 4, lambda1 = 0.5)
+#'plotMRF_hm_cont(data = Bird.parasites, MRF_mod = CRFmod,
+#'                covariate = 'scale.prop.zos')}
 #'@export
 #'
 plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,

@@ -55,17 +55,41 @@ A \code{list} of six objects:
 \description{
 This function is the workhorse of the \code{MRFcov} package, running
 separate penalized logistic regressions for each node to estimate parameters of binary
-Markov Random Fields graphs. Covariates can be included, and will be retained in models
-based on LASSO variable selection.
+Markov Random Fields (MRF) graphs. Covariates can be included
+(a class of models known as Conditional Random Fields; CRF), to estimate
+how interactions vary across covariate magnitudes.
+}
+\details{
+Separate penalized logistic regressions are used to approximate
+MRF parameters, where the regression for species \code{j} includes an
+intercept and beta coefficients for the presence-absence of all other
+species (\code{/j}) in \code{data}. If covariates are included, beta coefficients
+are also estimated for the effect of the covariate on \code{j} and the
+effects of the covariate on interactions between \code{j} and all other species
+(\code{/j}). Because the number of parameters quickly increases with increasing
+numbers of species and covariates, LASSO penalization is used to regularize
+regressions based on values of regularization parameters \code{lambda1} and
+\code{lambda2}. See \code{\link[penalized]{penalized}} for details of
+the penalization process
+}
+\examples{
+\dontrun{
+data("Bird.parasites")
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
+          lambda1 = 0.5)}
+
 }
 \references{
 Ising, E. (1925). Beitrag zur Theorie des Ferromagnetismus.
 Zeitschrift für Physik A Hadrons and Nuclei, 31, 253-258.\cr\cr
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
-A sparse Ising model with covariates. Biometrics, 70, 943-953.
+A sparse Ising model with covariates. (2012). Biometrics, 70, 943-953.\cr\cr
+Sutton C, McCallum A. An introduction to conditional random fields.
+Foundations and Trends in Machine Learning 4, 267-373.
 }
 \seealso{
 \href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
-for an overview of binary MRFs with covariates, \code{\link[penalized]{penalized}} for
+and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
+for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
 details of penalized logistic regressions
 }

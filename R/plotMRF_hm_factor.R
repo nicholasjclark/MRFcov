@@ -24,6 +24,20 @@
 #'@return A \code{ggplot2} object
 #'@seealso \code{\link{MRFcov}}
 #'
+#'@details Interaction parameters from \code{MRF_mod} are plotted as heatmaps for each level of
+#'\code{covariate}, with red colours indicating positive interactions and
+#'blue indicating negative interactions. Because base contrast levels of factors are not
+#'included in regression the design matrix, the character name \code{base_contrast_name}
+#'must be provided
+#'
+#'@examples
+#'\dontrun{
+#'data("Dipping.survey")
+#'CRFmod <- MRFcov(data = Dipping.survey, n_nodes = 16,
+#'                 lambda1 = 4, lambda2 = 1)
+#'plotMRF_hm_factor(MRF_mod = CRFmod, covariate = 'dipping.round',
+#'                  base_contrast_name = '2')}
+#'
 #'@export
 #'
 plotMRF_hm_factor = function(MRF_mod, node_names, covariate,

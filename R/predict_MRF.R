@@ -20,6 +20,10 @@
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{cv_MRF}}
 #'
+#'@details Binary occurrences for nodes in \code{data} are predicted using linear predictions
+#'from \code{MRF_mod}. This function is not designed to be called directly, but is used by
+#'other functions in the package (namely \code{\link{MRFcov}}, \code{\link{cv_MRF}}, and
+#'\code{\link{bootstrap_MRF}})
 #'@export
 #'
 predict_MRF <- function(data, MRF_mod, n_nodes){

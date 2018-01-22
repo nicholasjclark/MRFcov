@@ -19,9 +19,10 @@
 #'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
 #'to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 #'may be necessary for large or particularly sparse datasets
-#'@param separate_min Logical. If \strong{TRUE}, interaction coefficients will use the minimum absolute value of
+#'@param separate_min Logical. If \code{TRUE}, interaction coefficients will use the minimum absolute value of
 #'the corresponding parameter estimates, which are taken from separate logistic regressions,
-#' in the symmetric postprocessed coefficient matrix. Else use the maximum. Default is \strong{FALSE}
+#' in the symmetric postprocessed coefficient matrix. Else use the maximum.
+#' Default is \code{FALSE}
 #'@param n_nodes Positive integer. The index of the last column in \code{data}
 #'which is represented by a node in the final graph. Columns with index
 #'greater than n_nodes are taken as covariates. Default is the number of
@@ -45,6 +46,20 @@
 #'\code{\link{cv_MRF}},
 #'\code{\link[penalized]{penalized}}
 #'
+#'@details \code{MRFcov} models are run across the specified sequence of \code{lambda1} values.
+#'Cross validation is used to test model predictive capacity at each \code{lambda1}.
+#'For each model, the observed presence-absence values of nodes in a test set of
+#'\code{data} observations is predicted using outputs of an \code{MRFcov} model that is fit to
+#'the remaining observations (training data) using \code{\link{cv_MRF}}.
+#'Test and training \code{data} subsets are created using \code{\link[caret]{createFolds}}.
+#'Plots showing LOESS regressions of prediction metrics vs \code{lambda1} are returned
+#'
+#'@examples
+#'\dontrun{
+#'data("Bird.parasites")
+#'cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4,
+#'            max_lambda1 = 2, by_lambda1 = 0.1,
+#'            n_nodes = 4, n_cores = 3)}
 #'@export
 #'
 cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,

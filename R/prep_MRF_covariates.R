@@ -15,6 +15,11 @@
 #'@return Dataframe of the prepped response and covariate variables necessary for
 #'input in \code{\link{MRFcov}} models
 #'
+#'@details Binary occurrences of nodes (species) in \code{data} are prepped for
+#'\code{MRFcov} analysis by multiplication. This function is not designed to be called directly,
+#'but is used by other functions in the package (namely \code{\link{MRFcov}},
+#'\code{\link{cv_MRF}}, and
+#'\code{\link{bootstrap_MRF}})
 #'
 #'@export
 #'

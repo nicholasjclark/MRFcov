@@ -62,6 +62,20 @@
 #'
 #'@seealso \code{\link{MRFcov}},
 #'\code{\link[penalized]{penalized}}
+#'
+#'@details \code{MRFcov} models are run across the specified sequence of \code{lambda1} values.
+#'For each model, the \code{data} is bootstrapped by shuffling row observations, using
+#'\code{dplyr::sample_n(data, nrow(data), TRUE)}, to account for uncertainty.
+#'Parameter estimates from the set of bootstrapped models are summarised
+#'to present confidence intervals.
+#'
+#'@examples
+#'\dontrun{
+#'data("Bird.parasites")
+#'bootedCRF <- bootstrap_MRF(data = Bird.parasites,
+#'                           n_nodes = 4, min_lambda1 = 0.5,
+#'                           max_lambda1 = 1.25,
+#'                           by_lambda1 = 0.25)}
 #'@export
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,

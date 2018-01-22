@@ -36,6 +36,19 @@ This function uses outputs from fitted \code{\link{MRFcov}} models to
 plot networks of node interaction coefficients across observed magnituedes of a
 a specified \code{numeric} covariate.
 }
+\details{
+Observed values of the specified \code{covariate} are extracted by
+name matching of \code{colnames(data)}. Interaction parameters from \code{MRF_mod} are
+are then predicted at \code{min}, \code{median} and \code{max} of observed values, where
+red edge colours indicate positive interactions, blue indicate negative interactions, and
+the widths of edges indicate strengths of interactions
+}
+\examples{
+data("Bird.parasites")
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
+plotMRF_net_cont(data = Bird.parasites, MRF_mod = CRFmod, covariate = 'scale.prop.zos')
+
+}
 \seealso{
 \code{\link{MRFcov}}, \code{bootstrap_MRF}
 }
