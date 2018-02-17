@@ -101,45 +101,45 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.68253975 -3.3644904
-#> 7 scale.prop.zos_Microfilaria     0.10582222 -1.3247800
-#> 3                Microfilaria     0.06486330  1.0371817
-#> 4              scale.prop.zos     0.06278876 -1.0204607
-#> 6         scale.prop.zos_Plas     0.03619108  0.7747402
-#> 2                        Plas     0.03339802 -0.7442446
-#> 5   scale.prop.zos_Hkillangoi     0.01439688 -0.4886405
+#> 1                  Hkillangoi     0.67215259 -3.2826279
+#> 7 scale.prop.zos_Microfilaria     0.11065416 -1.3318999
+#> 3                Microfilaria     0.08881372  1.1932398
+#> 4              scale.prop.zos     0.05222678 -0.9150279
+#> 6         scale.prop.zos_Plas     0.03702717  0.7704562
+#> 2                        Plas     0.02100531 -0.5802996
+#> 5   scale.prop.zos_Hkillangoi     0.01812027 -0.5389768
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.73132033 -3.3644904
-#> 2               Microfilaria     0.09954285 -1.2412822
-#> 5        scale.prop.zos_Plas     0.09920698  1.2391863
-#> 3             scale.prop.zos     0.05124746 -0.8906389
-#> 4 scale.prop.zos_Hzosteropis     0.01542581 -0.4886405
+#> 1                Hzosteropis     0.70563793 -3.2826279
+#> 5        scale.prop.zos_Plas     0.11781995  1.3413438
+#> 2               Microfilaria     0.10367124 -1.2582294
+#> 3             scale.prop.zos     0.05100299 -0.8825280
+#> 4 scale.prop.zos_Hzosteropis     0.01902299 -0.5389768
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.45884569  1.9962474
-#> 5   scale.prop.zos_Hkillangoi     0.17681174  1.2391863
-#> 3              scale.prop.zos     0.15991089 -1.1784741
-#> 4  scale.prop.zos_Hzosteropis     0.06911146  0.7747402
-#> 6 scale.prop.zos_Microfilaria     0.06613015  0.7578457
-#> 1                 Hzosteropis     0.06377776 -0.7442446
+#> 2                Microfilaria     0.42642445  1.8621377
+#> 5   scale.prop.zos_Hkillangoi     0.22125788  1.3413438
+#> 3              scale.prop.zos     0.17340418 -1.1874642
+#> 4  scale.prop.zos_Hzosteropis     0.07299859  0.7704562
+#> 6 scale.prop.zos_Microfilaria     0.05991416  0.6980001
+#> 1                 Hzosteropis     0.04141171 -0.5802996
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.38836975  1.9962474
-#> 5 scale.prop.zos_Hzosteropis     0.17104255 -1.3247800
-#> 2                 Hkillangoi     0.15016118 -1.2412822
-#> 4             scale.prop.zos     0.12928219 -1.1517574
-#> 1                Hzosteropis     0.10483983  1.0371817
-#> 6        scale.prop.zos_Plas     0.05597295  0.7578457
+#> 3                       Plas     0.34505874  1.8621377
+#> 5 scale.prop.zos_Hzosteropis     0.17652761 -1.3318999
+#> 2                 Hkillangoi     0.15753938 -1.2582294
+#> 1                Hzosteropis     0.14168535  1.1932398
+#> 4             scale.prop.zos     0.13009722 -1.1434029
+#> 6        scale.prop.zos_Plas     0.04848199  0.6980001
 ```
 
 References
