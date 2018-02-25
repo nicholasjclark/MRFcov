@@ -3,7 +3,11 @@
 Overview
 --------
 
-The `MRFcov` package provides functions for approximating node interaction parameters of undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. In principle, these models are similar to joint species distribution models in that variance in species' occurrences can be partitioned into abiotic and biotic drivers. However, a key difference is that `MRFCov` models produce directly interpretable coefficients for determining the relative importances of these drivers. At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
+The `MRFcov` package provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
+
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned into abiotic and biotic drivers. However, a key difference is that `MRFCov` models produce directly interpretable coefficients that allow users to: (1) Determine the relative importances (i.e. effect sizes) of species' interactions and covariates in driving occurrence probabilities (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+
+At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
 MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) package.
 
@@ -101,45 +105,45 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.67215259 -3.2826279
-#> 7 scale.prop.zos_Microfilaria     0.11065416 -1.3318999
-#> 3                Microfilaria     0.08881372  1.1932398
-#> 4              scale.prop.zos     0.05222678 -0.9150279
-#> 6         scale.prop.zos_Plas     0.03702717  0.7704562
-#> 2                        Plas     0.02100531 -0.5802996
-#> 5   scale.prop.zos_Hkillangoi     0.01812027 -0.5389768
+#> 1                  Hkillangoi     0.67765474 -3.3163776
+#> 7 scale.prop.zos_Microfilaria     0.10874749 -1.3285239
+#> 3                Microfilaria     0.08584659  1.1803784
+#> 4              scale.prop.zos     0.05280028 -0.9257162
+#> 6         scale.prop.zos_Plas     0.02744566  0.6674160
+#> 5   scale.prop.zos_Hkillangoi     0.02718907 -0.6642887
+#> 2                        Plas     0.02031617 -0.5742231
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.70563793 -3.2826279
-#> 5        scale.prop.zos_Plas     0.11781995  1.3413438
-#> 2               Microfilaria     0.10367124 -1.2582294
-#> 3             scale.prop.zos     0.05100299 -0.8825280
-#> 4 scale.prop.zos_Hzosteropis     0.01902299 -0.5389768
+#> 1                Hzosteropis     0.70776044 -3.3163776
+#> 5        scale.prop.zos_Plas     0.12129161  1.3728915
+#> 2               Microfilaria     0.08780373 -1.1680927
+#> 3             scale.prop.zos     0.05369825 -0.9134839
+#> 4 scale.prop.zos_Hzosteropis     0.02839698 -0.6642887
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.42642445  1.8621377
-#> 5   scale.prop.zos_Hkillangoi     0.22125788  1.3413438
-#> 3              scale.prop.zos     0.17340418 -1.1874642
-#> 4  scale.prop.zos_Hzosteropis     0.07299859  0.7704562
-#> 6 scale.prop.zos_Microfilaria     0.05991416  0.6980001
-#> 1                 Hzosteropis     0.04141171 -0.5802996
+#> 2                Microfilaria     0.44381454  1.8960154
+#> 5   scale.prop.zos_Hkillangoi     0.23269669  1.3728915
+#> 3              scale.prop.zos     0.16592043 -1.1592872
+#> 6 scale.prop.zos_Microfilaria     0.06071034  0.7012493
+#> 4  scale.prop.zos_Hzosteropis     0.05499345  0.6674160
+#> 1                 Hzosteropis     0.04070793 -0.5742231
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.34505874  1.8621377
-#> 5 scale.prop.zos_Hzosteropis     0.17652761 -1.3318999
-#> 2                 Hkillangoi     0.15753938 -1.2582294
-#> 1                Hzosteropis     0.14168535  1.1932398
-#> 4             scale.prop.zos     0.13009722 -1.1434029
-#> 6        scale.prop.zos_Plas     0.04848199  0.6980001
+#> 3                       Plas      0.3628366  1.8960154
+#> 5 scale.prop.zos_Hzosteropis      0.1781419 -1.3285239
+#> 1                Hzosteropis      0.1406274  1.1803784
+#> 2                 Hkillangoi      0.1377153 -1.1680927
+#> 4             scale.prop.zos      0.1303459 -1.1364096
+#> 6        scale.prop.zos_Plas      0.0496332  0.7012493
 ```
 
 References
