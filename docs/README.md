@@ -3,9 +3,12 @@
 Overview
 --------
 
-The `MRFcov` package (described by Clark et al, *IN PRESS*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
+The `MRFcov` package (described by Clark et al, *in press in Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
 
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can: (1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero" (3) Estimate how interactions are predicted to change across environmental gradients
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can:
+(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities
+(2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+(3) Estimate how interactions are predicted to change across environmental gradients
 
 At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
@@ -105,45 +108,46 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.68827406 -3.3482491
-#> 7 scale.prop.zos_Microfilaria     0.11458300 -1.3661461
-#> 3                Microfilaria     0.06824688  1.0543346
-#> 4              scale.prop.zos     0.05719874 -0.9652289
-#> 6         scale.prop.zos_Plas     0.02646821  0.6565977
-#> 2                        Plas     0.02273284 -0.6085047
-#> 5   scale.prop.zos_Hkillangoi     0.02249625 -0.6053299
+#> 1                  Hkillangoi     0.65485599 -3.2171194
+#> 7 scale.prop.zos_Microfilaria     0.13615192 -1.4669191
+#> 3                Microfilaria     0.06938063  1.0471609
+#> 4              scale.prop.zos     0.06348516 -1.0016832
+#> 6         scale.prop.zos_Plas     0.03694145  0.7641018
+#> 2                        Plas     0.02223116 -0.5927552
+#> 5   scale.prop.zos_Hkillangoi     0.01695370 -0.5176384
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.71167847 -3.3482491
-#> 2               Microfilaria     0.10872693 -1.3087130
-#> 5        scale.prop.zos_Plas     0.10240290  1.2700826
-#> 3             scale.prop.zos     0.05216334 -0.9064807
-#> 4 scale.prop.zos_Hzosteropis     0.02326123 -0.6053299
+#> 1                Hzosteropis     0.73480375 -3.2171194
+#> 5        scale.prop.zos_Plas     0.09961422  1.1845194
+#> 2               Microfilaria     0.07618718 -1.0359110
+#> 3             scale.prop.zos     0.06119444 -0.9284050
+#> 4 scale.prop.zos_Hzosteropis     0.01902348 -0.5176384
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.47283673  2.0092678
-#> 5   scale.prop.zos_Hkillangoi     0.18892939  1.2700826
-#> 3              scale.prop.zos     0.15508674 -1.1507197
-#> 6 scale.prop.zos_Microfilaria     0.08745919  0.8641416
-#> 4  scale.prop.zos_Hzosteropis     0.05049337  0.6565977
-#> 1                 Hzosteropis     0.04336741 -0.6085047
+#> 3                Microfilaria     0.45126587  1.9326321
+#> 6   scale.prop.zos_Hkillangoi     0.16951903  1.1845194
+#> 4              scale.prop.zos     0.15886492 -1.1466925
+#> 7 scale.prop.zos_Microfilaria     0.09374872  0.8808777
+#> 5  scale.prop.zos_Hzosteropis     0.07054018  0.7641018
+#> 1                 Hzosteropis     0.04245070 -0.5927552
+#> 2                  Hkillangoi     0.01361058 -0.3356381
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas      0.3701017  2.0092678
-#> 5 scale.prop.zos_Hzosteropis      0.1710960 -1.3661461
-#> 2                 Hkillangoi      0.1570125 -1.3087130
-#> 4             scale.prop.zos      0.1303048 -1.1922229
-#> 1                Hzosteropis      0.1019066  1.0543346
-#> 6        scale.prop.zos_Plas      0.0684566  0.8641416
+#> 3                       Plas     0.36984178  1.9326321
+#> 5 scale.prop.zos_Hzosteropis     0.21307374 -1.4669191
+#> 4             scale.prop.zos     0.12377015 -1.1180190
+#> 1                Hzosteropis     0.10857864  1.0471609
+#> 2                 Hkillangoi     0.10625820 -1.0359110
+#> 6        scale.prop.zos_Plas     0.07683318  0.8808777
 ```
 
 References
