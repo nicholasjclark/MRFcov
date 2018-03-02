@@ -3,9 +3,9 @@
 Overview
 --------
 
-The `MRFcov` package provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
+The `MRFcov` package (described by Clark et al, *IN PRESS*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
 
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned into abiotic and biotic drivers. However, a key difference is that `MRFCov` models produce directly interpretable coefficients that allow users to: (1) Determine the relative importances (i.e. effect sizes) of species' interactions and covariates in driving occurrence probabilities (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can: (1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero" (3) Estimate how interactions are predicted to change across environmental gradients
 
 At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.
 
@@ -105,51 +105,53 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.67765474 -3.3163776
-#> 7 scale.prop.zos_Microfilaria     0.10874749 -1.3285239
-#> 3                Microfilaria     0.08584659  1.1803784
-#> 4              scale.prop.zos     0.05280028 -0.9257162
-#> 6         scale.prop.zos_Plas     0.02744566  0.6674160
-#> 5   scale.prop.zos_Hkillangoi     0.02718907 -0.6642887
-#> 2                        Plas     0.02031617 -0.5742231
+#> 1                  Hkillangoi     0.68827406 -3.3482491
+#> 7 scale.prop.zos_Microfilaria     0.11458300 -1.3661461
+#> 3                Microfilaria     0.06824688  1.0543346
+#> 4              scale.prop.zos     0.05719874 -0.9652289
+#> 6         scale.prop.zos_Plas     0.02646821  0.6565977
+#> 2                        Plas     0.02273284 -0.6085047
+#> 5   scale.prop.zos_Hkillangoi     0.02249625 -0.6053299
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.70776044 -3.3163776
-#> 5        scale.prop.zos_Plas     0.12129161  1.3728915
-#> 2               Microfilaria     0.08780373 -1.1680927
-#> 3             scale.prop.zos     0.05369825 -0.9134839
-#> 4 scale.prop.zos_Hzosteropis     0.02839698 -0.6642887
+#> 1                Hzosteropis     0.71167847 -3.3482491
+#> 2               Microfilaria     0.10872693 -1.3087130
+#> 5        scale.prop.zos_Plas     0.10240290  1.2700826
+#> 3             scale.prop.zos     0.05216334 -0.9064807
+#> 4 scale.prop.zos_Hzosteropis     0.02326123 -0.6053299
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.44381454  1.8960154
-#> 5   scale.prop.zos_Hkillangoi     0.23269669  1.3728915
-#> 3              scale.prop.zos     0.16592043 -1.1592872
-#> 6 scale.prop.zos_Microfilaria     0.06071034  0.7012493
-#> 4  scale.prop.zos_Hzosteropis     0.05499345  0.6674160
-#> 1                 Hzosteropis     0.04070793 -0.5742231
+#> 2                Microfilaria     0.47283673  2.0092678
+#> 5   scale.prop.zos_Hkillangoi     0.18892939  1.2700826
+#> 3              scale.prop.zos     0.15508674 -1.1507197
+#> 6 scale.prop.zos_Microfilaria     0.08745919  0.8641416
+#> 4  scale.prop.zos_Hzosteropis     0.05049337  0.6565977
+#> 1                 Hzosteropis     0.04336741 -0.6085047
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas      0.3628366  1.8960154
-#> 5 scale.prop.zos_Hzosteropis      0.1781419 -1.3285239
-#> 1                Hzosteropis      0.1406274  1.1803784
-#> 2                 Hkillangoi      0.1377153 -1.1680927
-#> 4             scale.prop.zos      0.1303459 -1.1364096
-#> 6        scale.prop.zos_Plas      0.0496332  0.7012493
+#> 3                       Plas      0.3701017  2.0092678
+#> 5 scale.prop.zos_Hzosteropis      0.1710960 -1.3661461
+#> 2                 Hkillangoi      0.1570125 -1.3087130
+#> 4             scale.prop.zos      0.1303048 -1.1922229
+#> 1                Hzosteropis      0.1019066  1.0543346
+#> 6        scale.prop.zos_Plas      0.0684566  0.8641416
 ```
 
 References
 ----------
 
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.
+
+Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* (accepted 02/03/18)
 
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
 

@@ -14,11 +14,12 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The `MRFcov` package provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. 
+The `MRFcov` package (described by Clark et al, *IN PRESS*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphs. Models can incorporate covariates (a class of models known as [Conditional Markov Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. 
   
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned into abiotic and biotic drivers. However, a key difference is that `MRFCov` models produce directly interpretable coefficients that allow users to:
-(1) Determine the relative importances (i.e. effect sizes) of species' interactions and covariates in driving occurrence probabilities
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can:
+(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities
 (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+(3) Estimate how interactions are predicted to change across environmental gradients
   
 At present, only binary response variables can be included (1s and 0s), though models accomodating different data structures may be added in future.  
   
@@ -103,6 +104,8 @@ booted_MRF$mean_key_coefs$Microfilaria
 
 ## References
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.   
+  
+Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* (accepted 02/03/18)  
   
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.  
   
