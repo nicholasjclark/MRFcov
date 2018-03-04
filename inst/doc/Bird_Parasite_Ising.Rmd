@@ -1,0 +1,116 @@
+---
+title: "MRFs and CRFs for Bird.parasites data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{MRFs and CRFs for Bird.parasites data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+We can explore the model's primary functions using a test dataset that is available with the package. Load the `Bird.parasites` dataset, which contains binary occurrences of four avian blood parasites in New Caledonian *Zosterops* species ([available in its original form at Dryad](http://dx.doi.org/10.5061/dryad.pp6k4); Clark *et al* 2016). A single continuous covariate is also included (`scale.prop.zos`), which reflects the relative abundance of *Zosterops* species among different sample sites
+```{r, message=FALSE, warning=FALSE}
+library(MRFcov)
+data("Bird.parasites")
+```
+
+The `Bird.parasites` dataset is already in the appropriate structure for running `MRFcov` models, however, it is useful to understand how this was done. Using the raw dataset (downloaded from Dryad at the above link), we created a scaled continuous covariate to represent *Zosterops* spp. proportional captures in each sample site (as an estimate of relative abundance)
+```{r,message=F, warning=FALSE, eval = FALSE}
+#Not run
+library(dplyr)
+data.paras = data.frame(data.paras) %>%
+  group_by(Capturesession,Genus) %>%
+  summarise(count=n()) %>%
+  mutate(prop.zos = count / sum(count)) %>%
+  left_join(data.paras) %>%
+  ungroup() %>% filter(Genus=='Zosterops') %>%
+  mutate(scale.prop.zos = as.vector(scale(prop.zos)))
+data.paras <- data.paras[,c(12:15,23)]
+```
+
+You can visualise the dataset to see how analysis data needs to be structured. In short, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Any covariates can be included as the right-most variables. Note, these covariates should all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have `mean = 0` and `sd = 1`
+```{r eval=FALSE}
+help("Bird.parasites")
+View(Bird.parasites)
+```
+
+### Running MRFs and visualising interaction coefficients
+We first test for interactions using an unpenalized Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species (4). Note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we set 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
+```{r,message=FALSE}
+MRF_fit = MRFcov(data = Bird.parasites[,1:4], lambda1 = 0,
+                 n_nodes = 4, n_cores = 3)
+```
+
+Plot the estimated interaction coefficients as a heatmap using `plotMRF_hm`. Note that we can specify the names of nodes should we want to change them
+```{r fig.align = "center",fig.height=3,fig.width=3,message=FALSE}
+plotMRF_hm(MRF_mod = MRF_fit, main = 'Unregularized MRF', 
+                             node_names = c('H. zosteropis', 'H. killangoi',
+                                            'Plasmodium', 'Microfilaria'))
+```
+
+As a check of the model's estimation accuracy, we can run the same model using functions in David Harris' `rosalia` package, which directly solves small (i.e. less than 20 species, with no covariates) MRF networks by maximum likelihood. We specify a weakly informative logistic prior to ensure finite parameter estimates (following Harris, 2016)
+```{r Vignette1.fig1, fig.align = "center",fig.height=3,fig.width=3,message=FALSE}
+library(rosalia)
+rosalia_fit <- rosalia(Bird.parasites[,1:4], 
+                      prior = make_logistic_prior(scale = 2),
+                      trace = FALSE)
+plotMRF_hm(MRF_mod = rosalia_fit, node_names = c('H. zosteropis', 'H. killangoi',
+                                           'Plasmodium', 'Microfilaria'),
+           main = 'rosalia interactions')
+```
+
+We can now calculate proportions of positive and negative interactions found by `rosalia` that were also found by our model. Values approaching 1 suggest strong concordance between the two models
+```{r}
+comp_rosalia_MRF(MRF_mod = MRF_fit, rosalia_mod = rosalia_fit)
+```
+
+### Running CRFs using additional covariates
+We can now run a Conditional Random Fields (CRF) model using the provided continuous covariate (`scale.prop.zos`). Here we specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate. Note that any columns in `data` to the right of column `n_nodes` will be presumed to represent covariates
+```{r}
+MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
+```
+
+Visualise the estimated species interaction coefficients as a heatmap. These represent predicted interactions when the covariate is set to its mean (i.e. in this case, when `scale.prop.zos` = 0)
+```{r Vignette1.fig2, fig.height=3.5, fig.width=4, message=FALSE}
+plotMRF_hm(MRF_mod = MRF_mod)
+```
+
+We can also visualise how species interactions are predicted to change across covariate magnitudes. Because we are using a continuous covariate, we can use the function `plotMRF_HM_cont` to visualise changing interactions
+```{r Vignette1.fig3, fig.height=4.75, fig.width=5, message=FALSE}
+plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
+                main = 'Estimated interactions across host relative densities')
+```
+
+### Choosing penalization parameters
+Choosing the appropriate `lambda1` value often requires exploration of model predictive performance at different values. The function `cv_MRF_diag` uses cross-validation to examine how well models fitted with training datasets can predict observations that have been with-held from the data (test datasets) at different `lambda1` values. We also have the option of specifying `lambda2`, where values `>0` lead to more effective shrinkage of coefficients (sometimes this is necessary for large datasets with many potential predictors; see documentation in the `penalized` package for more details). Given the large number of models that may be required during cross-validation or bootstrapping (see below), we can use parallel computation by relying on functions in the [parallel](https://www.google.com.au/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwj6iZyPvcnYAhVLvrwKHaJ9AhUQFgg2MAE&url=https%3A%2F%2Fstat.ethz.ch%2FR-manual%2FR-devel%2Flibrary%2Fparallel%2Fdoc%2Fparallel.pdf&usg=AOvVaw2eR83aL93jttPIS-mLWzEL) package. Here we test a sequence of `lambda1` values using `seq(min_lambda1, max_lambda1, by_lambda1)`
+```{r Vignette1.fig4,fig.align = "center",fig.height=5.65,fig.width=3,message=FALSE}
+cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, n_cores = 3)
+```
+
+### Bootstrapping the data and running models across a range of penalization values
+For this dataset, `lambda1` values between 0.5 and 1.5 maintain reasonable **Sensitivity** (which represents the proportion of true positives that are correctly predicted). Because we are using rather rare parasite occurrences (prevalence of these parasites is fairly low), it is in our interest to use models that can maintain **Sensitivity**, as long as we are not at risk of overfitting (in this case, our maximum number of predictors is not very high, given that we only have four species and one covariate). Now that we have identified a suitable range of `lambda1` values, we can fit models to bootstrapped subsets of the data within this range to account for uncertainty.
+```{r}
+booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, n_bootstraps = 50, min_lambda1 = 0.5, max_lambda1 = 1.5, by_lambda1 = 0.1, n_cores = 3)
+```
+
+Now we can visualise confidence intervals of interaction coefficients that were estimated across the full range of models. To do this, we again use `plotMRF_hm`, but this time we supply the `booted_MRF` object and specify `plot_booted_coefs = TRUE`.
+```{r Vignette1.fig5,fig.align = "center",fig.height=2.5,fig.width=5,message=FALSE}
+plotMRF_hm(MRF_mod = booted_MRF, plot_booted_coefs = TRUE)
+```
+
+### Exploring regression coefficients and interpreting results
+Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of CRFs, as comparing the relative importances of interactions and fixed covariates using competing methods (such as Joint Species Distribution Models) is difficult. The `bootstrap_MRF` function conveniently returns a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
+```{r}
+booted_MRF$mean_key_coefs$Hzosteropis
+```
+
+```{r}
+booted_MRF$mean_key_coefs$Hkillangoi
+```
+
+```{r}
+booted_MRF$mean_key_coefs$Plas
+```
+
+```{r}
+booted_MRF$mean_key_coefs$Microfilaria
+```
