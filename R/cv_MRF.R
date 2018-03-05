@@ -206,7 +206,7 @@ if(n_cores > 1){
 
       #Try loading the user's .libPath() directly
       clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
-      test.3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
+      test_load3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
 
       if(class(test_load3) == "try-error"){
 
@@ -297,7 +297,7 @@ cross_validated_mrfs <- parLapply(NULL, lamda1_seq, function(l) {
     training_data <- mrf_datas[-folds[[k]], ]
     test_data <- mrf_datas[folds[[k]], ]
 
-    #Run the model using the training dataset
+    #Run an MRFcov model using the training dataset
     trained_mrf <- MRFcov(data = training_data, lambda1 = l,
                      lambda2 = lambda2,
                      separate_min = separate_min,

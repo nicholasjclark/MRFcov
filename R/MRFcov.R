@@ -20,7 +20,7 @@
 #'the corresponding parameter estimates, which are taken from separate logistic regressions,
 #' in the symmetric postprocessed coefficient matrix. Else use the maximum
 #' Default is \strong{FALSE}
-#'@param prep_covariates Logical. If \strong{TRUE}, covariate columns will be cross multiplied
+#'@param prep_covariates Logical. If \strong{TRUE}, covariate columns will be cross-multiplied
 #'with nodes to prep the dataset for MRF models. Note this is only useful when additional
 #'covariates are provided. Therefore, if \code{n_nodes < ncol(data)},
 #'default is \strong{TRUE}. Otherwise, default is \strong{FALSE}. See
@@ -39,7 +39,7 @@
 #'    \item \code{intercepts}: Estimated parameter vector of node intercepts
 #'    \item \code{results}: \code{list} of length \code{n_nodes} containing results of
 #'    individual regularized logistic regressions
-#'    \item \code{indirect_coefs}: \code{list} containing matrices of higher order effects of
+#'    \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
 #'    each covariate on node interactions
 #'    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
 #'    node occurrence probabilities
@@ -195,7 +195,7 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
 
         #Try loading the user's .libPath() directly
         clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
-        test.3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
+        test_load3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
 
         if(class(test_load3) == "try-error"){
 
@@ -231,7 +231,7 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
         penalized(response = mrf_data[,i],
                    penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                    lambda1 = lambda1, lambda2 = lambda2, steps = 1,
-                   model='logistic', standardize = F, trace = F, maxiter = 5000)
+                   model = 'logistic', standardize = F, trace = F, maxiter = 5000)
     })
       stopCluster(cl)
 
@@ -241,11 +241,11 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
       penalized(response = mrf_data[,i],
                  penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                  lambda1 = lambda1, lambda2 = lambda2, steps = 1,
-                 model='logistic', standardize = F, trace = F, maxiter = 5000)
+                 model = 'logistic', standardize = F, trace = F, maxiter = 5000)
     })
     }
 
-  #### Gather coefficient parameters for additional covariates ####
+  #### Gather coefficient parameters from penalized regressions ####
   mrf_coefs <- lapply(mrf_mods, coef, 'all')
   cov_coefs <- NULL
 
@@ -254,7 +254,7 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
 
     #Store each model's coefficients in a dataframe
     direct_coefs <- lapply(mrf_coefs, function(i){
-      direct_coefs = data.frame(t(data.frame(i)))
+      direct_coefs <- data.frame(t(data.frame(i)))
     })
 
     #Store coefficients in a list as well for later matrix creation
@@ -303,7 +303,7 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
     list(coef_matrix_sym, intercepts)
   }
 
-  #### Create matrices of interaction coefficient estimates ####
+  #### Create matrices of symmetric interaction coefficient estimates ####
   interaction_matrix <- matrix(0, n_nodes, n_nodes)
 
   for(i in seq_len(n_nodes)){
@@ -316,12 +316,12 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
   dimnames(interaction_matrix_sym[[1]])[[1]] <- node_names
   dimnames(interaction_matrix_sym[[1]])[[2]] <- node_names
 
-  #If covariates are included, create symmetric covariate coefficient matrices
+  #If covariates are included, create covariate coefficient matrices
   if(n_covariates > 0){
     covariate_matrices <- lapply(seq_len(n_covariates), function(x){
       cov_matrix <- matrix(0, n_nodes, n_nodes)
       for(i in seq_len(n_nodes)){
-        cov_names_match <- grepl(paste(cov_names[x],'_',sep=''),names(cov_coefs[[i]]))
+        cov_names_match <- grepl(paste(cov_names[x], '_', sep = ''), names(cov_coefs[[i]]))
         cov_matrix[i,-i] <- cov_coefs[[i]][cov_names_match]
         cov_matrix[i,i] <- cov_coefs[[i]][x]
         cov_matrix[is.na(cov_matrix)] <- 0
@@ -329,6 +329,7 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
       cov_matrix
     })
 
+    #Symmetrize corresponding interaction coefficients
     indirect_coefs <- lapply(seq_along(covariate_matrices), function(x){
                          matrix_to_sym <- covariate_matrices[[x]]
                          sym_matrix <- symmetr(matrix_to_sym)
@@ -339,16 +340,18 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
     names(indirect_coefs) <- cov_names[1:n_covariates]
 
     #Replace unsymmetric direct interaction coefficients with the symmetric version
-    direct_coefs[,2:(n_nodes+1)] <- interaction_matrix_sym[[1]]
+    direct_coefs[, 2:(n_nodes + 1)] <- interaction_matrix_sym[[1]]
 
     #Replace unsymmetric indirect interaction coefficients with symmetric versions
     for(i in seq_len(n_covariates)){
-      direct_coefs[,(n_nodes + (n_covariates * i) + (3 - i)):
+      direct_coefs[, (n_nodes + (n_covariates * i) + (3 - i)):
                      (n_nodes + (n_covariates * i) + (3 - i) + (n_nodes - 1))] <- data.frame(indirect_coefs[[i]])
     }
   } else{
     #If no covariates included, return an empty list for indirect_coefs
-    indirect_coefs = list()
+    #and return the graph of interaction coefficients as direct_coefs
+    indirect_coefs <- list()
+    direct_coefs <- interaction_matrix_sym[[1]]
   }
 
 return(list(graph = interaction_matrix_sym[[1]],

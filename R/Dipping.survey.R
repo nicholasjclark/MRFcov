@@ -4,7 +4,8 @@
 #' 12 other fauna types at specific dipping points in the North Kent Marshes,
 #' UK 2010-2011. Continuous covariates have been scaled, and factor covariates
 #' have been converted to model matrix forma (i.e. the base contrast level for each factor
-#' is not shown). This data coincides with the manuscript:
+#' is not shown; see the \code{Prepping datasets for CRF models} vignette for a
+#' tutorial on how this was accomplished). This data coincides with the manuscript:
 #' Golding, N., Nunn, M.A. & Purse, B.V. (2015).
 #' Identifying biotic interactions which drive the spatial distribution of a mosquito community.
 #' Parasites & Vectors, 8, 367.

@@ -240,7 +240,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
         #Try loading the user's .libPath() directly
         clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
-        test.3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
+        test_load3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
 
         if(class(test_load3) == "try-error"){
 
@@ -290,7 +290,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
     lambda_results <- parLapply(NULL, lambda1_seq, function(l) {
       booted_mrfs <- lapply(seq_along(booted_datas), function(x) {
-        mod <- MRFcov(data = prepped_datas[[x]],lambda1 = l,
+        mod <- MRFcov(data = prepped_datas[[x]], lambda1 = l,
                       lambda2 = lambda2,
                       separate_min = separate_min,
                       n_nodes = n_nodes,
@@ -310,12 +310,12 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     direct_coef_means <- apply(array(unlist(direct_coef_list),
                               c(nrow(booted_mrfs[[1]]$direct_coefs),
                                 ncol(booted_mrfs[[1]]$direct_coefs),
-                                length(booted_mrfs))), c(1,2), mean)
+                                length(booted_mrfs))), c(1, 2), mean)
 
     rownames(direct_coef_means) <- rownames(booted_mrfs[[1]]$direct_coefs)
     colnames(direct_coef_means) <- colnames(booted_mrfs[[1]]$direct_coefs)
 
-    #Calculate proportion of bootstrap samps in which covariates are non-zero
+    #Calculate proportion of bootstrap models in which each cofficient is non-zero
     n_total_covariates <- ncol(booted_mrfs[[1]]$direct_coefs)
 
     prop_covs_retained <- matrix(0, n_nodes, n_total_covariates)
@@ -335,12 +335,12 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
       cov_summary <- na.omit(cbind(cov_prop_retained, cov_mean_coef))
       cleaned_prop_retained <- cov_prop_retained[!is.na(cov_prop_retained)]
       cov_df <- data.frame(Proportion_retained = cleaned_prop_retained,
-                                Mean_coefficient = cov_summary[,2])
+                                Mean_coefficient = cov_summary[, 2])
       cov_df <- cov_df[order(-abs(cov_df[, 2])),]
       })
     names(key_covariates) <- colnames(prepped_datas[[1]])[1:n_nodes]
 
-    #Calculate mean indirect interaction estimates from bootstrap samps
+    #Calculate mean indirect interaction estimates from bootstrapped models
     indirect_coef_list <- booted_mrfs %>%
       purrr::map('indirect_coefs')
 
@@ -465,7 +465,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
                              Mean_coef = all_direct_coef_means[x, 1 + which(coef_rel_importances[x, ] > 0.01)])
     rownames(node_coefs) <- NULL
 
-    node_coefs <- node_coefs[order(-node_coefs[,2]), ]
+    node_coefs <- node_coefs[order(-node_coefs[, 2]), ]
   })
   names(mean_key_coefs) <- rownames(all_direct_coef_means)
 
