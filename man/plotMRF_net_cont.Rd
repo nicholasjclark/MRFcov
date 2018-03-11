@@ -5,7 +5,7 @@
 \title{Plot networks of varying interaction coefficients for a continuous covariate}
 \usage{
 plotMRF_net_cont(data, MRF_mod, node_names, covariate, main, plot_booted_coefs,
-  cutoff)
+  cutoff, plot)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the
@@ -27,14 +27,20 @@ will be plotted. Default is \strong{FALSE}}
 \item{cutoff}{Positive numeric. Interaction coefficients whose absolute values are
 below this threshold will not be plotted. This is useful when many weak interactions
 tend to create cluttered and uninterpetable network plots. Default is \code{0}}
+
+\item{plot}{Logical. If \code{TRUE}, returns a gridded plot object showing predicted
+networks across three quantiles of the covariate (minimum, median, and maximum).
+If \code{FALSE}, returns three weighted, undirected adjacency matrices that can be plotted
+using functions in \code{\link[igraph]{igraph}}. \code{TRUE} is default}
 }
 \value{
-A plot object
+Either a plot object (if \code{plot = TRUE}) or a list of three weighted,
+undirected \code{igraph} adjacency matrices
 }
 \description{
 This function uses outputs from fitted \code{\link{MRFcov}} models to
-plot networks of node interaction coefficients across observed magnituedes of a
-a specified \code{numeric} covariate.
+plot networks of node interaction coefficients across observed magnitudes of a
+a specified continuous covariate.
 }
 \details{
 Observed values of the specified \code{covariate} are extracted by
@@ -50,5 +56,5 @@ plotMRF_net_cont(data = Bird.parasites, MRF_mod = CRFmod, covariate = 'scale.pro
 
 }
 \seealso{
-\code{\link{MRFcov}}, \code{bootstrap_MRF}
+\code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
 }

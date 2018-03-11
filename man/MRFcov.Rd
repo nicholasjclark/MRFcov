@@ -22,7 +22,7 @@ the corresponding parameter estimates, which are taken from separate logistic re
 in the symmetric postprocessed coefficient matrix. Else use the maximum
 Default is \strong{FALSE}}
 
-\item{prep_covariates}{Logical. If \strong{TRUE}, covariate columns will be cross multiplied
+\item{prep_covariates}{Logical. If \strong{TRUE}, covariate columns will be cross-multiplied
 with nodes to prep the dataset for MRF models. Note this is only useful when additional
 covariates are provided. Therefore, if \code{n_nodes < ncol(data)},
 default is \strong{TRUE}. Otherwise, default is \strong{FALSE}. See
@@ -45,7 +45,7 @@ A \code{list} of six objects:
    \item \code{intercepts}: Estimated parameter vector of node intercepts
    \item \code{results}: \code{list} of length \code{n_nodes} containing results of
    individual regularized logistic regressions
-   \item \code{indirect_coefs}: \code{list} containing matrices of higher order effects of
+   \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
    each covariate on node interactions
    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
    node occurrence probabilities

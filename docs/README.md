@@ -5,10 +5,13 @@ Overview
 
 The `MRFcov` package (described by Clark *et al*, in press in *Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
 
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can:
-(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities
-(2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
-(3) Estimate how interactions are predicted to change across environmental gradients
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:
+
+1.  Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities
+
+2.  Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+
+3.  Estimate how interactions are predicted to change across environmental gradients
 
 At present, only binary response variables can be included (1s and 0s, which are commonly used in multispecies occurrence data), though models accomodating different data structures may be added in future.
 
@@ -108,46 +111,45 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.66255166 -3.2840798
-#> 7 scale.prop.zos_Microfilaria     0.12833149 -1.4453414
-#> 3                Microfilaria     0.07536400  1.1076073
-#> 4              scale.prop.zos     0.05997585 -0.9880799
-#> 6         scale.prop.zos_Plas     0.04464140  0.8524575
-#> 2                        Plas     0.01757096 -0.5348125
-#> 5   scale.prop.zos_Hkillangoi     0.01156463 -0.4338801
+#> 1                  Hkillangoi     0.69113456 -3.4664706
+#> 7 scale.prop.zos_Microfilaria     0.12219641 -1.4575902
+#> 3                Microfilaria     0.06731422  1.0818315
+#> 4              scale.prop.zos     0.05332363 -0.9628665
+#> 6         scale.prop.zos_Plas     0.03497917  0.7798498
+#> 2                        Plas     0.01565959 -0.5217908
+#> 5   scale.prop.zos_Hkillangoi     0.01539242 -0.5173206
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.72714059 -3.2840798
-#> 5        scale.prop.zos_Plas     0.12383670  1.3552805
-#> 2               Microfilaria     0.07390840 -1.0470114
-#> 3             scale.prop.zos     0.05619475 -0.9129613
-#> 4 scale.prop.zos_Hzosteropis     0.01269201 -0.4338801
+#> 1                Hzosteropis     0.77270430 -3.4664706
+#> 5        scale.prop.zos_Plas     0.09882668  1.2397039
+#> 2               Microfilaria     0.06377358 -0.9958668
+#> 3             scale.prop.zos     0.04476574 -0.8343605
+#> 4 scale.prop.zos_Hzosteropis     0.01720908 -0.5173206
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 3                Microfilaria     0.42129192  1.8869576
-#> 6   scale.prop.zos_Hkillangoi     0.21732877  1.3552805
-#> 4              scale.prop.zos     0.15802794 -1.1556798
-#> 5  scale.prop.zos_Hzosteropis     0.08598136  0.8524575
-#> 7 scale.prop.zos_Microfilaria     0.07263104  0.7834869
-#> 1                 Hzosteropis     0.03384247 -0.5348125
-#> 2                  Hkillangoi     0.01089650 -0.3034689
+#> 2                Microfilaria     0.42678264  1.8029835
+#> 5   scale.prop.zos_Hkillangoi     0.20177119  1.2397039
+#> 3              scale.prop.zos     0.17908585 -1.1679359
+#> 4  scale.prop.zos_Hzosteropis     0.07984452  0.7798498
+#> 6 scale.prop.zos_Microfilaria     0.07173224  0.7391721
+#> 1                 Hzosteropis     0.03574506 -0.5217908
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.35738253  1.8869576
-#> 5 scale.prop.zos_Hzosteropis     0.20967659 -1.4453414
-#> 4             scale.prop.zos     0.13813525 -1.1731343
-#> 1                Hzosteropis     0.12313476  1.1076073
-#> 2                 Hkillangoi     0.11003019 -1.0470114
-#> 6        scale.prop.zos_Plas     0.06161302  0.7834869
+#> 3                       Plas     0.34665943  1.8029835
+#> 5 scale.prop.zos_Hzosteropis     0.22656374 -1.4575902
+#> 4             scale.prop.zos     0.13752517 -1.1356156
+#> 1                Hzosteropis     0.12480695  1.0818315
+#> 2                 Hkillangoi     0.10576014 -0.9958668
+#> 6        scale.prop.zos_Plas     0.05826539  0.7391721
 ```
 
 References

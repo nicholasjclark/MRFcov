@@ -18,12 +18,14 @@ greater than \code{n_nodes} are taken as covariates. Default is the number of
 columns in data, corresponding to no additional covariates}
 }
 \value{
-A \code{list} of two objects:
+A \code{list} of three objects:
 \itemize{
-   \item \code{binary_predictions}: Data.frame containing the binary predicted
-   values for node variable observations in data
-   \item \code{linear_predictions}: Data.frame containing the linear predicted values
-   for node variable observations in data
+   \item \code{binary_predictions}: \code{data.frame} containing the binary predicted
+   values for node variables observations in data
+   \item \code{linear_predictions}: \code{data.frame} containing the linear predicted values
+   for node variables in data
+   \item \code{predicted_probabilities}: \code{data.frame} containing the predicted occurrence
+   probabilities for node variables in data (calculated as \code{exp(linear_predictions)})
    }
 }
 \description{
@@ -32,9 +34,25 @@ using equations from a \code{\link{MRFcov}}.
 }
 \details{
 Binary occurrences for nodes in \code{data} are predicted using linear predictions
-from \code{MRF_mod}. This function is not designed to be called directly, but is used by
-other functions in the package (namely \code{\link{MRFcov}}, \code{\link{cv_MRF}}, and
-\code{\link{bootstrap_MRF}})
+from \code{MRF_mod}. This function is primarily used by
+other functions in the package (namely \code{\link{cv_MRF}} and
+\code{\link{cv_MRF_diag}})
+}
+\examples{
+\dontrun{
+data("Bird.parasites")
+# Fit a model to a subset of the data (training set)
+CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, lambda1 = 0.5)
+
+# If covariates are included, prep the dataset for gathering predictions
+prepped_pred <- prep_MRF_covariates(Bird.parasites[301:nrow(Bird.parasites), ], n_nodes = 4)
+
+# Predict occurrences for the remaining subset (test set)
+predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod, n_nodes = 4)
+
+# Visualise predicted occurrence probabilities for nodes in the test set
+predictions$predicted_probabilities}
+
 }
 \seealso{
 \code{\link{MRFcov}}, \code{\link{cv_MRF}}

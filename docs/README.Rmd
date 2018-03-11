@@ -16,9 +16,12 @@ knitr::opts_chunk$set(
 
 The `MRFcov` package (described by Clark *et al*, in press in *Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. 
   
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFCov` models can:  
+In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:  
+  
 (1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities  
+  
 (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"  
+  
 (3) Estimate how interactions are predicted to change across environmental gradients
   
 At present, only binary response variables can be included (1s and 0s, which are commonly used in multispecies occurrence data), though models accomodating different data structures may be added in future.  

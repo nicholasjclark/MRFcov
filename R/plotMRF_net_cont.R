@@ -1,8 +1,8 @@
 #'Plot networks of varying interaction coefficients for a continuous covariate
 #'
 #'This function uses outputs from fitted \code{\link{MRFcov}} models to
-#'plot networks of node interaction coefficients across observed magnituedes of a
-#'a specified \code{numeric} covariate.
+#'plot networks of node interaction coefficients across observed magnitudes of a
+#'a specified continuous covariate.
 #'
 #'@param data Dataframe. The input data where the
 #'left-most variables are binary occurrences that are represented by nodes in the graph
@@ -17,8 +17,13 @@
 #'@param cutoff Positive numeric. Interaction coefficients whose absolute values are
 #'below this threshold will not be plotted. This is useful when many weak interactions
 #'tend to create cluttered and uninterpetable network plots. Default is \code{0}
-#'@return A plot object
-#'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
+#'@param plot Logical. If \code{TRUE}, returns a gridded plot object showing predicted
+#'networks across three quantiles of the covariate (minimum, median, and maximum).
+#'If \code{FALSE}, returns three weighted, undirected adjacency matrices that can be plotted
+#'using functions in \code{\link[igraph]{igraph}}. \code{TRUE} is default
+#'@return Either a plot object (if \code{plot = TRUE}) or a list of three weighted,
+#'undirected \code{igraph} adjacency matrices
+#'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}
 #'
 #'@details Observed values of the specified \code{covariate} are extracted by
 #'name matching of \code{colnames(data)}. Interaction parameters from \code{MRF_mod} are
@@ -34,10 +39,14 @@
 #'@export
 #'
 plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
-                           main, plot_booted_coefs, cutoff){
+                           main, plot_booted_coefs, cutoff, plot){
 
   if(missing(plot_booted_coefs)){
     plot_booted_coefs <- FALSE
+  }
+
+  if(missing(plot)){
+    plot <- TRUE
   }
 
   if(missing(main)){
@@ -50,18 +59,18 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
     cutoff <- 0
   }
 
-  #### Function to get the upper triangle of a symmetric matrix ####
-  get_upper_tri <- function(cormat){
-    cormat[lower.tri(cormat)] <- NA
-    return(cormat)
-  }
-
   #### Function to create network graphs
-  create_netgraph = function(matrix, node_names, cutoff){
+  create_netgraph = function(matrix, node_names, cutoff, plot){
 
     # Create the adjacency network graph
     comm.net <- igraph::graph.adjacency(matrix, weighted = T, mode = "undirected")
 
+    # If plot = FALSE, return the weighted adjacency matrix
+    if(!plot){
+      net.plot <- comm.net
+    } else {
+
+    # If plot = TRUE, create the network plot
     # Specify edge colours
     cols <- c('blue', 'red4')
     igraph::E(comm.net)$color <- ifelse(igraph::E(comm.net)$weight < 0,
@@ -83,6 +92,7 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
                      vertex.shape = "crectangle",
                      vertex.label.family = 'sans',
                      vertex.label.color = "black")
+    }
     return(net.plot)
   }
 
@@ -149,11 +159,19 @@ plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
     pred_values <- (covariate_matrix * j) + baseinteraction_matrix
     net.plot <- create_netgraph(matrix = pred_values,
                                 node_names = node_names,
-                                cutoff = cutoff)
+                                cutoff = cutoff, plot = plot)
   })
+
+  # If plot = FALSE, return the list of weighted adjacency matrices
+  if(!plot){
+    names(cont.cov.mats) <- c('Min', 'Median', 'Max')
+    cont.cov.mats
+  } else {
+
+  # If plot = TRUE, add text and arrows to the plot and return
   arrows(x0 = -5.3, y0 = 1.4, x1 = 0,
          y1 = 1.4, xpd = NA, length = 0.1)
   mtext(main, side = 3,
         line = -2, outer = T, cex = 1.2)
-
+  }
 }
