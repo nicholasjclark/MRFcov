@@ -343,9 +343,13 @@ MRFcov <-function(data, lambda1, lambda2, separate_min,
     direct_coefs[, 2:(n_nodes + 1)] <- interaction_matrix_sym[[1]]
 
     #Replace unsymmetric indirect interaction coefficients with symmetric versions
+    covs_to_sym <- ncol(direct_coefs) - (1 + n_nodes + n_covariates)
+    covs_to_sym_end <- seq(n_nodes, covs_to_sym, by = n_nodes) + (1 + n_nodes + n_covariates)
+    covs_to_sym_beg <- covs_to_sym_end - (n_nodes - 1)
+
     for(i in seq_len(n_covariates)){
-      direct_coefs[, (n_nodes + (n_covariates * i) + (3 - i)):
-                     (n_nodes + (n_covariates * i) + (3 - i) + (n_nodes - 1))] <- data.frame(indirect_coefs[[i]])
+      direct_coefs[, covs_to_sym_beg[i] :
+                     covs_to_sym_end[i]] <- data.frame(indirect_coefs[[i]])
     }
   } else{
     #If no covariates included, return an empty list for indirect_coefs
