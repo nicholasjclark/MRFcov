@@ -1,7 +1,7 @@
 Package: MRFcov
 Type: Package
 Title: Markov Random Fields with additional covariates 
-Version: 1.0.1
+Version: 1.0.2
 Date/Publication: 2018-01-08
 URL: https://github.com/nicholasjclark/MRFcov
 Authors@R: c(

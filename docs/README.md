@@ -3,7 +3,7 @@
 Overview
 --------
 
-The `MRFcov` package (described by Clark *et al*, in press in *Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
+The `MRFcov` package [![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159) (described by Clark *et al*, in press in *Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
 
 In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:
 
@@ -111,45 +111,45 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 booted_MRF$mean_key_coefs$Hzosteropis
 #>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.69113456 -3.4664706
-#> 7 scale.prop.zos_Microfilaria     0.12219641 -1.4575902
-#> 3                Microfilaria     0.06731422  1.0818315
-#> 4              scale.prop.zos     0.05332363 -0.9628665
-#> 6         scale.prop.zos_Plas     0.03497917  0.7798498
-#> 2                        Plas     0.01565959 -0.5217908
-#> 5   scale.prop.zos_Hkillangoi     0.01539242 -0.5173206
+#> 1                  Hkillangoi     0.68779004 -3.4115957
+#> 7 scale.prop.zos_Microfilaria     0.09965567 -1.2986156
+#> 3                Microfilaria     0.09472557  1.2660861
+#> 4              scale.prop.zos     0.05013569 -0.9210922
+#> 2                        Plas     0.02998505 -0.7123313
+#> 6         scale.prop.zos_Plas     0.02092861  0.5951134
+#> 5   scale.prop.zos_Hkillangoi     0.01677937 -0.5328652
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Hkillangoi
 #>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.77270430 -3.4664706
-#> 5        scale.prop.zos_Plas     0.09882668  1.2397039
-#> 2               Microfilaria     0.06377358 -0.9958668
-#> 3             scale.prop.zos     0.04476574 -0.8343605
-#> 4 scale.prop.zos_Hzosteropis     0.01720908 -0.5173206
+#> 1                Hzosteropis     0.73536185 -3.4115957
+#> 5        scale.prop.zos_Plas     0.12007524  1.3785856
+#> 2               Microfilaria     0.07190137 -1.0667818
+#> 3             scale.prop.zos     0.05234985 -0.9102584
+#> 4 scale.prop.zos_Hzosteropis     0.01793993 -0.5328652
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Plas
 #>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.42678264  1.8029835
-#> 5   scale.prop.zos_Hkillangoi     0.20177119  1.2397039
-#> 3              scale.prop.zos     0.17908585 -1.1679359
-#> 4  scale.prop.zos_Hzosteropis     0.07984452  0.7798498
-#> 6 scale.prop.zos_Microfilaria     0.07173224  0.7391721
-#> 1                 Hzosteropis     0.03574506 -0.5217908
+#> 2                Microfilaria     0.40866599  1.7963063
+#> 5   scale.prop.zos_Hkillangoi     0.24069952  1.3785856
+#> 3              scale.prop.zos     0.18000363 -1.1921661
+#> 1                 Hzosteropis     0.06426460 -0.7123313
+#> 6 scale.prop.zos_Microfilaria     0.05676395  0.6694721
+#> 4  scale.prop.zos_Hzosteropis     0.04485463  0.5951134
 ```
 
 ``` r
 booted_MRF$mean_key_coefs$Microfilaria
 #>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.34665943  1.8029835
-#> 5 scale.prop.zos_Hzosteropis     0.22656374 -1.4575902
-#> 4             scale.prop.zos     0.13752517 -1.1356156
-#> 1                Hzosteropis     0.12480695  1.0818315
-#> 2                 Hkillangoi     0.10576014 -0.9958668
-#> 6        scale.prop.zos_Plas     0.05826539  0.7391721
+#> 3                       Plas     0.33870613  1.7963063
+#> 5 scale.prop.zos_Hzosteropis     0.17702048 -1.2986156
+#> 1                Hzosteropis     0.16826304  1.2660861
+#> 4             scale.prop.zos     0.14950081 -1.1934126
+#> 2                 Hkillangoi     0.11945751 -1.0667818
+#> 6        scale.prop.zos_Plas     0.04704649  0.6694721
 ```
 
 References
