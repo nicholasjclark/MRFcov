@@ -460,7 +460,9 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   #Calculate relative importance of key covariates across the set of lambda results
   coef_rel_importances <- t(apply(all_direct_coef_means[, -1], 1, function(i) i^2 / sum(i^2)))
   mean_key_coefs <- lapply(seq_len(n_nodes),function(x){
-    node_coefs <- data.frame(Variable = names(coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)]),
+    node_coefs <- data.frame(Variable = ifelse(length(which(coef_rel_importances[x, ] > 0.01)) == 1,
+                                               names(which((coef_rel_importances[x, ] > 0.01) == T)),
+                                               names(coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)])),
                              Rel_importance = coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)],
                              Mean_coef = all_direct_coef_means[x, 1 + which(coef_rel_importances[x, ] > 0.01)])
     rownames(node_coefs) <- NULL
