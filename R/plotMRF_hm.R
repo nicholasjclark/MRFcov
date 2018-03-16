@@ -49,7 +49,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
   n_nodes <- ncol(MRF_mod$graph)
 
   #If covariates were included, extract interaction coefficients from the direct_coefs slot
-  if(length(MRF_mod$direct_coefs) > 0){
+  if(length(MRF_mod$indirect_coefs) > 0){
   mod.coefs <- MRF_mod$direct_coefs
 
   #Convert node interaction coefficients to a matrix
