@@ -39,6 +39,9 @@
 #'@param compare_null Logical. If \code{TRUE}, null models will also be run and plotted to
 #'assess the influence of including covariates on model predictive performance.
 #'Default is \code{FALSE}
+#'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}). At present,
+#'only \code{family = "binomial"} is supported for this function
 #'@return A \code{ggplot2} object plotting LOESS regressions of
 #'relationships between l1−regularization values and predictive metrics
 #'
@@ -59,15 +62,18 @@
 #'data("Bird.parasites")
 #'cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4,
 #'            max_lambda1 = 2, by_lambda1 = 0.1,
-#'            n_nodes = 4, n_cores = 3)}
+#'            n_nodes = 4, n_cores = 3, family = 'binomial')}
 #'@export
 #'
 cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                         separate_min, n_nodes, lambda2, n_cores,
                         sample_seed, n_folds, n_fold_runs, n_covariates,
-                        compare_null){
+                        compare_null, family){
 
   #### Specify default parameter values and initiate warnings ####
+  if(!(family %in% 'binomial'))
+    stop('Only family "binomial" is currently supported for this function')
+
   if(missing(separate_min)) {
     separate_min <- FALSE
   }

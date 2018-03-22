@@ -5,27 +5,30 @@
 \title{Binary Markov Random Fields with covariates}
 \usage{
 MRFcov(data, lambda1, lambda2, separate_min, prep_covariates, n_nodes, n_cores,
-  n_covariates)
+  n_covariates, family, cv)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
 left-most variables are binary occurrences to be represented by nodes in the graph}
 
-\item{lambda1}{Positve numeric. To be used as the l1−regularization parameter}
+\item{lambda1}{Positve numeric. If \code{cv = FALSE}, this value is used as the
+l1−regularization parameter for all node-specific regressions. If \code{cv = TRUE},
+this value is ignored and penalization parameters are optimized automatially.
+See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
 
 \item{lambda2}{Numeric (>= 0). Value for l2−regularization, where larger values lead
 to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 may be necessary for large or particularly sparse datasets}
 
-\item{separate_min}{Logical. If \strong{TRUE}, interaction coefficients will use the minimum absolute value of
+\item{separate_min}{Logical. If \code{TRUE}, interaction coefficients will use the minimum absolute value of
 the corresponding parameter estimates, which are taken from separate logistic regressions,
 in the symmetric postprocessed coefficient matrix. Else use the maximum
-Default is \strong{FALSE}}
+Default is \code{FALSE}}
 
-\item{prep_covariates}{Logical. If \strong{TRUE}, covariate columns will be cross-multiplied
+\item{prep_covariates}{Logical. If \code{TRUE}, covariate columns will be cross-multiplied
 with nodes to prep the dataset for MRF models. Note this is only useful when additional
 covariates are provided. Therefore, if \code{n_nodes < ncol(data)},
-default is \strong{TRUE}. Otherwise, default is \strong{FALSE}. See
+default is \code{TRUE}. Otherwise, default is \code{FALSE}. See
 \code{\link{prep_MRF_covariates}} for more information}
 
 \item{n_nodes}{Positive integer. The index of the last column in \code{data}
@@ -37,6 +40,15 @@ columns in \code{data}, corresponding to no additional covariates}
 \code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication}
+
+\item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
+
+\item{cv}{Logical. If \code{TRUE}, node-specific regressions are optimized using the 10-fold
+cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
+that minimises mean cross-validated error. If \code{FALSE}, each regression is run
+at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
+regression). Default is \code{TRUE}}
 }
 \value{
 A \code{list} of six objects:
@@ -54,29 +66,41 @@ A \code{list} of six objects:
 }
 \description{
 This function is the workhorse of the \code{MRFcov} package, running
-separate penalized logistic regressions for each node to estimate parameters of binary
+separate penalized logistic regressions for each node to estimate parameters of
 Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
-how interactions vary across covariate magnitudes.
+how interactions between nodes vary across covariate magnitudes.
 }
 \details{
-Separate penalized logistic regressions are used to approximate
+Separate penalized regressions are used to approximate
 MRF parameters, where the regression for species \code{j} includes an
-intercept and beta coefficients for the presence-absence of all other
+intercept and beta coefficients for the abundance (families \code{gaussian} or \code{poisson})
+or presence-absence (family \code{binomial}) of all other
 species (\code{/j}) in \code{data}. If covariates are included, beta coefficients
 are also estimated for the effect of the covariate on \code{j} and the
 effects of the covariate on interactions between \code{j} and all other species
-(\code{/j}). Because the number of parameters quickly increases with increasing
+(\code{/j}). Note that coefficients must be estimated on the same scale in order
+for the resulting models to be unified in a Markov Random Field. Because of this, coefficients
+for \code{gaussian} and \code{poisson} variables will only be directly interpretable
+after multiplying the coefficient by the \code{sd} of the respective variable.
+\cr
+\cr
+Note that since the number of parameters quickly increases with increasing
 numbers of species and covariates, LASSO penalization is used to regularize
 regressions based on values of regularization parameters \code{lambda1} and
-\code{lambda2}. See \code{\link[penalized]{penalized}} for details of
-the penalization process
+\code{lambda2}. This can be done either by minimising the cross-validated
+mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
+running all regressions at a single \code{lambda1} value. The latter approach may be
+useful for optimising all nodes as part of a joint graphical model, while the former
+is likely to be more appropriate for maximising the log-likelihood of each node
+separately before unifying the nodes into a graph. See \code{\link[penalized]{penalized}}
+and \code{\link[glmnet]{cv.glmnet}} for further details.
 }
 \examples{
 \dontrun{
 data("Bird.parasites")
 CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
-          lambda1 = 0.5)}
+          lambda1 = 0.5, family = 'binomial', cv = FALSE)}
 
 }
 \references{
@@ -91,5 +115,6 @@ Foundations and Trends in Machine Learning 4, 267-373.
 \href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
 and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
 for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
-details of penalized logistic regressions
+details of penalized regressions at a fixed lambda, and \code{\link[glmnet]{cv.glmnet}} for
+details of cross-validated lambda optimization
 }

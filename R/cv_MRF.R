@@ -38,6 +38,9 @@
 #'@param sample_seed Numeric. This seed will be used as the basis
 #'for dividing data into folds. Default is a random seed
 #'between 1 and 100000
+#'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}). At present,
+#'only \code{family = "binomial"} is supported for this function
 #'@return A \code{list} of 11 objects:
 #'\itemize{
 #'    \item \code{mean_pos_pred}: Numeric value of average positive predictive value
@@ -74,9 +77,12 @@
 cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
                   lambda2, separate_min,
                   n_nodes, n_cores, sample_seed, n_folds,
-                  n_fold_runs, n_covariates){
+                  n_fold_runs, n_covariates, family){
 
   #### Specify default parameter values and initiate warnings ####
+  if(!(family %in% 'binomial'))
+    stop('Only family "binomial" is currently supported for this function')
+
   if(missing(separate_min)) {
     separate_min <- FALSE
   }
@@ -256,7 +262,7 @@ if(nas_present){
 clusterExport(NULL, c('lamda1_seq', 'n_folds', 'lambda2',
                       'separate_min', 'n_nodes',
                       'data','nas_present', 'n_covariates',
-                      'prepped_datas', 'n_fold_runs'),
+                      'prepped_datas', 'n_fold_runs', 'family'),
                 envir = environment())
 
 #Export necessary functions
@@ -303,7 +309,9 @@ cross_validated_mrfs <- parLapply(NULL, lamda1_seq, function(l) {
                      separate_min = separate_min,
                      n_nodes = n_nodes,
                      n_cores = 1, prep_covariates = FALSE,
-                     n_covariates = n_covariates)
+                     n_covariates = n_covariates,
+                     cv = FALSE,
+                     family = family)
 
     #Use output from the trained model to predict the test_data observations
     test_preds <- predict_MRF(data = test_data, MRF_mod = trained_mrf,
@@ -401,7 +409,9 @@ stopCluster(cl)
                        separate_min = separate_min,
                        n_nodes = n_nodes,
                        n_cores = 1, prep_covariates = FALSE,
-                       n_covariates = n_covariates)
+                       n_covariates = n_covariates,
+                       cv = FALSE,
+                       family = family)
 
       test_preds <- predict_MRF(data = test_data, MRF_mod = trained_mrf,
                             n_nodes = n_nodes)

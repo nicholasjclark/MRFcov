@@ -6,7 +6,7 @@
 \usage{
 cv_MRF_diag(data, min_lambda1, max_lambda1, by_lambda1, separate_min, n_nodes,
   lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates,
-  compare_null)
+  compare_null, family)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -54,6 +54,10 @@ l1 regularization parameter. Defaults to \code{n_folds}}
 \item{compare_null}{Logical. If \code{TRUE}, null models will also be run and plotted to
 assess the influence of including covariates on model predictive performance.
 Default is \code{FALSE}}
+
+\item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}). At present,
+only \code{family = "binomial"} is supported for this function}
 }
 \value{
 A \code{ggplot2} object plotting LOESS regressions of
@@ -78,7 +82,7 @@ Plots showing LOESS regressions of prediction metrics vs \code{lambda1} are retu
 data("Bird.parasites")
 cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4,
            max_lambda1 = 2, by_lambda1 = 0.1,
-           n_nodes = 4, n_cores = 3)}
+           n_nodes = 4, n_cores = 3, family = 'binomial')}
 }
 \seealso{
 \code{\link{MRFcov}},\code{\link{predict_MRF}},

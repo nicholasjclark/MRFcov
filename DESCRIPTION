@@ -13,7 +13,7 @@ Description: Approximate node interaction parameters of undirected Markov Random
     graphs. Models can incorporate additional covariates, allowing users to estimate
     how interactions between nodes in the graph are predicted to change across
     covariate gradients.
-Depends: R (>= 3.3.3), penalized
+Depends: R (>= 3.3.3), penalized, glmnet
 Imports: purrr,
     parallel,
     plyr,

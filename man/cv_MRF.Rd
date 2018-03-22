@@ -5,7 +5,7 @@
 \title{MRF cross validation to optimise regularization parameters}
 \usage{
 cv_MRF(data, min_lambda1, max_lambda1, by_lambda1, lambda2, separate_min,
-  n_nodes, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates)
+  n_nodes, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates, family)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -50,6 +50,10 @@ l1 regularization parameter. Defaults to \code{n_folds}}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data},
 before cross-multiplication}
+
+\item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}). At present,
+only \code{family = "binomial"} is supported for this function}
 }
 \value{
 A \code{list} of 11 objects:
