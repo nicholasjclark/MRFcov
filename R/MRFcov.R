@@ -1,4 +1,4 @@
-#'Binary Markov Random Fields with covariates
+#'Markov Random Fields with covariates
 #'
 #'
 #'This function is the workhorse of the \code{MRFcov} package, running
