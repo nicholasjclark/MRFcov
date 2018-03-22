@@ -198,7 +198,7 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
   #acting as covariates #
   if(family %in% c('gaussian','poisson')){
     mrf_data.scaled = data.frame(mrf_data) %>%
-      dplyr::mutate_at(vars(1:n_nodes),funs(as.vector(scale(.))))
+      dplyr::mutate_at(dplyr::vars(1:n_nodes), dplyr::funs(as.vector(scale(.))))
   } else {
     mrf_data.scaled <- mrf_data
   }
