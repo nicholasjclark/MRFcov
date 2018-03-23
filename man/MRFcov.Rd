@@ -2,14 +2,14 @@
 % Please edit documentation in R/MRFcov.R
 \name{MRFcov}
 \alias{MRFcov}
-\title{Binary Markov Random Fields with covariates}
+\title{Markov Random Fields with covariates}
 \usage{
 MRFcov(data, lambda1, lambda2, separate_min, prep_covariates, n_nodes, n_cores,
   n_covariates, family, cv)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
-left-most variables are binary occurrences to be represented by nodes in the graph}
+left-most variables are variables that are to be represented by nodes in the graph}
 
 \item{lambda1}{Positve numeric. If \code{cv = FALSE}, this value is used as the
 l1−regularization parameter for all node-specific regressions. If \code{cv = TRUE},
@@ -51,7 +51,7 @@ at a single \code{lambda1} value (the same \code{lambda1} value is used for each
 regression). Default is \code{TRUE}}
 }
 \value{
-A \code{list} of six objects:
+A \code{list} containing:
 \itemize{
    \item \code{graph}: Estimated parameter matrix of interaction effects
    \item \code{intercepts}: Estimated parameter vector of node intercepts
@@ -62,6 +62,7 @@ A \code{list} of six objects:
    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
    node occurrence probabilities
    \item \code{param_names}: Character string of covariate parameter names
+   \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
    }
 }
 \description{

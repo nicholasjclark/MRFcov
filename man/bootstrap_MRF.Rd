@@ -10,7 +10,7 @@ bootstrap_MRF(data, n_bootstraps, sample_seed, min_lambda1, max_lambda1,
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
-left-most variables are binary occurrences to be represented by nodes in the graph.
+left-most variables are variables that are to be represented by nodes in the graph.
 Note that \code{NA}'s are allowed for covariates. If present, these missing values
 will be imputed from the distribution \code{rnorm(mean = 0, sd = 1)}, which assumes that
 all covariates are scaled and centred (i.e. by using the function
@@ -67,9 +67,9 @@ across. If \code{cv = FALSE}, this value is ignored and \code{n_its} is taken fr
 is \code{100}}
 }
 \value{
-A \code{list} containing five objects:
+A \code{list} containing:
 \itemize{
-  \item \code{lambda_results}: \code{list} of length \code{lambda1_seq} containing:
+  \item \code{lambda_results}: if \code{cv=FALSE}, a \code{list} of length \code{lambda1_seq} containing:
   \itemize{
   \item \code{key_covariates}: dataframes of important covariates (i.e. those retained in
   at least 90 percent of bootstrap replicates) at each l1 value
@@ -77,18 +77,19 @@ A \code{list} containing five objects:
   \item \code{indirect_coefs}: estimated higher order interaction coefficients at each l1 value
   }
   \item \code{direct_coef_means}: \code{dataframe} containing mean coefficient values taken from all
-  bootstrapped models across the range of l1 values
+  bootstrapped models across the iterations
   \item \code{direct_coef_upper90} and \code{direct_coef_lower90}: \code{dataframe}s
   containing coefficient 95 percent and 5 percent quantiles taken from all
-  bootstrapped models across the range of l1 values
+  bootstrapped models across the iterations
   \item \code{indirect_coef_mean}: \code{list} of matrices containing mean higher order coefficient values
-  taken from all bootstrapped models across the range of l1 values
+  taken from all bootstrapped models across the iterations
   \item \code{mean_key_coefs}: \code{list} of matrices of length \code{n_nodes}
   containing mean covariate coefficient values and their relative importances
   (using the formula \code{x^2 / sum (x^2)}
   taken from all bootstrapped models across iterations. Only coefficients
   with mean relative importances \code{>0.01} are returned. Note, relative importance are only
   useful if all covariates are on a similar scale.
+  \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
 }
 }
 \description{

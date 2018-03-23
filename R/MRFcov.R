@@ -11,7 +11,7 @@
 #'@import penalized glmnet
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph
+#'left-most variables are variables that are to be represented by nodes in the graph
 #'@param lambda1 Positve numeric. If \code{cv = FALSE}, this value is used as the
 #'l1−regularization parameter for all node-specific regressions. If \code{cv = TRUE},
 #'this value is ignored and penalization parameters are optimized automatially.
@@ -43,7 +43,7 @@
 #'at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
 #'regression). Default is \code{TRUE}
 #'
-#'@return A \code{list} of six objects:
+#'@return A \code{list} containing:
 #'\itemize{
 #'    \item \code{graph}: Estimated parameter matrix of interaction effects
 #'    \item \code{intercepts}: Estimated parameter vector of node intercepts
@@ -54,6 +54,7 @@
 #'    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
 #'    node occurrence probabilities
 #'    \item \code{param_names}: Character string of covariate parameter names
+#'    \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
 #'    }
 #'
 #'
@@ -108,7 +109,8 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
-    stop('Please select one of the three family options: "gaussian", "poisson", "binomial"')
+    stop('Please select one of the three family options:
+         "gaussian", "poisson", "binomial"')
 
   if(missing(lambda1)) {
     warning('lambda1 not provided, using cross-validation to optimise each regression')
@@ -121,7 +123,8 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
   }
 
   if(missing(cv)){
-    warning('cv not provided. Cross-validated optimisation will commence by default, ignoring lambda1')
+    warning('cv not provided. Cross-validated optimisation will commence by default,
+            ignoring lambda1')
     cv <- TRUE
   }
 
@@ -149,6 +152,7 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
     }
   }
 
+  #### Basic checks on data arguments ####
   if(missing(n_nodes)) {
     warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
             call. = FALSE)
@@ -166,6 +170,10 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
 
   if(any(is.na(data))){
     stop('NAs detected. Consider removing, replacing or using the bootstrap_mrf function to impute NAs')
+  }
+
+  if(any(!is.finite(as.matrix(data)))){
+    stop('No infinite values permitted')
   }
 
   if(missing(prep_covariates) & n_nodes < ncol(data)){
@@ -468,6 +476,7 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
               results = mrf_mods,
               direct_coefs = direct_coefs,
               indirect_coefs = indirect_coefs,
-              param_names = colnames(mrf_data)))
+              param_names = colnames(mrf_data),
+              mod_type = 'MRFcov'))
 
 }

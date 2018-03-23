@@ -8,7 +8,7 @@
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph.
+#'left-most variables are variables that are to be represented by nodes in the graph.
 #'Note that \code{NA}'s are allowed for covariates. If present, these missing values
 #'will be imputed from the distribution \code{rnorm(mean = 0, sd = 1)}, which assumes that
 #'all covariates are scaled and centred (i.e. by using the function
@@ -50,9 +50,9 @@
 #'across. If \code{cv = FALSE}, this value is ignored and \code{n_its} is taken from the length of
 #'\code{lambda1_seq = seq(min_lambda1, max_lambda1, by_lambda1)}. Default when \code{cv = FALSE}
 #'is \code{100}
-#'@return A \code{list} containing five objects:
+#'@return A \code{list} containing:
 #'\itemize{
-#'   \item \code{lambda_results}: \code{list} of length \code{lambda1_seq} containing:
+#'   \item \code{lambda_results}: if \code{cv=FALSE}, a \code{list} of length \code{lambda1_seq} containing:
 #'   \itemize{
 #'   \item \code{key_covariates}: dataframes of important covariates (i.e. those retained in
 #'   at least 90 percent of bootstrap replicates) at each l1 value
@@ -60,18 +60,19 @@
 #'   \item \code{indirect_coefs}: estimated higher order interaction coefficients at each l1 value
 #'   }
 #'   \item \code{direct_coef_means}: \code{dataframe} containing mean coefficient values taken from all
-#'   bootstrapped models across the range of l1 values
+#'   bootstrapped models across the iterations
 #'   \item \code{direct_coef_upper90} and \code{direct_coef_lower90}: \code{dataframe}s
 #'   containing coefficient 95 percent and 5 percent quantiles taken from all
-#'   bootstrapped models across the range of l1 values
+#'   bootstrapped models across the iterations
 #'   \item \code{indirect_coef_mean}: \code{list} of matrices containing mean higher order coefficient values
-#'   taken from all bootstrapped models across the range of l1 values
+#'   taken from all bootstrapped models across the iterations
 #'   \item \code{mean_key_coefs}: \code{list} of matrices of length \code{n_nodes}
 #'   containing mean covariate coefficient values and their relative importances
 #'   (using the formula \code{x^2 / sum (x^2)}
 #'   taken from all bootstrapped models across iterations. Only coefficients
 #'   with mean relative importances \code{>0.01} are returned. Note, relative importance are only
 #'   useful if all covariates are on a similar scale.
+#'   \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
 #' }
 #'
 #'
@@ -100,10 +101,29 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
-    stop('Please select one of the three family options: "gaussian", "poisson", "binomial"')
+    stop('Please select one of the three family options:
+         "gaussian", "poisson", "binomial"')
 
   if(missing(separate_min)) {
     separate_min <- FALSE
+  }
+
+  if(missing(n_cores)) {
+    n_cores <- 1
+  } else {
+    if(sign(n_cores) != 1){
+      stop('Please provide a positive integer for n_cores')
+    } else{
+      if(sfsmisc::is.whole(n_cores) == FALSE){
+        stop('Please provide a positive integer for n_cores')
+      }
+    }
+  }
+
+  if(missing(sample_seed)){
+    set.seed(ceiling(runif(1, 0, 100000)))
+  } else {
+    set.seed(sample_seed)
   }
 
   if(missing(n_bootstraps)) {
@@ -117,16 +137,9 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     }
   }
 
-  if(missing(lambda2)) {
-    lambda2 <- 0
-  } else {
-    if(sign(lambda2) != 1){
-      stop('Please provide a non-negative numeric value for lambda2')
-    }
-  }
-
   if(missing(cv)){
-    warning('cv not provided. Using cross-validated optimisation by default, ignoring min_lambda1, max_lambda1 and by_lambda1')
+    warning('cv not provided. Using cross-validated optimisation by default,
+            ignoring min_lambda1, max_lambda1 and by_lambda1')
     cv <- TRUE
   }
 
@@ -134,7 +147,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     n_its <- 100
   }
 
-  #If cv is FALSE, check that lambda1 arguments are appropriate
+  #### If cv = FALSE, check that lambda arguments are appropriate ####
   if(!cv){
   if(missing(min_lambda1)) {
     stop('Please provide a non-negative numeric value for min_lambda1')
@@ -145,26 +158,44 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   }
 
   if(missing(max_lambda1)) {
-    stop('Please provide a non-negative numeric value for max_lambda1')
+    stop('Please provide a non-negative numeric value for max_lambda1
+         or use option "cv"')
   } else {
     if(max_lambda1 < 0){
-      stop('Please provide a non-negative numeric value for max_lambda1')
+      stop('Please provide a non-negative numeric value for max_lambda1
+           or use option "cv"')
     }
   }
 
   if(missing(by_lambda1)) {
-    stop('Please provide a non-negative numeric value for by_lambda1')
+    stop('Please provide a non-negative numeric value for by_lambda1
+         or use option "cv"')
   } else {
     if(by_lambda1 < 0){
-      stop('Please provide a non-negative numeric value for by_lambda1')
+      stop('Please provide a non-negative numeric value for by_lambda1
+           or use option "cv"')
     }
   }
 
   if(by_lambda1 > max_lambda1){
-    stop('Please provide a by_lambda1 that can be used as an increment between min_lambda1 & max_lambda1')
-  }
+    stop('Please provide a by_lambda1 that can be used as an
+         increment between min_lambda1 & max_lambda1')
   }
 
+  if(missing(lambda2)) {
+     lambda2 <- 0
+    } else {
+      if(sign(lambda2) != 1){
+        stop('Please provide a non-negative value for lambda2
+             or use option "cv"')
+      }
+    }
+  } else{
+    lambda2 <- 1
+    lambda1 <- 1
+  }
+
+  #### Basic checks on data arguments ####
   if(missing(n_nodes)) {
     warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
             call. = FALSE)
@@ -200,26 +231,20 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     nas_present = FALSE
     }
 
-  if(missing(n_cores)) {
-    n_cores <- 1
-  } else {
-    if(sign(n_cores) != 1){
-      stop('Please provide a positive integer for n_cores')
-    } else{
-      if(sfsmisc::is.whole(n_cores) == FALSE){
-        stop('Please provide a positive integer for n_cores')
-      }
-    }
+  if(any(!is.finite(as.matrix(data)))){
+    stop('No infinite values permitted.')
+  }
+
+  if(nrow(data) < 2){
+    ('The data must have at least 2 rows')
+  }
+
+  if(any(!(apply(data, 2, class) %in% c('numeric', 'integer')))){
+    stop('Only integer and numeric values permitted')
   }
 
   if(is.matrix(data)){
     data <- as.data.frame(data)
-  }
-
-  if(missing(sample_seed)){
-    set.seed(ceiling(runif(1, 0, 100000)))
-  } else {
-    set.seed(sample_seed)
   }
 
   #### Function to randomly sample rows for each bootstrap replicate ####
@@ -227,7 +252,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     dplyr::sample_n(data, nrow(data), TRUE)
   }
 
-  #### Function to impute NAs from normal distribution (mean = 0; sd = 1) ####
+  #### Function to impute covariate NAs from normal distribution (mean = 0; sd = 1) ####
   impute_nas <- function(empty){
     data[is.na(data)] <- sample(rnorm(sum(is.na(data)),
                                       mean = 0, sd = 1),
@@ -241,10 +266,10 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   rm(booted_list)
 
   if(nas_present){
-  booted_datas <- lapply(booted_datas,impute_nas)
+   booted_datas <- lapply(booted_datas,impute_nas)
   }
 
-  #### Run MRFcov across the sequence of lambda1 values ####
+  #### Run MRFcov across iterations ####
   if(cv){
     #If using cross-validation, lambda1_seq doesn't matter (just needs to be a sequence for
     #running models repeatedly. Uses n_its to define the length)
@@ -466,10 +491,10 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     }
 
   #### Calculate summary statistics of coefficients from bootstrapped models ####
-  #Name each list element by its lambda1 value
+  #Name each list element by its iteration value
   names(lambda_results) <- lambda1_seq
 
-  #Calculate summary coefficient statistics across all lambda1 values
+  #Calculate summary coefficient statistics across all iterations
   all_direct_coef_list <- lambda_results %>%
     purrr::map('raw_coefs') %>%
     purrr::flatten()
@@ -497,7 +522,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   rownames(all_direct_coef_lower90) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
   colnames(all_direct_coef_lower90) <- colnames(lambda_results[[1]]$raw_coefs[[1]])
 
-  #Calculate relative importance of key covariates across the set of lambda results
+  #Calculate relative importance of key covariates across the set of iterations
   coef_rel_importances <- t(apply(all_direct_coef_means[, -1], 1, function(i) i^2 / sum(i^2)))
   mean_key_coefs <- lapply(seq_len(n_nodes),function(x){
     if(length(which(coef_rel_importances[x, ] > 0.01)) == 1){
@@ -516,7 +541,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   })
   names(mean_key_coefs) <- rownames(all_direct_coef_means)
 
-  #Calculate higher order coefficient summary statistics
+  #Calculate indirect coefficient summary statistics
   all_indirect_coef_list <- lambda_results %>%
     purrr::map('indirect_coefs')
 
@@ -525,11 +550,20 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   })
   names(all_indirect_coef_means) <- names(all_indirect_coef_list[[1]])
 
+  if(!cv){
   return(list(lambda_results = lambda_results,
               direct_coef_means = all_direct_coef_means,
               direct_coef_upper90 = all_direct_coef_upper90,
               direct_coef_lower90 = all_direct_coef_lower90,
               indirect_coef_mean = all_indirect_coef_means,
               mean_key_coefs = mean_key_coefs))
+  } else {
+    return(list(direct_coef_means = all_direct_coef_means,
+                direct_coef_upper90 = all_direct_coef_upper90,
+                direct_coef_lower90 = all_direct_coef_lower90,
+                indirect_coef_mean = all_indirect_coef_means,
+                mean_key_coefs = mean_key_coefs,
+                mod_type = 'bootstrap_MRF'))
+  }
 }
 
