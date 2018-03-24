@@ -62,7 +62,10 @@ A \code{list} containing:
    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
    node occurrence probabilities
    \item \code{param_names}: Character string of covariate parameter names
-   \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
+   \item \code{mod_type}: A character stating the type of model that was fit
+   (used in other functions)
+   \item \code{mod_family}: A character stating the family of model that was fit
+   (used in other functions)
    }
 }
 \description{

@@ -54,7 +54,10 @@
 #'    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
 #'    node occurrence probabilities
 #'    \item \code{param_names}: Character string of covariate parameter names
-#'    \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
+#'    \item \code{mod_type}: A character stating the type of model that was fit
+#'    (used in other functions)
+#'    \item \code{mod_family}: A character stating the family of model that was fit
+#'    (used in other functions)
 #'    }
 #'
 #'
@@ -477,6 +480,7 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
               direct_coefs = direct_coefs,
               indirect_coefs = indirect_coefs,
               param_names = colnames(mrf_data),
-              mod_type = 'MRFcov'))
+              mod_type = 'MRFcov',
+              mod_family = family))
 
 }

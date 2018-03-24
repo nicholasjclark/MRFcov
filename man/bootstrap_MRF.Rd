@@ -89,7 +89,10 @@ A \code{list} containing:
   taken from all bootstrapped models across iterations. Only coefficients
   with mean relative importances \code{>0.01} are returned. Note, relative importance are only
   useful if all covariates are on a similar scale.
-  \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
+  \item \code{mod_type}: A character stating the type of model that was fit
+  (used in other functions)
+  \item \code{mod_family}: A character stating the family of model that was fit
+   (used in other functions)
 }
 }
 \description{

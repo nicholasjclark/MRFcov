@@ -62,6 +62,8 @@ predict_MRF <- function(data, MRF_mod, n_nodes){
     }
   }
 
+# Extract the family of the fitted model to determine which prediction equations to use
+family <- MRF_mod$family
 data <- data.frame(data)
 node_names <- colnames(data[, 1:n_nodes])
 node_observations <- data[, 1:n_nodes]

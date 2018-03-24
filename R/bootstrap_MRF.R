@@ -72,7 +72,10 @@
 #'   taken from all bootstrapped models across iterations. Only coefficients
 #'   with mean relative importances \code{>0.01} are returned. Note, relative importance are only
 #'   useful if all covariates are on a similar scale.
-#'   \item \code{mod_type}: A character stating the type of model that was fit (used in other functions)
+#'   \item \code{mod_type}: A character stating the type of model that was fit
+#'   (used in other functions)
+#'   \item \code{mod_family}: A character stating the family of model that was fit
+#'    (used in other functions)
 #' }
 #'
 #'
@@ -563,7 +566,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
                 direct_coef_lower90 = all_direct_coef_lower90,
                 indirect_coef_mean = all_indirect_coef_means,
                 mean_key_coefs = mean_key_coefs,
-                mod_type = 'bootstrap_MRF'))
+                mod_type = 'bootstrap_MRF',
+                mod_family = family))
   }
 }
 
