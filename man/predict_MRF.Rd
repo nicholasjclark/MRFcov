@@ -18,7 +18,7 @@ greater than \code{n_nodes} are taken as covariates. Default is the number of
 columns in data, corresponding to no additional covariates}
 }
 \value{
-A \code{list} of three objects:
+A \code{list} containing:
 \itemize{
    \item \code{binary_predictions}: \code{data.frame} containing the binary predicted
    values for node variables observations in data
@@ -42,7 +42,7 @@ other functions in the package (namely \code{\link{cv_MRF}} and
 \dontrun{
 data("Bird.parasites")
 # Fit a model to a subset of the data (training set)
-CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, lambda1 = 0.5)
+CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")
 
 # If covariates are included, prep the dataset for gathering predictions
 prepped_pred <- prep_MRF_covariates(Bird.parasites[301:nrow(Bird.parasites), ], n_nodes = 4)

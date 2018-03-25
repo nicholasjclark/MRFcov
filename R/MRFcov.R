@@ -210,6 +210,11 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
   if(family %in% c('gaussian','poisson')){
     mrf_data.scaled = data.frame(mrf_data) %>%
       dplyr::mutate_at(dplyr::vars(1:n_nodes), dplyr::funs(as.vector(scale(.))))
+
+    # Extract sds of node variables for later back-conversion of coefficients
+    mrf_node_sds = data.frame(mrf_data) %>%
+      dplyr::summarise_at(dplyr::vars(1:n_nodes), dplyr::funs(sd(.)))
+
   } else {
     mrf_data.scaled <- mrf_data
   }
@@ -474,6 +479,17 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
     direct_coefs <- interaction_matrix_sym[[1]]
   }
 
+  if(family %in% c('gaussian','poisson')){
+    return(list(graph = interaction_matrix_sym[[1]],
+                intercepts = interaction_matrix_sym[[2]],
+                results = mrf_mods,
+                direct_coefs = direct_coefs,
+                indirect_coefs = indirect_coefs,
+                param_names = colnames(mrf_data),
+                mod_type = 'MRFcov',
+                mod_family = family,
+                node_sds = mrf_node_sds))
+  } else {
   return(list(graph = interaction_matrix_sym[[1]],
               intercepts = interaction_matrix_sym[[2]],
               results = mrf_mods,
@@ -482,5 +498,6 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
               param_names = colnames(mrf_data),
               mod_type = 'MRFcov',
               mod_family = family))
+  }
 
 }

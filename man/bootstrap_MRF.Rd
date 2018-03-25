@@ -93,7 +93,8 @@ A \code{list} containing:
   (used in other functions)
   \item \code{mod_family}: A character stating the family of model that was fit
    (used in other functions)
-}
+   \item \code{node_sds}: If \code{family} is \code{poisson} or \code{gaussian}, this
+   item contains the sds of the node variables on their original scale}
 }
 \description{
 This function runs \code{\link{MRFcov}} models multiple times using either a user-specified
@@ -101,9 +102,11 @@ range of l1 regularization values or cross-validation. To capture uncertainty
 in paramter esimates, the dataset is bootstrapped a user-specified number of times in each iteration.
 }
 \details{
-\code{MRFcov} models are run across the specified sequence of \code{lambda1} values.
-For each model, the \code{data} is bootstrapped by shuffling row observations, using
-\code{dplyr::sample_n(data, nrow(data), TRUE)}, to account for uncertainty.
+\code{MRFcov} models are either run across the specified sequence of
+\code{lambda1} values or \code{lambda1} is chosen through cross-validation using
+\code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
+by shuffling row observations, using \code{dplyr::sample_n(data, nrow(data), TRUE)},
+to account for uncertainty in parameter estimates.
 Parameter estimates from the set of bootstrapped models are summarised
 to present confidence intervals.
 }
@@ -111,12 +114,11 @@ to present confidence intervals.
 \dontrun{
 data("Bird.parasites")
 bootedCRF <- bootstrap_MRF(data = Bird.parasites,
-                          n_nodes = 4, min_lambda1 = 0.5,
-                          max_lambda1 = 1.25,
-                          by_lambda1 = 0.25,
+                          n_nodes = 4, n_its = 10, n_bootstraps = 100,
                           cv = FALSE, family = 'binomial')}
 }
 \seealso{
 \code{\link{MRFcov}},
-\code{\link[penalized]{penalized}}
+\code{\link[penalized]{penalized}},
+\code{\link[glmnet]{cv.glmnet}}
 }

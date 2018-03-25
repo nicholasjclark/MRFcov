@@ -10,7 +10,7 @@
 #'which is represented by a node in the final graph. Columns with index
 #'greater than \code{n_nodes} are taken as covariates. Default is the number of
 #'columns in data, corresponding to no additional covariates
-#'@return A \code{list} of three objects:
+#'@return A \code{list} containing:
 #'\itemize{
 #'    \item \code{binary_predictions}: \code{data.frame} containing the binary predicted
 #'    values for node variables observations in data
@@ -31,7 +31,7 @@
 #'\dontrun{
 #'data("Bird.parasites")
 #'# Fit a model to a subset of the data (training set)
-#'CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, lambda1 = 0.5)
+#'CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")
 #'
 #'# If covariates are included, prep the dataset for gathering predictions
 #'prepped_pred <- prep_MRF_covariates(Bird.parasites[301:nrow(Bird.parasites), ], n_nodes = 4)
@@ -62,8 +62,13 @@ predict_MRF <- function(data, MRF_mod, n_nodes){
     }
   }
 
-# Extract the family of the fitted model to determine which prediction equations to use
-family <- MRF_mod$family
+  # If family is Poisson or Gaussian, back-transform coefficients for node-node interactions
+  # to their original scales
+  if((MRF_mod$mod_family %in% c('gaussian', 'poisson'))){
+    MRF_mod <- unscale_MRFcoefs(MRF_mod)
+  }
+
+# Extract relevant facets of data
 data <- data.frame(data)
 node_names <- colnames(data[, 1:n_nodes])
 node_observations <- data[, 1:n_nodes]
