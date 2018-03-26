@@ -37,7 +37,7 @@
 #'@examples
 #'data("Bird.parasites")
 #'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial")
-#'predict_MRFnetworks(data = Bird.parasites[1:200, ], MRF_mod = CRFmod, metric = "degree")
+#'predict_MRFnetworks(data = Bird.parasites[1:200, ], MRF_mod = CRFmod, metric = "degree", cutoff = 0.25)
 #'
 #'
 #'@export
@@ -56,11 +56,18 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
          a list of adjacency matrices')
   }
 
-  if(missing(cutoff)){
+  if(missing(cutoff) & !MRF_mod$mod_family == "binomial"){
     warning('No cutoff threshold specified: defaulting to 0 as the cutoff.
             For each observation in data, species whose linear predictions
             are below this level will be considered absent', call. = FALSE)
     cutoff <- 0
+  }
+
+  if(missing(cutoff) & MRF_mod$mod_family == "binomial"){
+    warning('No cutoff threshold specified: defaulting to 0.5 as the cutoff.
+            For each observation in data, species whose occurrence probabilities
+            are below this level will be considered absent', call. = FALSE)
+    cutoff <- 0.5
   }
 
   if(MRF_mod$mod_type == 'MRFcov'){
@@ -77,7 +84,8 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
     MRF_mod_booted$graph <- MRF_mod$direct_coef_means[ , 2:(n_nodes + 1)]
     MRF_mod_booted$intercepts <- as.vector(MRF_mod$direct_coef_means[ , 1])
     MRF_mod_booted$direct_coefs <- MRF_mod$direct_coef_means
-    MRF_mod_booted$family <- MRF_mod$family
+    MRF_mod_booted$mod_family <- MRF_mod$mod_family
+    MRF_mod_booted$mod_type <- 'MRFcov'
     for(i in seq_along(MRF_mod$indirect_coef_mean)){
       MRF_mod_booted$indirect_coefs[[i]] <- list(MRF_mod$indirect_coef_mean[[i]],"")[1]
     }
@@ -102,7 +110,14 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
   }
 
   # Predict occurrences / abundances using the supplied data and model equations
-  preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted, n_nodes)$linear_predictions
+  if(MRF_mod$mod_family == "binomial"){
+    preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
+                         prep_covariates = FALSE)$Probability_predictions
+
+  } else {
+    preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
+                         prep_covariates = FALSE)
+  }
 
   # Replace values in predictions below cutoff with zero
   preds[preds < cutoff] <- 0

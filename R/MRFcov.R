@@ -19,10 +19,10 @@
 #'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
 #'to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 #'may be necessary for large or particularly sparse datasets
-#'@param separate_min Logical. If \code{TRUE}, interaction coefficients will use the minimum absolute value of
-#'the corresponding parameter estimates, which are taken from separate logistic regressions,
-#' in the symmetric postprocessed coefficient matrix. Else use the maximum
-#' Default is \code{FALSE}
+#'@param symmetrise The method to use for symmetrising corresponding parameter estimates
+#'(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
+#'smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
+#'or \code{mean} (take the mean of the two coefficients). Default is \code{mean}
 #'@param prep_covariates Logical. If \code{TRUE}, covariate columns will be cross-multiplied
 #'with nodes to prep the dataset for MRF models. Note this is only useful when additional
 #'covariates are provided. Therefore, if \code{n_nodes < ncol(data)},
@@ -101,12 +101,11 @@
 #'@examples
 #'\dontrun{
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
-#'           lambda1 = 0.5, family = 'binomial', cv = FALSE)}
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')}
 #'
 #'@export
 #'
-MRFcov <- function(data, lambda1, lambda2, separate_min,
+MRFcov <- function(data, lambda1, lambda2, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
                    family, cv) {
 
@@ -114,6 +113,14 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
     stop('Please select one of the three family options:
          "gaussian", "poisson", "binomial"')
+
+  if(missing(symmetrise)){
+    symmetrise <- 'mean'
+  }
+
+  if(!(symmetrise %in% c('min', 'max', 'mean')))
+    stop('Please select one of the three options for symmetrising coefficients:
+         "min", "max", "mean"')
 
   if(missing(lambda1)) {
     warning('lambda1 not provided, using cross-validation to optimise each regression')
@@ -129,10 +136,6 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
     warning('cv not provided. Cross-validated optimisation will commence by default,
             ignoring lambda1')
     cv <- TRUE
-  }
-
-  if(missing(separate_min)) {
-    separate_min <- FALSE
   }
 
   if(missing(lambda2)) {
@@ -205,19 +208,9 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
     rm(data)
   }
 
-  #### If using Gaussian or Poisson, node variables need to be scaled when
-  #acting as covariates #
-  if(family %in% c('gaussian','poisson')){
-    mrf_data.scaled = data.frame(mrf_data) %>%
-      dplyr::mutate_at(dplyr::vars(1:n_nodes), dplyr::funs(as.vector(scale(.))))
-
-    # Extract sds of node variables for later back-conversion of coefficients
-    mrf_node_sds = data.frame(mrf_data) %>%
-      dplyr::summarise_at(dplyr::vars(1:n_nodes), dplyr::funs(sd(.)))
-
-  } else {
-    mrf_data.scaled <- mrf_data
-  }
+  #### Extract sds of variables for later back-conversion of coefficients ####
+  mrf_sds = as.vector(t(data.frame(mrf_data) %>%
+                            dplyr::summarise_all(dplyr::funs(sd(.)))))
 
   #### Gather parameter values needed for indexing and naming output objects ####
   #Gather node variable (i.e. species) names
@@ -294,36 +287,28 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
 
       #Replace scaled outcome variable with unscaled version
       mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
-        if(family %in% c('gaussian','poisson')){
-          mrf_data.scaled[,i] <- as.vector(mrf_data[,i])
-          mrf_data.scaled <- as.matrix(mrf_data.scaled)
-        }
-
-        penalized(response = mrf_data.scaled[,i],
-                  penalized = mrf_data.scaled[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+        penalized(response = mrf_data[,i],
+                  penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, lambda2 = lambda2, steps = 1,
-                  model = fam, standardize = F, trace = F, maxiter = 5000)
+                  model = fam, standardize = TRUE, trace = F, maxiter = 5000)
       })
+
     } else {
       #Use function 'cv.glmnet' from package glmnet if cross-validation is specified
       #Each regression will be optimised separately, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
       mrf_mods <-  parLapply(NULL, seq_len(n_nodes), function(i) {
-        if(family %in% c('gaussian','poisson')){
-          mrf_data.scaled[,i] <- as.vector(mrf_data[,i])
-          mrf_data.scaled <- as.matrix(mrf_data.scaled)
-        }
-
-        cv.glmnet(x = mrf_data.scaled[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data.scaled[,i], family = family, alpha = lambda2,
+        cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+                  y = mrf_data[,i], family = family, alpha = lambda2,
                   nfolds = 10, weights = rep(1, nrow(mrf_data)),
-                  intercept = TRUE)
+                  intercept = TRUE, standardize = TRUE)
 
       })
     }
     stopCluster(cl)
 
   } else {
+
     #If parallel is not supported or n_cores = 1, use lapply instead
     if(!cv){
       if(family == 'binomial') fam <- 'logistic'
@@ -331,26 +316,16 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
       if(family == 'poisson') fam <- 'poisson'
 
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
-        if(family %in% c('gaussian','poisson')){
-          mrf_data.scaled[,i] <- as.vector(mrf_data[,i])
-          mrf_data.scaled <- as.matrix(mrf_data.scaled)
-        }
-
-        penalized(response = mrf_data.scaled[,i],
-                  penalized = mrf_data.scaled[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+        penalized(response = mrf_data[,i],
+                  penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, lambda2 = lambda2, steps = 1,
                   model = fam, standardize = TRUE, trace = F, maxiter = 5000)
       })
 
     } else {
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
-        if(family %in% c('gaussian','poisson')){
-          mrf_data.scaled[,i] <- as.vector(mrf_data[,i])
-          mrf_data.scaled <- as.matrix(mrf_data.scaled)
-        }
-
-        cv.glmnet(x = mrf_data.scaled[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data.scaled[,i], family = family, alpha = lambda2,
+        cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+                  y = mrf_data[,i], family = family, alpha = lambda2,
                   nfolds = 10, weights = rep(1, nrow(mrf_data)),
                   intercept = TRUE, standardize = TRUE)
       })
@@ -400,22 +375,33 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
     rownames(direct_coefs) <- node_names
     rm(column_order)
   } else {
+
     #If no covariates included, return an empty list for direct_coefs
     direct_coefs = list()
   }
 
-  #### Function to symmetrize corresponding coefficients by separate−min or separate−max ####
+  #### Function to symmetrize corresponding coefficients ####
   symmetr <- function(coef_matrix){
     coef_matrix_upper <- coef_matrix[upper.tri(coef_matrix)]
     coef_matrix.lower <- t(coef_matrix)[upper.tri(coef_matrix)]
 
-    if(separate_min){
+    if(symmetrise == 'min'){
+      # If min, keep the coefficient with the smaller absolute value
       coef_matrix_upper_new <- ifelse(abs(coef_matrix_upper) < abs(coef_matrix.lower),
                                       coef_matrix_upper, coef_matrix.lower)
-    } else {
+    }
+
+    if(symmetrise == 'mean'){
+      # If mean, take the mean of the two coefficients
+      coef_matrix_upper_new <- (coef_matrix_upper + coef_matrix.lower) / 2
+    }
+
+    if(symmetrise == 'max'){
+      # If max, keep the coefficient with the larger absolute value
       coef_matrix_upper_new <- ifelse(abs(coef_matrix_upper) > abs(coef_matrix.lower),
                                       coef_matrix_upper, coef_matrix.lower)
-    }
+      }
+
     coef_matrix_sym <- matrix(0, n_nodes, n_nodes)
     intercepts <- diag(coef_matrix)
     coef_matrix_sym[upper.tri(coef_matrix_sym)] <- coef_matrix_upper_new
@@ -472,32 +458,51 @@ MRFcov <- function(data, lambda1, lambda2, separate_min,
       direct_coefs[, covs_to_sym_beg[i] :
                      covs_to_sym_end[i]] <- data.frame(indirect_coefs[[i]])
     }
-  } else{
+  } else {
+
     #If no covariates included, return an empty list for indirect_coefs
     #and return the graph of interaction coefficients as direct_coefs
     indirect_coefs <- list()
-    direct_coefs <- interaction_matrix_sym[[1]]
+    direct_coefs <- matrix(NA, n_nodes, n_nodes + 1)
+    direct_coefs[, 2:(n_nodes + 1)] <- interaction_matrix_sym[[1]]
+    direct_coefs[, 1] <- interaction_matrix_sym[[2]]
+    colnames(direct_coefs) <- c('Intercept', colnames(mrf_data))
+    rownames(direct_coefs) <- node_names
   }
 
-  if(family %in% c('gaussian','poisson')){
-    return(list(graph = interaction_matrix_sym[[1]],
-                intercepts = interaction_matrix_sym[[2]],
-                results = mrf_mods,
-                direct_coefs = direct_coefs,
-                indirect_coefs = indirect_coefs,
-                param_names = colnames(mrf_data),
-                mod_type = 'MRFcov',
-                mod_family = family,
-                node_sds = mrf_node_sds))
-  } else {
-  return(list(graph = interaction_matrix_sym[[1]],
+  #### Calculate relative importances of coefficients by scaling each coef
+  #by the input variable's standard deviation ####
+  scaled_direct_coefs <- sweep(as.matrix(direct_coefs[, 2 : ncol(direct_coefs)]),
+                               MARGIN = 2, mrf_sds, `/`)
+  coef_rel_importances <- t(apply(scaled_direct_coefs, 1, function(i) i^2 / sum(i^2)))
+  mean_key_coefs <- lapply(seq_len(n_nodes), function(x){
+    if(length(which(coef_rel_importances[x, ] > 0.01)) == 1){
+      node_coefs <- data.frame(Variable = names(which((coef_rel_importances[x, ] > 0.01) == T)),
+                               Rel_importance = coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)],
+                               Standardised_coef = scaled_direct_coefs[x, which(coef_rel_importances[x, ] > 0.01)],
+                               Raw_coef = direct_coefs[x, 1 + which(coef_rel_importances[x, ] > 0.01)])
+    } else {
+      node_coefs <- data.frame(Variable = names(coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)]),
+                               Rel_importance = coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)],
+                               Standardised_coef = as.vector(t(scaled_direct_coefs[x, which(coef_rel_importances[x, ] > 0.01)])),
+                               Raw_coef = as.vector(t(direct_coefs[x, 1 + which(coef_rel_importances[x, ] > 0.01)])))
+    }
+
+    rownames(node_coefs) <- NULL
+
+    node_coefs <- node_coefs[order(-node_coefs[, 2]), ]
+  })
+  names(mean_key_coefs) <- rownames(direct_coefs)
+
+#### Return as a list ####
+return(list(graph = interaction_matrix_sym[[1]],
               intercepts = interaction_matrix_sym[[2]],
               results = mrf_mods,
               direct_coefs = direct_coefs,
               indirect_coefs = indirect_coefs,
               param_names = colnames(mrf_data),
+              key_coefs = mean_key_coefs,
               mod_type = 'MRFcov',
               mod_family = family))
-  }
 
 }

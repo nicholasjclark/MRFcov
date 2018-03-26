@@ -4,7 +4,7 @@
 \alias{MRFcov}
 \title{Markov Random Fields with covariates}
 \usage{
-MRFcov(data, lambda1, lambda2, separate_min, prep_covariates, n_nodes, n_cores,
+MRFcov(data, lambda1, lambda2, symmetrise, prep_covariates, n_nodes, n_cores,
   n_covariates, family, cv)
 }
 \arguments{
@@ -20,10 +20,10 @@ See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimi
 to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 may be necessary for large or particularly sparse datasets}
 
-\item{separate_min}{Logical. If \code{TRUE}, interaction coefficients will use the minimum absolute value of
-the corresponding parameter estimates, which are taken from separate logistic regressions,
-in the symmetric postprocessed coefficient matrix. Else use the maximum
-Default is \code{FALSE}}
+\item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
+(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
+smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
+or \code{mean} (take the mean of the two coefficients). Default is \code{mean}}
 
 \item{prep_covariates}{Logical. If \code{TRUE}, covariate columns will be cross-multiplied
 with nodes to prep the dataset for MRF models. Note this is only useful when additional
@@ -103,8 +103,7 @@ and \code{\link[glmnet]{cv.glmnet}} for further details.
 \examples{
 \dontrun{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
-          lambda1 = 0.5, family = 'binomial', cv = FALSE)}
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')}
 
 }
 \references{

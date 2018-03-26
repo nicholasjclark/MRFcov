@@ -25,9 +25,10 @@
 #'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
 #'to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 #'may be necessary for large or particularly sparse datasets
-#'@param separate_min Logical. If \strong{TRUE}, interaction coefficients will use the minimum absolute value of
-#'the corresponding parameter estimates, which are taken from separate logistic regressions,
-#' in the symmetric postprocessed coefficient matrix. Else use the maximum. Default is \strong{FALSE}
+#'@param symmetrise The method to use for symmetrising corresponding parameter estimates
+#'(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
+#'smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
+#'or \code{mean} (take the mean of the two coefficients). Default is \code{mean}
 #'@param sample_seed Numeric. Used as the seed value for generating bootstrap replicates, allowing
 #'users to generate replicated datasets on different systems. Default is a random seed
 #'@param n_nodes Positive integer. The index of the last column in \code{data}
@@ -97,11 +98,11 @@
 #'data("Bird.parasites")
 #'bootedCRF <- bootstrap_MRF(data = Bird.parasites,
 #'                           n_nodes = 4, n_its = 10, n_bootstraps = 100,
-#'                           cv = FALSE, family = 'binomial')}
+#'                           family = 'binomial')}
 #'@export
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
-                           max_lambda1, by_lambda1, lambda2, separate_min,
+                           max_lambda1, by_lambda1, lambda2, symmetrise,
                            n_nodes, n_cores, n_covariates, cv, family, n_its){
 
   #### Specify default parameter values and initiate warnings ####
@@ -109,9 +110,13 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     stop('Please select one of the three family options:
          "gaussian", "poisson", "binomial"')
 
-  if(missing(separate_min)) {
-    separate_min <- FALSE
+  if(missing(symmetrise)){
+    symmetrise <- 'mean'
   }
+
+  if(!(symmetrise %in% c('min', 'max', 'mean')))
+    stop('Please select one of the three options for symmetrising coefficients:
+         "min", "max", "mean"')
 
   if(missing(n_cores)) {
     n_cores <- 1
@@ -343,7 +348,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
     #Export necessary data and variables to each cluster
     clusterExport(NULL, c('lambda1_seq', 'booted_datas', 'lambda2',
-                          'separate_min', 'n_nodes',
+                          'symmetrise', 'n_nodes',
                           'n_covariates', 'cv', 'family'), envir = environment())
 
     #Export necessary functions to each cluster
@@ -366,7 +371,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
       booted_mrfs <- lapply(seq_along(booted_datas), function(x) {
         mod <- MRFcov(data = prepped_datas[[x]], lambda1 = l,
                       lambda2 = lambda2,
-                      separate_min = separate_min,
+                      symmetrise= symmetrise,
                       n_nodes = n_nodes,
                       n_cores = 1,
                       prep_covariates = FALSE,
@@ -440,7 +445,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
         booted_mrfs <- lapply(seq_along(booted_datas), function(x) {
           mod <- MRFcov(data = prepped_datas[[x]], lambda1 = l,
                         lambda2 = lambda2,
-                        separate_min = separate_min,
+                        symmetrise =  symmetrise,
                         n_nodes = n_nodes,
                         n_cores = 1,
                         prep_covariates = FALSE,
@@ -535,7 +540,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
   #Calculate relative importance of key covariates across the set of iterations
   coef_rel_importances <- t(apply(all_direct_coef_means[, -1], 1, function(i) i^2 / sum(i^2)))
-  mean_key_coefs <- lapply(seq_len(n_nodes),function(x){
+  mean_key_coefs <- lapply(seq_len(n_nodes), function(x){
     if(length(which(coef_rel_importances[x, ] > 0.01)) == 1){
       node_coefs <- data.frame(Variable = names(which((coef_rel_importances[x, ] > 0.01) == T)),
                                Rel_importance = coef_rel_importances[x, which(coef_rel_importances[x, ] > 0.01)],

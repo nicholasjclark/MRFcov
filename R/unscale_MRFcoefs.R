@@ -64,13 +64,14 @@ unscale_MRFcoefs = function(MRF_mod){
     n_covariates <- length(MRF_mod$indirect_coefs)
 
     converted.graph <- sweep(as.matrix(MRF_mod$graph), MARGIN = 2,
-                             as.vector(t(MRF_mod$node_sds)), `*`)
+                             as.vector(t(MRF_mod$node_sds)), `/`)
 
     converted.coefs <- MRF_mod$direct_coefs
     converted.coefs[ ,2:(n_nodes + 1)] <- sweep(as.matrix(MRF_mod$direct_coefs[ ,2:(n_nodes + 1)]),
-                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
 
     # Unscale interactions between nodes and covariates
+    if(n_covariates > 0){
     covs_to_unscale <- ncol(MRF_mod$direct_coefs) - (1 + n_nodes + n_covariates)
     covs_to_unscale_end <- seq(n_nodes, covs_to_unscale, by = n_nodes) + (1 + n_nodes + n_covariates)
     covs_to_unscale_beg <- covs_to_unscale_end - (n_nodes - 1)
@@ -79,16 +80,20 @@ unscale_MRFcoefs = function(MRF_mod){
       converted.coefs[, covs_to_unscale_beg[i] :
                         covs_to_unscale_end[i]] <- sweep(as.matrix(MRF_mod$direct_coefs[, covs_to_unscale_beg[i] :
                                                                                       covs_to_unscale_end[i]]),
-                                                  MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                  MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
     }
 
     # Unscale indirect interaction coefficients
-    converted.indirects <- lapply(seq_along(MRF_mod$indirect_coefs), function(x){
-      sweep(as.matrix(MRF_mod$indirect_coefs[[x]][[1]]),
-            MARGIN = 2,
-            as.vector(t(MRF_mod$node_sds)), `*`)
-    })
+    converted.indirects <- list()
+      for(x in seq_along(MRF_mod$indirect_coefs)){
+        converted.indirects[[x]]<- list(sweep(as.matrix(MRF_mod$indirect_coefs[[x]][[1]]),
+                                               MARGIN = 2,
+                                               as.vector(t(MRF_mod$node_sds)), `/`),"")[1]
+    }
     names(converted.indirects) <- names(MRF_mod$indirect_coefs)
+    } else {
+      converted.indirects <- list()
+    }
 
   } else {
     n_nodes <- nrow(MRF_mod$direct_coef_means)
@@ -96,18 +101,19 @@ unscale_MRFcoefs = function(MRF_mod){
 
     converted.graph <- sweep(as.matrix(MRF_mod$direct_coef_means[ ,2:(n_nodes + 1)]),
                              MARGIN = 2,
-                             as.vector(t(MRF_mod$node_sds)), `*`)
+                             as.vector(t(MRF_mod$node_sds)), `/`)
 
     converted.coefs <- MRF_mod$direct_coef_means
     converted.coefs[ ,2:(n_nodes + 1)] <- sweep(as.matrix(MRF_mod$direct_coef_means[ ,2:(n_nodes + 1)]),
-                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
     converted.coefs.upper <- MRF_mod$direct_coef_upper90
     converted.coefs.upper[ ,2:(n_nodes + 1)] <- sweep(as.matrix(MRF_mod$direct_coef_upper90[ ,2:(n_nodes + 1)]),
-                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
     converted.coefs.lower <- MRF_mod$direct_coef_lower90
     converted.coefs.lower[ ,2:(n_nodes + 1)] <- sweep(as.matrix(MRF_mod$direct_coef_lower90[ ,2:(n_nodes + 1)]),
-                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
 
+    if(n_covariates > 0){
     # Unscale interactions between nodes and covariates
     covs_to_unscale <- ncol(MRF_mod$direct_coef_means) - (1 + n_nodes + n_covariates)
     covs_to_unscale_end <- seq(n_nodes, covs_to_unscale, by = n_nodes) + (1 + n_nodes + n_covariates)
@@ -117,25 +123,29 @@ unscale_MRFcoefs = function(MRF_mod){
       converted.coefs[, covs_to_unscale_beg[i] :
                         covs_to_unscale_end[i]] <- sweep(as.matrix(MRF_mod$direct_coef_means[, covs_to_unscale_beg[i] :
                                                                                           covs_to_unscale_end[i]]),
-                                                         MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                         MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
       converted.coefs.upper[, covs_to_unscale_beg[i] :
                         covs_to_unscale_end[i]] <- sweep(as.matrix(MRF_mod$direct_coef_upper90[, covs_to_unscale_beg[i] :
                                                                                                covs_to_unscale_end[i]]),
-                                                         MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                         MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
       converted.coefs.lower[, covs_to_unscale_beg[i] :
                               covs_to_unscale_end[i]] <- sweep(as.matrix(MRF_mod$direct_coef_lower90[, covs_to_unscale_beg[i] :
                                                                                                        covs_to_unscale_end[i]]),
-                                                               MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `*`)
+                                                               MARGIN = 2, as.vector(t(MRF_mod$node_sds)), `/`)
     }
 
     # Unscale indirect interaction coefficients
     converted.indirects <- lapply(seq_along(MRF_mod$indirect_coef_mean), function(x){
       sweep(as.matrix(MRF_mod$indirect_coef_mean[[x]]),
             MARGIN = 2,
-            as.vector(t(MRF_mod$node_sds)), `*`)
+            as.vector(t(MRF_mod$node_sds)), `/`)
     })
     names(converted.indirects) <- names(MRF_mod$indirect_coef_mean)
+    } else {
+      converted.indirects <- list()
+    }
   }
+
   if(!booted_coefs){
     return(list(graph = converted.graph,
                 intercepts = MRF_mod$intercepts,
@@ -144,7 +154,7 @@ unscale_MRFcoefs = function(MRF_mod){
                 indirect_coefs = converted.indirects,
                 param_names = MRF_mod$param_names,
                 mod_type = 'MRFcov',
-                mod_family = MRF_mod$family))
+                mod_family = MRF_mod$mod_family))
 
   } else {
     return(list(direct_coef_means = converted.coefs,
@@ -153,7 +163,7 @@ unscale_MRFcoefs = function(MRF_mod){
                 indirect_coef_mean = converted.indirects,
                 mean_key_coefs = MRF_mod$mean_key_coefs,
                 mod_type = 'bootstrap_MRF',
-                mod_family = MRF_mod$family))
+                mod_family = MRF_mod$mod_family))
   }
 
 }

@@ -115,7 +115,7 @@ to present confidence intervals.
 data("Bird.parasites")
 bootedCRF <- bootstrap_MRF(data = Bird.parasites,
                           n_nodes = 4, n_its = 10, n_bootstraps = 100,
-                          cv = FALSE, family = 'binomial')}
+                          family = 'binomial')}
 }
 \seealso{
 \code{\link{MRFcov}},
