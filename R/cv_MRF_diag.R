@@ -7,7 +7,7 @@
 #'
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph.
+#'left-most variables are variables that are to be represented by nodes in the graph.
 #'Note that \code{NA}'s are allowed for covariates. If present, these missing values
 #'will be imputed from the distribution \code{rnorm(mean = 0, sd = 1)}, which assumes that
 #'all covariates are scaled and centred (i.e. by using the function
@@ -19,10 +19,10 @@
 #'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
 #'to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 #'may be necessary for large or particularly sparse datasets
-#'@param separate_min Logical. If \code{TRUE}, interaction coefficients will use the minimum absolute value of
-#'the corresponding parameter estimates, which are taken from separate logistic regressions,
-#' in the symmetric postprocessed coefficient matrix. Else use the maximum.
-#' Default is \code{FALSE}
+#'@param symmetrise The method to use for symmetrising corresponding parameter estimates
+#'(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
+#'smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
+#'or \code{mean} (take the mean of the two coefficients). Default is \code{mean}
 #'@param n_nodes Positive integer. The index of the last column in \code{data}
 #'which is represented by a node in the final graph. Columns with index
 #'greater than n_nodes are taken as covariates. Default is the number of
@@ -40,10 +40,14 @@
 #'assess the influence of including covariates on model predictive performance.
 #'Default is \code{FALSE}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
-#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}). At present,
-#'only \code{family = "binomial"} is supported for this function
-#'@return A \code{ggplot2} object plotting LOESS regressions of
-#'relationships between l1−regularization values and predictive metrics
+#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
+#'@param plot Logical. If \code{TRUE}, \code{ggplot2} objects are returned. If \code{FALSE},
+#'the prediction metrics are returned as a matrix. Default is \code{TRUE}
+#'@param fixed_lambda Logical determining whether a model should be run by optimising l1 regularization
+#'for each individual node. Default is \code{TRUE}
+#'@return Either a \code{ggplot2} object plotting LOESS regressions of
+#'relationships between l1−regularization values and predictive metrics, or
+#'a matrix of prediction metrics (if \code{plot = FALSE})
 #'
 #'@seealso \code{\link{MRFcov}},\code{\link{predict_MRF}},
 #'\code{\link{cv_MRF}},
@@ -55,7 +59,8 @@
 #'\code{data} observations is predicted using outputs of an \code{MRFcov} model that is fit to
 #'the remaining observations (training data) using \code{\link{cv_MRF}}.
 #'Test and training \code{data} subsets are created using \code{\link[caret]{createFolds}}.
-#'Plots showing LOESS regressions of prediction metrics vs \code{lambda1} are returned
+#'Plots showing
+#'LOESS regressions of prediction metrics vs \code{lambda1} are returned
 #'
 #'@examples
 #'\dontrun{
@@ -66,16 +71,17 @@
 #'@export
 #'
 cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
-                        separate_min, n_nodes, lambda2, n_cores,
+                        symmetrise, n_nodes, lambda2, n_cores,
                         sample_seed, n_folds, n_fold_runs, n_covariates,
-                        compare_null, family){
+                        compare_null, family, plot = TRUE, fixed_lambda = TRUE){
 
   #### Specify default parameter values and initiate warnings ####
-  if(!(family %in% 'binomial'))
-    stop('Only family "binomial" is currently supported for this function')
+  if(!(family %in% c('gaussian', 'poisson', 'binomial')))
+    stop('Please select one of the three family options:
+         "gaussian", "poisson", "binomial"')
 
-  if(missing(separate_min)) {
-    separate_min <- FALSE
+  if(missing(symmetrise)){
+    symmetrise <- 'mean'
   }
 
   if(missing(compare_null)) {
@@ -155,10 +161,12 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     sample_seed <- ceiling(runif(1, 0, 100000))
   }
 
+  if(fixed_lambda){
   #### Run cross validation of MRF models
-  crossval_mrfs <- cv_MRF(data = data, min_lambda1 = min_lambda1,
+  if(family == 'binomial'){
+    crossval_mrfs <- cv_MRF(data = data, min_lambda1 = min_lambda1,
                           max_lambda1 = max_lambda1,
-                          by_lambda1 = by_lambda1, separate_min = separate_min,
+                          by_lambda1 = by_lambda1, symmetrise = symmetrise,
                           lambda2 = lambda2,
                           n_nodes = n_nodes, n_cores = n_cores,
                           sample_seed = sample_seed,
@@ -172,66 +180,18 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                     'mean_specificity'))
 
   if(!compare_null){
-  #### Plot predictive metrics with LOESS smoohts and return as a grid ####
-  scaleFUN <- function(x) sprintf("%.3f", x)
 
-  plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_tot_pred)) +
-    ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
-                size = 0.5, level = 0.99, alpha = 0.3) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-          axis.text.y = ggplot2::element_text(size = 8)) +
-    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank()) +
-    ggplot2::scale_y_continuous(labels=scaleFUN) +
-    ggplot2::labs(y = 'True predictions',
-         x = '') +
-    ggplot2::theme(legend.position = "none")
+    if(plot){
+      output <- plot_binom_cv_diag(plot_dat, compare_null = FALSE)
+    } else {
+      output <- plot_dat
+    }
 
-  plot2 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_pos_pred)) +
-    ggplot2::geom_smooth(method = 'loess',col = 'red4', fill = 'red4',
-                size = 0.5, level = 0.99, alpha = 0.3) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-          axis.text.y = ggplot2::element_text(size = 8)) +
-    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank()) +
-    ggplot2::scale_y_continuous(labels = scaleFUN) +
-    ggplot2::labs(y = 'PPV',
-         x = '')
-
-  plot3 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_specificity)) +
-    ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
-                size=0.5, level = 0.99, alpha = 0.3) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-          axis.text.y = ggplot2::element_text(size = 8)) +
-    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank()) +
-    ggplot2::scale_y_continuous(labels = scaleFUN) +
-    ggplot2::labs(y = 'Specificity',
-         x = '')
-
-  plot4 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1,
-                                                  y = mean_sensitivity)) +
-    ggplot2::geom_smooth(method = 'loess',col = 'red4',fill = 'red4',
-                size=0.5, level = 0.99, alpha = 0.3) +
-    ggplot2::theme_bw() +
-    ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-          axis.text.y = ggplot2::element_text(size = 8)) +
-    ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-          panel.grid.minor = ggplot2::element_blank()) +
-    ggplot2::scale_y_continuous(labels = scaleFUN) +
-    ggplot2::labs(y = 'Sensitivity',
-         x = expression(paste("Regularization parameter ", lambda)))
-
-  output <- gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
-                      heights = c(1, 1, 1, 1))
   } else {
     #### If compare_null = TRUE, run models using no covariates for comparison
     crossval_mrf_nulls <- cv_MRF(data = data[ ,1:n_nodes], min_lambda1 = min_lambda1,
                             max_lambda1 = max_lambda1,
-                            by_lambda1 = by_lambda1, separate_min = separate_min,
+                            by_lambda1 = by_lambda1, symmetrise = symmetrise,
                             lambda2 = lambda2,
                             n_nodes = n_nodes, n_cores = n_cores,
                             sample_seed = sample_seed,
@@ -247,73 +207,347 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                                  'mean_sensitivity_null','mean_specificity_null')
     plot_dat <- cbind(plot_dat, plot_dat_null)
 
-    #### Plot predictive metrics with LOESS smoohts and return as a grid ####
-    scaleFUN <- function(x) sprintf("%.3f", x)
-
-    plot1 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_tot_pred)) +
-      ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_tot_pred_null),
-                           method = 'loess', col = 'black', fill = 'black',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-                     axis.text.y = ggplot2::element_text(size = 8)) +
-      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank()) +
-      ggplot2::scale_y_continuous(labels=scaleFUN) +
-      ggplot2::labs(y = 'True predictions',
-                    x = '')
-
-    plot2 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_pos_pred)) +
-      ggplot2::geom_smooth(method = 'loess',col = 'red4', fill = 'red4',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_pos_pred_null), method = 'loess',
-                           col = 'black', fill = 'black',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-                     axis.text.y = ggplot2::element_text(size = 8)) +
-      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank()) +
-      ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'PPV',
-                    x = '')
-
-    plot3 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1, y = mean_specificity)) +
-      ggplot2::geom_smooth(method = 'loess', col = 'red4', fill = 'red4',
-                           size=0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_specificity_null), method = 'loess',
-                           col = 'black', fill = 'black',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-                     axis.text.y = ggplot2::element_text(size = 8)) +
-      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank()) +
-      ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'Specificity',
-                    x = '')
-
-    plot4 <- ggplot2::ggplot(plot_dat, ggplot2::aes(x = lambda1,
-                                                    y = mean_sensitivity)) +
-      ggplot2::geom_smooth(method = 'loess',col = 'red4',fill = 'red4',
-                           size=0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::geom_smooth(ggplot2::aes(y = mean_sensitivity_null), method = 'loess',
-                           col = 'black', fill = 'black',
-                           size = 0.5, level = 0.99, alpha = 0.3) +
-      ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-                     axis.text.y = ggplot2::element_text(size = 8)) +
-      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank()) +
-      ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'Sensitivity',
-                    x = expression(paste("Regularization parameter ", lambda)))
-
-    output <- gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
-                                   heights = c(1, 1, 1, 1))
+    if(plot){
+    output <- plot_binom_cv_diag(plot_dat, compare_null = TRUE)
+    } else {
+      output <- plot_dat
+    }
   }
+
+  } else if(family == 'poisson') {
+    crossval_mrfs <- cv_MRF_poisson(data = data, min_lambda1 = min_lambda1,
+                            max_lambda1 = max_lambda1,
+                            by_lambda1 = by_lambda1, symmetrise = symmetrise,
+                            lambda2 = lambda2,
+                            n_nodes = n_nodes, n_cores = n_cores,
+                            sample_seed = sample_seed,
+                            n_folds = n_folds, n_fold_runs = n_fold_runs,
+                            n_covariates = n_covariates)
+
+    ### Extract predictive metrics for plotting
+    plot_dat <- purrr::map_df(crossval_mrfs, magrittr::extract,
+                              c('Rsquared', 'lambda1', 'MSE'))
+
+    if(!compare_null){
+      if(plot){
+      output <- plot_gauss_cv_diag(plot_dat, compare_null = FALSE)
+      } else {
+        output <- plot_dat
+      }
+
+    } else {
+      #### If compare_null = TRUE, run models using no covariates for comparison
+      crossval_mrf_nulls <- cv_MRF_poisson(data = data[ ,1:n_nodes], min_lambda1 = min_lambda1,
+                                   max_lambda1 = max_lambda1,
+                                   by_lambda1 = by_lambda1, symmetrise = symmetrise,
+                                   lambda2 = lambda2,
+                                   n_nodes = n_nodes, n_cores = n_cores,
+                                   sample_seed = sample_seed,
+                                   n_folds = n_folds, n_fold_runs = n_fold_runs)
+
+      ### Extract null predictive metrics and combine with full metrics from above
+      plot_dat_null <- purrr::map_df(crossval_mrf_nulls, magrittr::extract,
+                                     c('Rsquared', 'MSE'))
+      colnames(plot_dat_null) <- c('Rsquared.null', 'MSE.null')
+      plot_dat <- cbind(plot_dat, plot_dat_null)
+
+      if(plot){
+      output <- plot_gauss_cv_diag(plot_dat, compare_null = TRUE)
+      } else {
+        output <- plot_dat
+      }
+    }
+  } else if(family == 'gaussian') {
+    crossval_mrfs <- cv_MRF_gaussian(data = data, min_lambda1 = min_lambda1,
+                                    max_lambda1 = max_lambda1,
+                                    by_lambda1 = by_lambda1, symmetrise = symmetrise,
+                                    lambda2 = lambda2,
+                                    n_nodes = n_nodes, n_cores = n_cores,
+                                    sample_seed = sample_seed,
+                                    n_folds = n_folds, n_fold_runs = n_fold_runs,
+                                    n_covariates = n_covariates)
+
+    ### Extract predictive metrics for plotting
+    plot_dat <- purrr::map_df(crossval_mrfs, magrittr::extract,
+                              c('Rsquared', 'lambda1', 'MSE'))
+
+    if(!compare_null){
+      if(plot){
+        output <- plot_gauss_cv_diag(plot_dat, compare_null = FALSE)
+      } else {
+        output <- plot_dat
+      }
+
+    } else {
+      #### If compare_null = TRUE, run models using no covariates for comparison
+      crossval_mrf_nulls <- cv_MRF_gaussian(data = data[ ,1:n_nodes], min_lambda1 = min_lambda1,
+                                           max_lambda1 = max_lambda1,
+                                           by_lambda1 = by_lambda1, symmetrise = symmetrise,
+                                           lambda2 = lambda2,
+                                           n_nodes = n_nodes, n_cores = n_cores,
+                                           sample_seed = sample_seed,
+                                           n_folds = n_folds, n_fold_runs = n_fold_runs)
+
+      ### Extract null predictive metrics and combine with full metrics from above
+      plot_dat_null <- purrr::map_df(crossval_mrf_nulls, magrittr::extract,
+                                     c('Rsquared', 'MSE'))
+      colnames(plot_dat_null) <- c('Rsquared.null', 'MSE.null')
+      plot_dat <- cbind(plot_dat, plot_dat_null)
+
+      if(plot){
+        output <- plot_gauss_cv_diag(plot_dat, compare_null = TRUE)
+      } else {
+        output <- plot_dat
+      }
+    }
+  }
+
+  } else {
+
+    #### If using node-specific optimisation, only a single model is needed ####
+    if(missing(lambda2)){
+      lambda2 <- 0
+    }
+
+    # Lambda parameters not needed if fixed_lambda = FALSE
+    if(missing(min_lambda1)){
+      min_lambda1 <- 0
+    }
+
+    if(missing(max_lambda1)){
+      max_lambda1 <- 0
+    }
+
+    if(missing(by_lambda1)){
+      by_lambda1 <- 0
+    }
+
+    if(family == 'binomial'){
+      mrf <- MRFcov(data = data,
+                    lambda2 = lambda2,
+                    symmetrise =  symmetrise,
+                    n_nodes = n_nodes,
+                    n_cores = n_cores,
+                    cv = TRUE, family = 'binomial')
+
+      if(compare_null){
+        mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                           lambda2 = lambda2,
+                           symmetrise =  symmetrise,
+                           n_nodes = n_nodes,
+                           n_cores = n_cores,
+                           cv = TRUE, family = 'binomial')
+      }
+    }
+
+  if(family == 'poisson'){
+    mrf <- MRFcov(data = data,
+                  lambda2 = lambda2,
+                  symmetrise =  symmetrise,
+                  n_nodes = n_nodes,
+                  n_cores = n_cores,
+                  cv = TRUE, family = 'poisson')
+
+    if(compare_null){
+      mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                    lambda2 = lambda2,
+                    symmetrise =  symmetrise,
+                    n_nodes = n_nodes,
+                    n_cores = n_cores,
+                    cv = TRUE, family = 'poisson')
+    }
+  }
+
+  if(family == 'gaussian'){
+    mrf <- MRFcov(data = data,
+                   lambda2 = lambda2,
+                   symmetrise =  symmetrise,
+                   n_nodes = n_nodes,
+                   n_cores = n_cores,
+                   cv = TRUE, family = 'gaussian')
+
+    if(compare_null){
+      mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                         lambda2 = lambda2,
+                         symmetrise =  symmetrise,
+                         n_nodes = n_nodes,
+                         n_cores = n_cores,
+                         cv = TRUE, family = 'gaussian')
+    }
+  }
+
+  if(family == 'binomial'){
+    folds <- caret::createFolds(rownames(data), 10)
+    cv_predictions <- lapply(seq_len(10), function(k){
+      test_data <- data[folds[[k]], ]
+      predictions <- predict_MRF(test_data, mrf)
+
+      #Calculate positive and negative predictive values
+      true_pos <- false_pos <- true_neg <- false_neg <- matrix(NA, ncol = ncol(predictions[[2]]),
+                                                               nrow = nrow(predictions[[2]]))
+      for(i in seq_len(nrow(true_pos))){
+        for(j in seq_len(ncol(true_pos))){
+          true_pos[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                             as.numeric(test_data[i, j]))) &
+            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
+
+          false_pos[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                               as.numeric(test_data[i, j]))) &
+            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
+
+          true_neg[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                             as.numeric(test_data[i, j]))) &
+            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
+
+          false_neg[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                               as.numeric(test_data[i, j]))) &
+            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
+        }
+      }
+
+      #Calculate diagnostic predictive values
+      pos_pred <- sum(true_pos, na.rm = TRUE) /
+        (sum(true_pos, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
+      neg_pred <- sum(true_neg, na.rm = TRUE) /
+        (sum(true_neg, na.rm = TRUE) + sum(false_neg, na.rm = TRUE))
+      sensitivity <- sum(true_pos, na.rm = TRUE) /
+        (sum(true_pos, na.rm = TRUE) + sum(false_neg, na.rm = TRUE))
+      specificity <- sum(true_neg, na.rm = TRUE) /
+        (sum(true_neg, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
+      tot_pred <- (sum(true_pos, na.rm = TRUE) + sum(true_neg, na.rm = TRUE)) /
+        (length(true_pos))
+
+    list(mean_pos_pred = mean(pos_pred, na.rm = TRUE),
+         mean_neg_pred = mean(neg_pred, na.rm = TRUE),
+         mean_tot_pred = mean(tot_pred, na.rm = TRUE),
+         mean_sensitivity = mean(sensitivity, na.rm = TRUE),
+         mean_specificity = mean(specificity, na.rm = TRUE))
+    })
+
+    plot_dat <- purrr::map_df(cv_predictions, magrittr::extract,
+                              c('mean_pos_pred', 'mean_tot_pred',
+                                'mean_sensitivity',
+                                'mean_specificity'))
+
+    if(compare_null){
+      cv_predictions_null <- lapply(seq_len(10), function(k){
+        test_data <- data[folds[[k]], 1:n_nodes]
+        predictions <- predict_MRF(test_data, mrf_null)
+
+        #Calculate positive and negative predictive values
+        true_pos <- false_pos <- true_neg <- false_neg <- matrix(NA, ncol = ncol(predictions[[2]]),
+                                                                 nrow = nrow(predictions[[2]]))
+        for(i in seq_len(nrow(true_pos))){
+          for(j in seq_len(ncol(true_pos))){
+            true_pos[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                               as.numeric(test_data[i, j]))) &
+              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
+
+            false_pos[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                                 as.numeric(test_data[i, j]))) &
+              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
+
+            true_neg[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                               as.numeric(test_data[i, j]))) &
+              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
+
+            false_neg[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
+                                                 as.numeric(test_data[i, j]))) &
+              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
+          }
+        }
+
+        #Calculate diagnostic predictive values
+        pos_pred <- sum(true_pos, na.rm = TRUE) /
+          (sum(true_pos, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
+        neg_pred <- sum(true_neg, na.rm = TRUE) /
+          (sum(true_neg, na.rm = TRUE) + sum(false_neg, na.rm = TRUE))
+        sensitivity <- sum(true_pos, na.rm = TRUE) /
+          (sum(true_pos, na.rm = TRUE) + sum(false_neg, na.rm = TRUE))
+        specificity <- sum(true_neg, na.rm = TRUE) /
+          (sum(true_neg, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
+        tot_pred <- (sum(true_pos, na.rm = TRUE) + sum(true_neg, na.rm = TRUE)) /
+          (length(true_pos))
+
+        list(mean_pos_pred = mean(pos_pred, na.rm = TRUE),
+             mean_neg_pred = mean(neg_pred, na.rm = TRUE),
+             mean_tot_pred = mean(tot_pred, na.rm = TRUE),
+             mean_sensitivity = mean(sensitivity, na.rm = TRUE),
+             mean_specificity = mean(specificity, na.rm = TRUE))
+      })
+
+      plot_dat_null <- purrr::map_df(cv_predictions_null, magrittr::extract,
+                                c('mean_pos_pred','mean_tot_pred',
+                                  'mean_sensitivity',
+                                  'mean_specificity'))
+      plot_dat$model <- 'CRF'
+      plot_dat_null$model <- 'MRF (no covariates)'
+      plot_dat <- rbind(plot_dat, plot_dat_null)
+
+      if(plot){
+        output <- plot_binom_cv_diag_optim(plot_dat, compare_null = TRUE)
+      } else {
+        output <- plot_dat
+      }
+
+    } else {
+      if(plot){
+        output <- plot_binom_cv_diag_optim(plot_dat, compare_null = FALSE)
+      } else {
+        output <- plot_dat
+      }
+    }
+  }
+
+  if(family == 'gaussian' || family == 'poisson'){
+    folds <- caret::createFolds(rownames(data), 10)
+    cv_predictions <- lapply(seq_len(10), function(k){
+      test_data <- data[folds[[k]], ]
+      predictions <- predict_MRF(test_data, mrf)
+      Rsquared <- vector()
+      MSE <- vector()
+      for(i in seq_len(ncol(predictions))){
+        Rsquared[i] <- cor.test(test_data[, i], predictions[, i])[[4]]
+        MSE[i] <- mean(residuals(lm(test_data[, i] ~ predictions[, i])) ^ 2)
+      }
+      list(Rsquared = mean(Rsquared, na.rm = T), MSE = mean(MSE, na.rm = T))
+    })
+    plot_dat <- purrr::map_df(cv_predictions, magrittr::extract,
+                              c('Rsquared', 'MSE'))
+
+    if(compare_null){
+      cv_predictions_null <- lapply(seq_len(10), function(k){
+        test_data <- data[folds[[k]], 1:n_nodes]
+        predictions <- predict_MRF(test_data, mrf_null)
+        Rsquared <- vector()
+        MSE <- vector()
+        for(i in seq_len(ncol(predictions))){
+          Rsquared[i] <- cor.test(test_data[, i], predictions[, i])[[4]]
+          MSE[i] <- mean(residuals(lm(test_data[, i] ~ predictions[, i])) ^ 2)
+        }
+        list(Rsquared = mean(Rsquared, na.rm = T), MSE = mean(MSE, na.rm = T))
+      })
+      plot_dat_null <- purrr::map_df(cv_predictions_null, magrittr::extract,
+                                c('Rsquared', 'MSE'))
+      plot_dat$model <- 'CRF'
+      plot_dat_null$model <- 'MRF (no covariates)'
+      plot_dat <- rbind(plot_dat, plot_dat_null)
+
+      if(plot){
+        output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = TRUE)
+      } else {
+        output <- plot_dat
+      }
+
+    } else {
+      if(plot){
+        output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = FALSE)
+      } else {
+        output <- plot_dat
+      }
+    }
+  }
+}
 
   return(output)
 }

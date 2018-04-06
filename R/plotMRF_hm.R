@@ -35,15 +35,16 @@ plotMRF_hm = function(MRF_mod, node_names, main){
     return(cormat)
   }
 
+  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
+  if('beta' %in% names(MRF_mod)){
+    MRF_mod$graph <- MRF_mod$beta
+    MRF_mod$mod_type <- 'MRFcov'
+  }
+
   if(MRF_mod$mod_type == 'MRFcov'){
     plot_booted_coefs <- FALSE
   } else {
     plot_booted_coefs <- TRUE
-  }
-
-  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
-  if('beta' %in% names(MRF_mod)){
-    MRF_mod$graph <- MRF_mod$beta
   }
 
   if(!plot_booted_coefs){

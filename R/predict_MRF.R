@@ -10,7 +10,9 @@
 #'@param MRF_mod A fitted \code{\link{MRFcov}} model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
-#'@return A \code{matrix} containing predictions for each observation in \code{data}:
+#'@return A \code{matrix} containing predictions for each observation in \code{data}. If
+#'\code{family = "binomial"}, a second element containing binary
+#'predictions for nodes is returned.
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{cv_MRF}}
 #'
@@ -50,6 +52,11 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
      MRF_mod_booted$indirect_coefs[[i]] <- list(MRF_mod$indirect_coef_mean[[i]],"")[1]
   }
    names(MRF_mod_booted$indirect_coefs) <- names(MRF_mod$indirect_coef_mean)
+
+   if(MRF_mod$mod_family == 'poisson'){
+     MRF_mod_booted$poiss_sc_factors <- MRF_mod$poiss_sc_factors
+   }
+
    MRF_mod <- MRF_mod_booted
    rm(MRF_mod_booted)
 
@@ -57,7 +64,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
    n_nodes <- nrow(MRF_mod$graph)
  }
 
-  #### Function to back-transform logistic coefficients using inverse logit #####
+  # Function to back-transform logistic coefficients using inverse logit
   inverse_logit = function(x){
     exp(x) / (1 + exp(x))
   }
@@ -66,6 +73,14 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
   data <- data.frame(data)
   n_obs <- nrow(data)
   node_names <- colnames(data[, 1:n_nodes])
+
+  # For poisson, scale prediction node variables using the same
+  # scale factors as in the original MRF_mod
+  if(MRF_mod$mod_family == 'poisson'){
+    for(i in seq_len(n_nodes)){
+      data[, i] <- data[, i] / MRF_mod$poiss_sc_factors[[i]]
+    }
+  }
 
   # Prep the dataset by cross-multiplication (TRUE by default; FALSE when used in other functions)
   if(prep_covariates){
@@ -79,10 +94,15 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
   if((MRF_mod$mod_family == 'poisson')){
   for(i in seq_len(n_nodes)){
     for(j in seq_len(n_obs)){
-      predictions[j, i] <- floor(exp(sum(data[j, ] * MRF_mod$direct_coefs[i, -1]) +
-                                       MRF_mod$intercepts[i]))
+      predictions[j, i] <- sum(data[j, ] * MRF_mod$direct_coefs[i, -1]) +
+                                       MRF_mod$intercepts[i]
     }
   }
+
+  # Back-convert linear predictions using inverse of the poisson scale factors
+    for(i in seq_len(n_nodes)){
+        predictions[, i] <- predictions[, i] * MRF_mod$poiss_sc_factors[[i]]
+    }
 
 } else if((MRF_mod$mod_family == 'binomial')){
   for(i in seq_len(n_nodes)){
@@ -101,12 +121,17 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
   }
 }
 
+#### Return the appropriate predictions based on family ####
   if((MRF_mod$mod_family == 'binomial')){
     binary_predictions <- ifelse(predictions >= 0.5, 1, 0)
     return(list(Probability_predictions = round(predictions, 4),
            Binary_predictions = binary_predictions))
 
-  } else{
-    return(predictions)
+  } else if((MRF_mod$mod_family == 'poisson')){
+    count_predictions <- ifelse(predictions <= 0, 0, round(predictions, 0))
+    return(predictions = count_predictions)
+
+  } else {
+    return(predictions = predictions)
   }
 }

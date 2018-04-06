@@ -15,7 +15,7 @@ In principle, `MRFcov` models that use species' occurrences as outcome variables
 
 At present, only binary response variables can be included (1s and 0s, which are commonly used in multispecies occurrence data), though models accomodating different data structures may be added in future.
 
-MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) package.
+MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) and [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) packages.
 
 *This project is licensed under the terms of the GNU General Public License (GNU GPLv3)*
 

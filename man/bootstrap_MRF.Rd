@@ -5,7 +5,7 @@
 \title{Bootstrap observations to estimate MRF parameter coefficients}
 \usage{
 bootstrap_MRF(data, n_bootstraps, sample_seed, min_lambda1, max_lambda1,
-  by_lambda1, lambda2, separate_min, n_nodes, n_cores, n_covariates, cv, family,
+  by_lambda1, lambda2, symmetrise, n_nodes, n_cores, n_covariates, cv, family,
   n_its)
 }
 \arguments{
@@ -36,9 +36,10 @@ If \code{cv = TRUE}, this value is ignored and penalization parameters are optim
 to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 may be necessary for large or particularly sparse datasets}
 
-\item{separate_min}{Logical. If \strong{TRUE}, interaction coefficients will use the minimum absolute value of
-the corresponding parameter estimates, which are taken from separate logistic regressions,
-in the symmetric postprocessed coefficient matrix. Else use the maximum. Default is \strong{FALSE}}
+\item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
+(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
+smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
+or \code{mean} (take the mean of the two coefficients). Default is \code{mean}}
 
 \item{n_nodes}{Positive integer. The index of the last column in \code{data}
 which is represented by a node in the final graph. Columns with index
@@ -93,8 +94,9 @@ A \code{list} containing:
   (used in other functions)
   \item \code{mod_family}: A character stating the family of model that was fit
    (used in other functions)
-   \item \code{node_sds}: If \code{family} is \code{poisson} or \code{gaussian}, this
-   item contains the sds of the node variables on their original scale}
+   \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+   used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
+   }
 }
 \description{
 This function runs \code{\link{MRFcov}} models multiple times using either a user-specified

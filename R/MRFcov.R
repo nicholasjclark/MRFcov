@@ -58,6 +58,8 @@
 #'    (used in other functions)
 #'    \item \code{mod_family}: A character stating the family of model that was fit
 #'    (used in other functions)
+#'    \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+#'    used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
 #'    }
 #'
 #'
@@ -65,6 +67,9 @@
 #'Zeitschrift für Physik A Hadrons and Nuclei, 31, 253-258.\cr\cr
 #'Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
 #'A sparse Ising model with covariates. (2012). Biometrics, 70, 943-953.\cr\cr
+#'Clark, NJ, Wells, K and Lindberg, O.
+#'Unravelling changing interspecific interactions across environmental gradients
+#'using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221.\cr\cr
 #'Sutton C, McCallum A. An introduction to conditional random fields.
 #'Foundations and Trends in Machine Learning 4, 267-373.
 #'
@@ -198,6 +203,21 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     n_covariates <- ncol(data) - n_nodes
   }
 
+  #### Use sqrt mean transformation for Poisson variables ####
+  if(family == 'poisson'){
+    warning('Poisson variables will be standardised by their square root means. Please
+            refer to the "poiss_sc_factors" for coefficient interpretations')
+    square_root_mean = function(x) {sqrt(mean(x ^ 2))}
+    poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
+    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
+                               function(x) x / square_root_mean(x))
+    family <- 'gaussian'
+    return_poisson <- TRUE
+
+    } else {
+    return_poisson <- FALSE
+  }
+
   #### Prep the dataset by cross-multiplication of covariates if necessary ####
   if(prep_covariates){
     prepped_mrf_data <- prep_MRF_covariates(data = data, n_nodes = n_nodes)
@@ -271,7 +291,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   }
 
   if(parallel_compliant){
-    clusterExport(NULL, c('mrf_data', 'mrf_data.scaled',
+    clusterExport(NULL, c('mrf_data',
                           'lambda1','lambda2','n_nodes','family','cv'),
                   envir = environment())
 
@@ -281,7 +301,8 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       #Specify family name in penalized syntax
       if(family == 'binomial') fam = 'logistic'
       if(family == 'gaussian') fam = 'linear'
-      if(family == 'poisson') fam = 'poisson'
+      #if(family == 'poisson') fam = 'poisson'
+
       #Export the necessary library
       clusterEvalQ(cl, library(penalized))
 
@@ -495,7 +516,19 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   names(mean_key_coefs) <- rownames(direct_coefs)
 
 #### Return as a list ####
-return(list(graph = interaction_matrix_sym[[1]],
+if(return_poisson){
+  return(list(graph = interaction_matrix_sym[[1]],
+              intercepts = interaction_matrix_sym[[2]],
+              results = mrf_mods,
+              direct_coefs = direct_coefs,
+              indirect_coefs = indirect_coefs,
+              param_names = colnames(mrf_data),
+              key_coefs = mean_key_coefs,
+              mod_type = 'MRFcov',
+              mod_family = 'poisson',
+              poiss_sc_factors = poiss_sc_factors))
+}  else {
+  return(list(graph = interaction_matrix_sym[[1]],
               intercepts = interaction_matrix_sym[[2]],
               results = mrf_mods,
               direct_coefs = direct_coefs,
@@ -505,4 +538,5 @@ return(list(graph = interaction_matrix_sym[[1]],
               mod_type = 'MRFcov',
               mod_family = family))
 
+}
 }

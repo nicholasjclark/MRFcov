@@ -66,6 +66,8 @@ A \code{list} containing:
    (used in other functions)
    \item \code{mod_family}: A character stating the family of model that was fit
    (used in other functions)
+   \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+   used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
    }
 }
 \description{
@@ -111,6 +113,9 @@ Ising, E. (1925). Beitrag zur Theorie des Ferromagnetismus.
 Zeitschrift für Physik A Hadrons and Nuclei, 31, 253-258.\cr\cr
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
 A sparse Ising model with covariates. (2012). Biometrics, 70, 943-953.\cr\cr
+Clark, NJ, Wells, K and Lindberg, O.
+Unravelling changing interspecific interactions across environmental gradients
+using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221.\cr\cr
 Sutton C, McCallum A. An introduction to conditional random fields.
 Foundations and Trends in Machine Learning 4, 267-373.
 }

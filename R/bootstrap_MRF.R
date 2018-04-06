@@ -77,8 +77,9 @@
 #'   (used in other functions)
 #'   \item \code{mod_family}: A character stating the family of model that was fit
 #'    (used in other functions)
-#'    \item \code{node_sds}: If \code{family} is \code{poisson} or \code{gaussian}, this
-#'    item contains the sds of the node variables on their original scale}
+#'    \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+#'    used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
+#'    }
 #'
 #'
 #'@seealso \code{\link{MRFcov}},
@@ -257,10 +258,19 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     data <- as.data.frame(data)
   }
 
-  # If Poisson or Gaussian, extract sds of node variables for later back-conversion of coefs
-  if(family %in% c('gaussian','poisson')){
-    mrf_node_sds = data.frame(data) %>%
-      dplyr::summarise_at(dplyr::vars(1:n_nodes), dplyr::funs(sd(.)))
+  # If Poisson, use sqrt mean transformation for node variables
+  if(family == 'poisson'){
+    warning('Poisson variables will be standardised by their square root means. Please
+            refer to the "poiss_sc_factors" for coefficient interpretations')
+    square_root_mean = function(x) {sqrt(mean(x ^ 2))}
+    poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
+    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
+                               function(x) x / square_root_mean(x))
+    family <- 'gaussian'
+    return_poisson <- TRUE
+
+  } else {
+    return_poisson <- FALSE
   }
 
   #### Function to randomly sample rows for each bootstrap replicate ####
@@ -566,8 +576,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
   })
   names(all_indirect_coef_means) <- names(all_indirect_coef_list[[1]])
 
-  # If Poisson or Gaussian, return node_sds for back-conversion of coefficients
-   if(family %in% c('gaussian','poisson')){
+  # If Poisson, return scale factors for back-conversion of coefficients
+   if(return_poisson){
      if(!cv){
 
        return(list(lambda_results = lambda_results,
@@ -577,8 +587,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
               indirect_coef_mean = all_indirect_coef_means,
               mean_key_coefs = mean_key_coefs,
               mod_type = 'bootstrap_MRF',
-              mod_family = family,
-              node_sds = mrf_node_sds))
+              mod_family = 'poisson',
+              poiss_sc_factors = poiss_sc_factors))
        } else {
          return(list(direct_coef_means = all_direct_coef_means,
                 direct_coef_upper90 = all_direct_coef_upper90,
@@ -586,10 +596,10 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
                 indirect_coef_mean = all_indirect_coef_means,
                 mean_key_coefs = mean_key_coefs,
                 mod_type = 'bootstrap_MRF',
-                mod_family = family,
-                node_sds = mrf_node_sds))
+                mod_family = 'poisson',
+                poiss_sc_factors = poiss_sc_factors))
        }
-     # Else, return list without node_sds
+     # Else, return list without scale factors
    } else {
      if(!cv){
 

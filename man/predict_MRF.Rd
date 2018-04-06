@@ -18,7 +18,9 @@ was used to fit the \code{MRF_mod}}
 by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)}
 }
 \value{
-A \code{matrix} containing predictions for each observation in \code{data}:
+A \code{matrix} containing predictions for each observation in \code{data}. If
+\code{family = "binomial"}, a second element containing binary
+predictions for nodes is returned.
 }
 \description{
 This function calculates linear predictors for node observations
