@@ -2,11 +2,15 @@
 % Please edit documentation in R/cv_MRF_diag.R
 \name{cv_MRF_diag}
 \alias{cv_MRF_diag}
-\title{MRF cross validation plots to optimise regularization parameters}
+\alias{cv_MRF_diag_rep}
+\title{MRF cross validation and assessment of predictive performance}
 \usage{
 cv_MRF_diag(data, min_lambda1, max_lambda1, by_lambda1, symmetrise, n_nodes,
   lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates,
-  compare_null, family, plot = TRUE, fixed_lambda = TRUE)
+  compare_null, family, plot = TRUE, fixed_lambda = FALSE, cached_model)
+
+cv_MRF_diag_rep(data, symmetrise, n_nodes, lambda2, n_cores, sample_seed,
+  n_folds, n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -61,38 +65,87 @@ non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{fam
 \item{plot}{Logical. If \code{TRUE}, \code{ggplot2} objects are returned. If \code{FALSE},
 the prediction metrics are returned as a matrix. Default is \code{TRUE}}
 
-\item{fixed_lambda}{Logical determining whether a model should be run by optimising l1 regularization
-for each individual node. Default is \code{TRUE}}
+\item{fixed_lambda}{Logical determining whether a model should be run using the same l1 regularization
+for each individual node. The default value, \code{FALSE}, allows node-specific regressions
+to be optimized using the 10-fold cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
+find the lambda1 value that minimises mean cross-validated error}
+
+\item{cached_model}{Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
+unneccessary replication of node-optimised model fitting}
 }
 \value{
-Either a \code{ggplot2} object plotting LOESS regressions of
-relationships between l1−regularization values and predictive metrics, or
-a matrix of prediction metrics (if \code{plot = FALSE})
+If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
+either a plot of  relationships between l1−regularization values and predictive metrics
+(if \code{fixed_lambda = FALSE}) or boxplots of predictive metrics across test sets using the
+optimised model (see \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1}
+optimisation). If \code{plot = FALSE}, a matrix of prediction metrics is returned.
 }
 \description{
-This function runs cross validation of \code{\link{MRFcov}} models across a specified
-range of l1−regularization values and produces simple diagnostic plots
-to assess model predictive performance at each l1 value.
+\code{cv_MRF_diag} runs cross validation of \code{\link{MRFcov}} models across a specified
+range of l1−regularization values.
+
+\code{cv_MRF_diag_rep} fits a single node-optimised model (i.e. \code{fixed_lambda = FALSE})
+and test's this model's predictive performance across test subsets of the data.
+\cr
+\cr
+Both functions assess model predictive performance and produce
+either diagnostic plots or matrices of predictive metrics.
 }
 \details{
-\code{MRFcov} models are run across the specified sequence of \code{lambda1} values.
-Cross validation is used to test model predictive capacity at each \code{lambda1}.
-For each model, the observed presence-absence values of nodes in a test set of
-\code{data} observations is predicted using outputs of an \code{MRFcov} model that is fit to
-the remaining observations (training data) using \code{\link{cv_MRF}}.
+If \code{fixed_lambda = TRUE}, \code{MRFcov} models are run across the specified
+sequence of \code{lambda1} values and cross validation is used to test model
+predictive capacity at each \code{lambda1}.
+For the fitted models, the observed outcome values of nodes in a test set of
+\code{data} observations are predicted using outputs of an \code{MRFcov} model that is fit to
+the remaining observations (training data). If \code{fixed_lambda = FALSE} (the default), a single
+node-optimised model is fitted using \code{\link[glmnet]{cv.glmnet}},
+and this model is used to predict \code{data} test subsets.
 Test and training \code{data} subsets are created using \code{\link[caret]{createFolds}}.
-Plots showing
-LOESS regressions of prediction metrics vs \code{lambda1} are returned
+\cr
+\cr
+To account for uncertainty in parameter estimates and in random fold generation, it is recommended
+to perform cross-validation multiple times (by controlling the \code{n_fold_runs} argument) using either
+\code{cv_MRF_diag} (if \code{fixed_lambda = TRUE}) or \code{cv_MRF_diag_rep} (if \code{fixed_lambda = FALSE}).
+The former is useful for iteratively fitting models to different training subsets using a specified
+sequence of \code{lambda1} values (and forcing every node-wise regression to use the same
+\code{lambda1} value in each iteration), while
+the latter is useful for optimising a single model (using \code{\link[glmnet]{cv.glmnet}}) and testing
+this model's predictive performance across many test subsets
 }
 \examples{
 \dontrun{
 data("Bird.parasites")
-cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4,
-           max_lambda1 = 2, by_lambda1 = 0.1,
-           n_nodes = 4, n_cores = 3, family = 'binomial')}
+# Generate boxplots of model predictive metrics
+cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
+           n_cores = 3, family = 'binomial')
+
+# Generate boxplots comparing the CRF to a 'null model' (no covariates)
+cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
+           n_cores = 3, family = 'binomial',
+           compare_null = TRUE)
+
+# Replicate 10-fold cross-validation 100 times
+cv.preds <- cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
+                           n_cores = 3, family = 'binomial',
+                           compare_null = TRUE,
+                           plot = FALSE, n_fold_runs = 100)
+
+# Plot model specificity and \% true predictions
+library(ggplot2)
+gridExtra::grid.arrange(
+ ggplot(data = cv.preds, aes(y = mean_specificity, x = model)) +
+       geom_boxplot() + theme(axis.text.x = ggplot2::element_blank()) +
+       labs(x = ''),
+ ggplot(data = comp.nulls, aes(y = mean_tot_pred, x = model)) +
+       geom_boxplot(),
+       ncol = 1,
+ heights = c(1, 1))
+}
+
 }
 \seealso{
-\code{\link{MRFcov}},\code{\link{predict_MRF}},
-\code{\link{cv_MRF}},
-\code{\link[penalized]{penalized}}
+\code{\link{MRFcov}},
+\code{\link{predict_MRF}},
+\code{\link[penalized]{penalized}},
+\code{\link[glmnet]{cv.glmnet}}
 }

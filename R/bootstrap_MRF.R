@@ -242,10 +242,6 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     nas_present = FALSE
     }
 
-  if(any(!is.finite(as.matrix(data)))){
-    stop('No infinite values permitted.')
-  }
-
   if(nrow(data) < 2){
     ('The data must have at least 2 rows')
   }

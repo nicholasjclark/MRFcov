@@ -1,9 +1,8 @@
-#'MRF cross validation plots to optimise regularization parameters
+#'MRF cross validation and assessment of predictive performance
 #'
 #'
-#'This function runs cross validation of \code{\link{MRFcov}} models across a specified
-#'range of l1−regularization values and produces simple diagnostic plots
-#'to assess model predictive performance at each l1 value.
+#'\code{cv_MRF_diag} runs cross validation of \code{\link{MRFcov}} models across a specified
+#'range of l1−regularization values.
 #'
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
@@ -43,37 +42,80 @@
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
 #'@param plot Logical. If \code{TRUE}, \code{ggplot2} objects are returned. If \code{FALSE},
 #'the prediction metrics are returned as a matrix. Default is \code{TRUE}
-#'@param fixed_lambda Logical determining whether a model should be run by optimising l1 regularization
-#'for each individual node. Default is \code{TRUE}
-#'@return Either a \code{ggplot2} object plotting LOESS regressions of
-#'relationships between l1−regularization values and predictive metrics, or
-#'a matrix of prediction metrics (if \code{plot = FALSE})
+#'@param fixed_lambda Logical determining whether a model should be run using the same l1 regularization
+#'for each individual node. The default value, \code{FALSE}, allows node-specific regressions
+#'to be optimized using the 10-fold cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
+#'find the lambda1 value that minimises mean cross-validated error
+#'@param cached_model Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
+#'unneccessary replication of node-optimised model fitting
+#'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
+#'either a plot of  relationships between l1−regularization values and predictive metrics
+#'(if \code{fixed_lambda = FALSE}) or boxplots of predictive metrics across test sets using the
+#'optimised model (see \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1}
+#'optimisation). If \code{plot = FALSE}, a matrix of prediction metrics is returned.
 #'
-#'@seealso \code{\link{MRFcov}},\code{\link{predict_MRF}},
-#'\code{\link{cv_MRF}},
-#'\code{\link[penalized]{penalized}}
+#'@seealso \code{\link{MRFcov}},
+#'\code{\link{predict_MRF}},
+#'\code{\link[penalized]{penalized}},
+#'\code{\link[glmnet]{cv.glmnet}}
 #'
-#'@details \code{MRFcov} models are run across the specified sequence of \code{lambda1} values.
-#'Cross validation is used to test model predictive capacity at each \code{lambda1}.
-#'For each model, the observed presence-absence values of nodes in a test set of
-#'\code{data} observations is predicted using outputs of an \code{MRFcov} model that is fit to
-#'the remaining observations (training data) using \code{\link{cv_MRF}}.
+#'@details If \code{fixed_lambda = TRUE}, \code{MRFcov} models are run across the specified
+#'sequence of \code{lambda1} values and cross validation is used to test model
+#'predictive capacity at each \code{lambda1}.
+#'For the fitted models, the observed outcome values of nodes in a test set of
+#'\code{data} observations are predicted using outputs of an \code{MRFcov} model that is fit to
+#'the remaining observations (training data). If \code{fixed_lambda = FALSE} (the default), a single
+#'node-optimised model is fitted using \code{\link[glmnet]{cv.glmnet}},
+#'and this model is used to predict \code{data} test subsets.
 #'Test and training \code{data} subsets are created using \code{\link[caret]{createFolds}}.
-#'Plots showing
-#'LOESS regressions of prediction metrics vs \code{lambda1} are returned
+#'\cr
+#'\cr
+#'To account for uncertainty in parameter estimates and in random fold generation, it is recommended
+#'to perform cross-validation multiple times (by controlling the \code{n_fold_runs} argument) using either
+#'\code{cv_MRF_diag} (if \code{fixed_lambda = TRUE}) or \code{cv_MRF_diag_rep} (if \code{fixed_lambda = FALSE}).
+#'The former is useful for iteratively fitting models to different training subsets using a specified
+#'sequence of \code{lambda1} values (and forcing every node-wise regression to use the same
+#'\code{lambda1} value in each iteration), while
+#'the latter is useful for optimising a single model (using \code{\link[glmnet]{cv.glmnet}}) and testing
+#'this model's predictive performance across many test subsets
 #'
 #'@examples
 #'\dontrun{
 #'data("Bird.parasites")
-#'cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4,
-#'            max_lambda1 = 2, by_lambda1 = 0.1,
-#'            n_nodes = 4, n_cores = 3, family = 'binomial')}
+#'# Generate boxplots of model predictive metrics
+#'cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
+#'            n_cores = 3, family = 'binomial')
+#'
+#'# Generate boxplots comparing the CRF to a 'null model' (no covariates)
+#'cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
+#'            n_cores = 3, family = 'binomial',
+#'            compare_null = TRUE)
+#'
+#'# Replicate 10-fold cross-validation 100 times
+#'cv.preds <- cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
+#'                            n_cores = 3, family = 'binomial',
+#'                            compare_null = TRUE,
+#'                            plot = FALSE, n_fold_runs = 100)
+#'
+#'# Plot model specificity and % true predictions
+#'library(ggplot2)
+#'gridExtra::grid.arrange(
+#'  ggplot(data = cv.preds, aes(y = mean_specificity, x = model)) +
+#'        geom_boxplot() + theme(axis.text.x = ggplot2::element_blank()) +
+#'        labs(x = ''),
+#'  ggplot(data = comp.nulls, aes(y = mean_tot_pred, x = model)) +
+#'        geom_boxplot(),
+#'        ncol = 1,
+#'  heights = c(1, 1))
+#'}
+#'
 #'@export
 #'
 cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                         symmetrise, n_nodes, lambda2, n_cores,
                         sample_seed, n_folds, n_fold_runs, n_covariates,
-                        compare_null, family, plot = TRUE, fixed_lambda = TRUE){
+                        compare_null, family, plot = TRUE, fixed_lambda = FALSE,
+                        cached_model){
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -322,59 +364,70 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
       by_lambda1 <- 0
     }
 
-    if(family == 'binomial'){
-      mrf <- MRFcov(data = data,
-                    lambda2 = lambda2,
-                    symmetrise =  symmetrise,
-                    n_nodes = n_nodes,
-                    n_cores = n_cores,
-                    cv = TRUE, family = 'binomial')
+    # If cached_model not provided, generate models
+    if(missing(cached_model)){
+      if(family == 'binomial'){
+        mrf <- MRFcov(data = data,
+                      lambda2 = lambda2,
+                      symmetrise =  symmetrise,
+                      n_nodes = n_nodes,
+                      n_cores = n_cores,
+                      cv = TRUE, family = 'binomial')
+
+        if(compare_null){
+          mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                             lambda2 = lambda2,
+                             symmetrise =  symmetrise,
+                             n_nodes = n_nodes,
+                             n_cores = n_cores,
+                             cv = TRUE, family = 'binomial')
+        }
+      }
+
+      if(family == 'poisson'){
+        mrf <- MRFcov(data = data,
+                      lambda2 = lambda2,
+                      symmetrise =  symmetrise,
+                      n_nodes = n_nodes,
+                      n_cores = n_cores,
+                      cv = TRUE, family = 'poisson')
+
+        if(compare_null){
+          mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                             lambda2 = lambda2,
+                             symmetrise =  symmetrise,
+                             n_nodes = n_nodes,
+                             n_cores = n_cores,
+                             cv = TRUE, family = 'poisson')
+        }
+      }
+
+      if(family == 'gaussian'){
+        mrf <- MRFcov(data = data,
+                      lambda2 = lambda2,
+                      symmetrise =  symmetrise,
+                      n_nodes = n_nodes,
+                      n_cores = n_cores,
+                      cv = TRUE, family = 'gaussian')
+
+        if(compare_null){
+          mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+                             lambda2 = lambda2,
+                             symmetrise =  symmetrise,
+                             n_nodes = n_nodes,
+                             n_cores = n_cores,
+                             cv = TRUE, family = 'gaussian')
+        }
+      }
+
+    } else {
+      # If cached_model provided, use the previously stored model(s) to avoid unneccessary refits
+      mrf <- cached_model$mrf
 
       if(compare_null){
-        mrf_null <- MRFcov(data = data[ ,1:n_nodes],
-                           lambda2 = lambda2,
-                           symmetrise =  symmetrise,
-                           n_nodes = n_nodes,
-                           n_cores = n_cores,
-                           cv = TRUE, family = 'binomial')
+        mrf_null <- cached_model$mrf_null
       }
     }
-
-  if(family == 'poisson'){
-    mrf <- MRFcov(data = data,
-                  lambda2 = lambda2,
-                  symmetrise =  symmetrise,
-                  n_nodes = n_nodes,
-                  n_cores = n_cores,
-                  cv = TRUE, family = 'poisson')
-
-    if(compare_null){
-      mrf_null <- MRFcov(data = data[ ,1:n_nodes],
-                    lambda2 = lambda2,
-                    symmetrise =  symmetrise,
-                    n_nodes = n_nodes,
-                    n_cores = n_cores,
-                    cv = TRUE, family = 'poisson')
-    }
-  }
-
-  if(family == 'gaussian'){
-    mrf <- MRFcov(data = data,
-                   lambda2 = lambda2,
-                   symmetrise =  symmetrise,
-                   n_nodes = n_nodes,
-                   n_cores = n_cores,
-                   cv = TRUE, family = 'gaussian')
-
-    if(compare_null){
-      mrf_null <- MRFcov(data = data[ ,1:n_nodes],
-                         lambda2 = lambda2,
-                         symmetrise =  symmetrise,
-                         n_nodes = n_nodes,
-                         n_cores = n_cores,
-                         cv = TRUE, family = 'gaussian')
-    }
-  }
 
   if(family == 'binomial'){
     folds <- caret::createFolds(rownames(data), 10)
@@ -551,3 +604,199 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
   return(output)
 }
+
+#' Replicate cv_MRF_diag for node-optimised MRF / CRF models
+#'
+#' \code{cv_MRF_diag_rep} fits a single node-optimised model (i.e. \code{fixed_lambda = FALSE})
+#' and test's this model's predictive performance across test subsets of the data.
+#' \cr
+#' \cr
+#' Both functions assess model predictive performance and produce
+#' either diagnostic plots or matrices of predictive metrics.
+#'
+#' @inheritParams cv_MRF_diag
+#' @rdname cv_MRF_diag
+#'
+#' @export
+cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
+                           sample_seed, n_folds, n_fold_runs, n_covariates,
+                           compare_null, family, plot = TRUE){
+
+  #### Specify default parameter values and initiate warnings ####
+  if(!(family %in% c('gaussian', 'poisson', 'binomial')))
+    stop('Please select one of the three family options:
+         "gaussian", "poisson", "binomial"')
+
+  if(missing(symmetrise)){
+    symmetrise <- 'mean'
+  }
+
+  if(missing(compare_null)) {
+    compare_null <- FALSE
+  }
+
+  if(missing(n_folds)) {
+    n_folds <- 10
+  } else {
+    if(sign(n_folds) == 1){
+      #Make sure n_folds is a positive integer
+      n_folds <- ceiling(n_folds)
+    } else {
+      stop('Please provide a positive integer for n_folds')
+    }
+  }
+
+  if(missing(n_fold_runs)) {
+    n_fold_runs <- n_folds
+  } else {
+    if(sign(n_fold_runs) == 1){
+      #Make sure n_fold_runs is a positive integer
+      n_fold_runs <- ceiling(n_fold_runs)
+    } else {
+      stop('Please provide a positive integer for n_fold_runs')
+    }
+  }
+
+  if(missing(n_cores)) {
+    n_cores <- 1
+  } else {
+    if(sign(n_cores) != 1){
+      stop('Please provide a positive integer for n_cores')
+    } else{
+      if(sfsmisc::is.whole(n_cores) == FALSE){
+        stop('Please provide a positive integer for n_cores')
+      }
+    }
+  }
+
+  if(missing(n_nodes)) {
+    warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
+            call. = FALSE)
+    n_nodes <- ncol(data)
+    n_covariates <- 0
+  } else {
+    if(sign(n_nodes) != 1){
+      stop('Please provide a positive integer for n_nodes')
+    } else {
+      if(sfsmisc::is.whole(n_nodes) == FALSE){
+        stop('Please provide a positive integer for n_nodes')
+      }
+    }
+  }
+
+  if(missing(n_covariates)){
+    n_covariates <- ncol(data) - n_nodes
+  } else {
+    if(sign(n_covariates) != 1){
+      stop('Please provide a positive integer for n_covariates')
+    } else {
+      if(sfsmisc::is.whole(n_covariates) == FALSE){
+        stop('Please provide a positive integer for n_covariates')
+      }
+    }
+  }
+
+  if(missing(lambda2)) {
+    lambda2 <- 0
+  } else {
+    if(lambda2 < 0){
+      stop('Please provide a non-negative numeric value for lambda2')
+    }
+  }
+
+  if(missing(sample_seed)) {
+    sample_seed <- ceiling(runif(1, 0, 100000))
+  }
+
+  #### Generate cached model(s) to avoid unneccessary refit in each run of n_fold_runs ####
+  cat("Generating node-optimised Markov random fields model", "\n", sep = "")
+  if(family == 'binomial'){
+    mrf <- suppressWarnings(MRFcov(data = data,
+                  lambda2 = lambda2,
+                  symmetrise =  symmetrise,
+                  n_nodes = n_nodes,
+                  n_cores = n_cores,
+                  cv = TRUE, family = 'binomial'))
+
+    if(compare_null){
+      cat("Generating null model (no covariates)", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+                         lambda2 = lambda2,
+                         symmetrise =  symmetrise,
+                         n_nodes = n_nodes,
+                         n_cores = n_cores,
+                         cv = TRUE, family = 'binomial'))
+    }
+  }
+
+  if(family == 'poisson'){
+    mrf <- suppressWarnings(MRFcov(data = data,
+                  lambda2 = lambda2,
+                  symmetrise =  symmetrise,
+                  n_nodes = n_nodes,
+                  n_cores = n_cores,
+                  cv = TRUE, family = 'poisson'))
+
+    if(compare_null){
+      cat("Generating null model (no covariates)", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+                         lambda2 = lambda2,
+                         symmetrise =  symmetrise,
+                         n_nodes = n_nodes,
+                         n_cores = n_cores,
+                         cv = TRUE, family = 'poisson'))
+    }
+  }
+
+  if(family == 'gaussian'){
+    mrf <- suppressWarnings(MRFcov(data = data,
+                  lambda2 = lambda2,
+                  symmetrise =  symmetrise,
+                  n_nodes = n_nodes,
+                  n_cores = n_cores,
+                  cv = TRUE, family = 'gaussian'))
+
+    if(compare_null){
+      cat("Generating null model (no covariates)", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+                         lambda2 = lambda2,
+                         symmetrise =  symmetrise,
+                         n_nodes = n_nodes,
+                         n_cores = n_cores,
+                         cv = TRUE, family = 'gaussian'))
+    }
+  }
+
+  # Store cached model(s) in a list
+  cached_model <- list(mrf = mrf)
+  if(compare_null){
+    cached_model$mrf_null <- mrf_null
+  }
+
+  #### Replicate cv_MRF_diag n_fold_runs times, using the cached models in each run ####
+  repped_cvs <- lapply(seq_len(n_fold_runs), function(x){
+    cat("Processing cross-validation run ", x, " of ", n_fold_runs, "...\n", sep = "")
+    cv_MRF_diag(data = data, n_nodes = n_nodes,
+                n_folds = n_folds,
+                n_cores = n_cores, family = family,
+                compare_null = compare_null, plot = FALSE,
+                cached_model = cached_model,
+                sample_seed = sample_seed)
+  })
+
+  plot_dat <- do.call(rbind, repped_cvs)
+
+  #### Return either a plot or a dataframe of predictive metrics ####
+  if(plot){
+    if(family == 'gaussian' || family == 'poisson'){
+      output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = compare_null)
+    }
+
+    if(family == 'binomial'){
+      output <- plot_binom_cv_diag_optim(plot_dat, compare_null = compare_null)
+    }
+  } else {
+    output <- plot_dat
+  }
+  return(output)
+  }

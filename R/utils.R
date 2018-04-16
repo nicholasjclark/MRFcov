@@ -1342,16 +1342,15 @@ return(gridExtra::grid.arrange(plot1, plot2, ncol = 1,
 plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
   scaleFUN <- function(x) sprintf("%.3f", x)
 
-  mean_tot_preds <- data.frame(Estimate = plot_dat$mean_tot_pred,
-                          Stat = 'True Predictions', Mod = plot_dat$model)
-  mean_pos_preds <- data.frame(Estimate = plot_dat$mean_pos_pred,
-                              Stat = 'Positive Predictions', Mod = plot_dat$model)
-  mean_sensitivities <- data.frame(Estimate = plot_dat$mean_sensitivity,
-                                  Stat = 'Sensitivity', Mod = plot_dat$model)
-  mean_specificities <- data.frame(Estimate = plot_dat$mean_specificity,
-                                  Stat = 'Specificity', Mod = plot_dat$model)
-
   if(compare_null){
+    mean_tot_preds <- data.frame(Estimate = plot_dat$mean_tot_pred,
+                                 Stat = 'True Predictions', Mod = plot_dat$model)
+    mean_pos_preds <- data.frame(Estimate = plot_dat$mean_pos_pred,
+                                 Stat = 'Positive Predictions', Mod = plot_dat$model)
+    mean_sensitivities <- data.frame(Estimate = plot_dat$mean_sensitivity,
+                                     Stat = 'Sensitivity', Mod = plot_dat$model)
+    mean_specificities <- data.frame(Estimate = plot_dat$mean_specificity,
+                                     Stat = 'Specificity', Mod = plot_dat$model)
     plot1 <- ggplot2::ggplot(mean_tot_preds, ggplot2::aes(x = Mod, y = Estimate)) +
       ggplot2::geom_boxplot() +
       ggplot2::theme_bw() +
@@ -1383,7 +1382,7 @@ plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank()) +
       ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'Specificity',
+      ggplot2::labs(y = 'Sensitivity',
                     x = '')
 
     plot4 <- ggplot2::ggplot(mean_specificities, ggplot2::aes(x = Mod, y = Estimate)) +
@@ -1395,7 +1394,7 @@ plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank()) +
       ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'Sensitivity',
+      ggplot2::labs(y = 'Specificity',
                     x = 'Model')
 
   } else {
@@ -1411,7 +1410,7 @@ plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
     plot1 <- ggplot2::ggplot(mean_tot_preds, ggplot2::aes(x = Stat, y = Estimate)) +
       ggplot2::geom_boxplot() +
       ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                      axis.text.y = ggplot2::element_text(size = 8)) +
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank()) +
@@ -1423,7 +1422,7 @@ plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
     plot2 <- ggplot2::ggplot(mean_pos_preds, ggplot2::aes(x = Stat, y = Estimate)) +
       ggplot2::geom_boxplot() +
       ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                      axis.text.y = ggplot2::element_text(size = 8)) +
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank()) +
@@ -1434,23 +1433,23 @@ plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
     plot3 <- ggplot2::ggplot(mean_sensitivities, ggplot2::aes(x = Stat, y = Estimate)) +
       ggplot2::geom_boxplot() +
       ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
-                     axis.text.y = ggplot2::element_text(size = 8)) +
-      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
-                     panel.grid.minor = ggplot2::element_blank()) +
-      ggplot2::scale_y_continuous(labels = scaleFUN) +
-      ggplot2::labs(y = 'Specificity',
-                    x = '')
-
-    plot4 <- ggplot2::ggplot(mean_specificities, ggplot2::aes(x = Stat, y = Estimate)) +
-      ggplot2::geom_boxplot() +
-      ggplot2::theme_bw() +
-      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
                      axis.text.y = ggplot2::element_text(size = 8)) +
       ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
                      panel.grid.minor = ggplot2::element_blank()) +
       ggplot2::scale_y_continuous(labels = scaleFUN) +
       ggplot2::labs(y = 'Sensitivity',
+                    x = '')
+
+    plot4 <- ggplot2::ggplot(mean_specificities, ggplot2::aes(x = Stat, y = Estimate)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Specificity',
                     x = '')
   }
   return(gridExtra::grid.arrange(plot1, plot2, plot3, plot4, ncol = 1,
