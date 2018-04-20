@@ -5,14 +5,14 @@
 \title{Markov Random Fields with covariates}
 \usage{
 MRFcov(data, lambda1, lambda2, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, cv)
+  n_covariates, family, fixed_lambda)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
 left-most variables are variables that are to be represented by nodes in the graph}
 
-\item{lambda1}{Positve numeric. If \code{cv = FALSE}, this value is used as the
-l1−regularization parameter for all node-specific regressions. If \code{cv = TRUE},
+\item{lambda1}{Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
+l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
 this value is ignored and penalization parameters are optimized automatially.
 See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
 
@@ -44,11 +44,11 @@ columns in \code{data}, corresponding to no additional covariates}
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
 
-\item{cv}{Logical. If \code{TRUE}, node-specific regressions are optimized using the 10-fold
+\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
-that minimises mean cross-validated error. If \code{FALSE}, each regression is run
+that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
-regression). Default is \code{TRUE}}
+regression). Default is \code{FALSE}}
 }
 \value{
 A \code{list} containing:

@@ -12,8 +12,8 @@
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
 #'left-most variables are variables that are to be represented by nodes in the graph
-#'@param lambda1 Positve numeric. If \code{cv = FALSE}, this value is used as the
-#'l1−regularization parameter for all node-specific regressions. If \code{cv = TRUE},
+#'@param lambda1 Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
+#'l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
 #'this value is ignored and penalization parameters are optimized automatially.
 #'See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation
 #'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
@@ -37,11 +37,11 @@
 #'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
-#'@param cv Logical. If \code{TRUE}, node-specific regressions are optimized using the 10-fold
+#'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
 #'cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
-#'that minimises mean cross-validated error. If \code{FALSE}, each regression is run
+#'that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 #'at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
-#'regression). Default is \code{TRUE}
+#'regression). Default is \code{FALSE}
 #'
 #'@return A \code{list} containing:
 #'\itemize{
@@ -87,9 +87,15 @@
 #'are also estimated for the effect of the covariate on \code{j} and the
 #'effects of the covariate on interactions between \code{j} and all other species
 #'(\code{/j}). Note that coefficients must be estimated on the same scale in order
-#'for the resulting models to be unified in a Markov Random Field. Because of this, coefficients
-#'for \code{gaussian} and \code{poisson} variables will only be directly interpretable
-#'after multiplying the coefficient by the \code{sd} of the respective variable.
+#'for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
+#'variables will be standardised using the square root mean transformation
+#'\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
+#'will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
+#'will be returned so that coefficients can be unscaled before interpretation (this unscaling is
+#'performed automatatically by other functions including \code{\link{predict_MRF}}
+#'and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
+#'if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
+#'models.
 #'\cr
 #'\cr
 #'Note that since the number of parameters quickly increases with increasing
@@ -112,7 +118,7 @@
 #'
 MRFcov <- function(data, lambda1, lambda2, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, cv) {
+                   family, fixed_lambda) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -129,7 +135,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
   if(missing(lambda1)) {
     warning('lambda1 not provided, using cross-validation to optimise each regression')
-    cv <- TRUE
+    fixed_lambda <- FALSE
     lambda1 <- 0
   } else {
     if(lambda1 < 0){
@@ -137,10 +143,10 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     }
   }
 
-  if(missing(cv)){
-    warning('cv not provided. Cross-validated optimisation will commence by default,
+  if(missing(fixed_lambda)){
+    warning('fixed_lambda not provided. Cross-validated optimisation will commence by default,
             ignoring lambda1')
-    cv <- TRUE
+    fixed_lambda <- FALSE
   }
 
   if(missing(lambda2)) {
@@ -292,12 +298,12 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
   if(parallel_compliant){
     clusterExport(NULL, c('mrf_data',
-                          'lambda1','lambda2','n_nodes','family','cv'),
+                          'lambda1','lambda2','n_nodes','family','fixed_lambda'),
                   envir = environment())
 
     #### If not using cross-validation, use function 'penalized' from package penalized for
     #separate regressions with LASSO penalty for each covariate (except intercept) ####
-    if(!cv){
+    if(fixed_lambda){
       #Specify family name in penalized syntax
       if(family == 'binomial') fam = 'logistic'
       if(family == 'gaussian') fam = 'linear'
@@ -306,7 +312,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       #Export the necessary library
       clusterEvalQ(cl, library(penalized))
 
-      #Replace scaled outcome variable with unscaled version
+      #Fit the node-wise penalized regressions
       mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
@@ -316,7 +322,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
     } else {
       #Use function 'cv.glmnet' from package glmnet if cross-validation is specified
-      #Each regression will be optimised separately, reducing user-bias
+      #Each node-wise regression will be optimised separately using 10-fold cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
       mrf_mods <-  parLapply(NULL, seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
@@ -331,7 +337,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   } else {
 
     #If parallel is not supported or n_cores = 1, use lapply instead
-    if(!cv){
+    if(fixed_lambda){
       if(family == 'binomial') fam <- 'logistic'
       if(family == 'gaussian') fam <- 'linear'
       if(family == 'poisson') fam <- 'poisson'
@@ -354,7 +360,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   }
 
   #### Gather coefficient parameters from penalized regressions ####
-  if(!cv){
+  if(fixed_lambda){
     mrf_coefs <- lapply(mrf_mods, coef, 'all')
     cov_coefs <- NULL
 

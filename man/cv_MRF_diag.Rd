@@ -130,13 +130,13 @@ cv.preds <- cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
                            compare_null = TRUE,
                            plot = FALSE, n_fold_runs = 100)
 
-# Plot model specificity and \% true predictions
+# Plot model sensitivity and \% true predictions
 library(ggplot2)
 gridExtra::grid.arrange(
- ggplot(data = cv.preds, aes(y = mean_specificity, x = model)) +
+ ggplot(data = cv.preds, aes(y = mean_sensitivity, x = model)) +
        geom_boxplot() + theme(axis.text.x = ggplot2::element_blank()) +
        labs(x = ''),
- ggplot(data = comp.nulls, aes(y = mean_tot_pred, x = model)) +
+ ggplot(data = cv.preds, aes(y = mean_tot_pred, x = model)) +
        geom_boxplot(),
        ncol = 1,
  heights = c(1, 1))

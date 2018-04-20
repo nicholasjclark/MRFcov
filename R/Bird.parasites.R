@@ -14,5 +14,8 @@
 #'   \item{scale.prop.zos}{scaled numeric variable representing relative abundance
 #'   of \emph{Zosterops} host species}
 #' }
+#' @references Clark, N.J., Wells, K., Dimitrov, D. & Clegg, S.M. (2016)
+#' Co-infections and environmental conditions drive the distributions of blood
+#' parasites in wild birds. Journal of Animal Ecology, 85, 1461-1470.
 #' @source \url{http://dx.doi.org/10.5061/dryad.pp6k4}
 "Bird.parasites"
