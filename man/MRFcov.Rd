@@ -44,7 +44,7 @@ columns in \code{data}, corresponding to no additional covariates}
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
 
-\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
+\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
@@ -86,9 +86,15 @@ species (\code{/j}) in \code{data}. If covariates are included, beta coefficient
 are also estimated for the effect of the covariate on \code{j} and the
 effects of the covariate on interactions between \code{j} and all other species
 (\code{/j}). Note that coefficients must be estimated on the same scale in order
-for the resulting models to be unified in a Markov Random Field. Because of this, coefficients
-for \code{gaussian} and \code{poisson} variables will only be directly interpretable
-after multiplying the coefficient by the \code{sd} of the respective variable.
+for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
+variables will be standardised using the square root mean transformation
+\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
+will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
+will be returned so that coefficients can be unscaled before interpretation (this unscaling is
+performed automatatically by other functions including \code{\link{predict_MRF}}
+and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
+if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
+models.
 \cr
 \cr
 Note that since the number of parameters quickly increases with increasing

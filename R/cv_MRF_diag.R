@@ -44,8 +44,8 @@
 #'the prediction metrics are returned as a matrix. Default is \code{TRUE}
 #'@param fixed_lambda Logical determining whether a model should be run using the same l1 regularization
 #'for each individual node. The default value, \code{FALSE}, allows node-specific regressions
-#'to be optimized using the 10-fold cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
-#'find the lambda1 value that minimises mean cross-validated error
+#'to be optimized using the cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
+#'find the \code{lambda1} value that minimises mean cross-validated error
 #'@param cached_model Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
 #'unneccessary replication of node-optimised model fitting
 #'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
@@ -372,7 +372,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                       symmetrise =  symmetrise,
                       n_nodes = n_nodes,
                       n_cores = n_cores,
-                      cv = TRUE, family = 'binomial')
+                      fixed_lambda =  FALSE, family = 'binomial')
 
         if(compare_null){
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
@@ -380,7 +380,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
                              n_cores = n_cores,
-                             cv = TRUE, family = 'binomial')
+                             fixed_lambda =  FALSE, family = 'binomial')
         }
       }
 
@@ -390,7 +390,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                       symmetrise =  symmetrise,
                       n_nodes = n_nodes,
                       n_cores = n_cores,
-                      cv = TRUE, family = 'poisson')
+                      fixed_lambda =  FALSE, family = 'poisson')
 
         if(compare_null){
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
@@ -398,7 +398,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
                              n_cores = n_cores,
-                             cv = TRUE, family = 'poisson')
+                             fixed_lambda =  FALSE, family = 'poisson')
         }
       }
 
@@ -408,7 +408,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                       symmetrise =  symmetrise,
                       n_nodes = n_nodes,
                       n_cores = n_cores,
-                      cv = TRUE, family = 'gaussian')
+                      fixed_lambda =  FALSE, family = 'gaussian')
 
         if(compare_null){
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
@@ -416,7 +416,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
                              n_cores = n_cores,
-                             cv = TRUE, family = 'gaussian')
+                             fixed_lambda =  FALSE, family = 'gaussian')
         }
       }
 
@@ -430,8 +430,8 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
 
   if(family == 'binomial'){
-    folds <- caret::createFolds(rownames(data), 10)
-    cv_predictions <- lapply(seq_len(10), function(k){
+    folds <- caret::createFolds(rownames(data), n_folds)
+    cv_predictions <- lapply(seq_len(n_folds), function(k){
       test_data <- data[folds[[k]], ]
       predictions <- predict_MRF(test_data, mrf)
 
@@ -483,7 +483,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                                 'mean_specificity'))
 
     if(compare_null){
-      cv_predictions_null <- lapply(seq_len(10), function(k){
+      cv_predictions_null <- lapply(seq_len(n_folds), function(k){
         test_data <- data[folds[[k]], 1:n_nodes]
         predictions <- predict_MRF(test_data, mrf_null)
 
@@ -553,15 +553,15 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
   }
 
   if(family == 'gaussian' || family == 'poisson'){
-    folds <- caret::createFolds(rownames(data), 10)
-    cv_predictions <- lapply(seq_len(10), function(k){
+    folds <- caret::createFolds(rownames(data), n_folds)
+    cv_predictions <- lapply(seq_len(n_folds), function(k){
       test_data <- data[folds[[k]], ]
       predictions <- predict_MRF(test_data, mrf)
       Rsquared <- vector()
       MSE <- vector()
       for(i in seq_len(ncol(predictions))){
         Rsquared[i] <- cor.test(test_data[, i], predictions[, i])[[4]]
-        MSE[i] <- mean(residuals(lm(test_data[, i] ~ predictions[, i])) ^ 2)
+        MSE[i] <- mean((test_data[, i] - predictions[, i]) ^ 2)
       }
       list(Rsquared = mean(Rsquared, na.rm = T), MSE = mean(MSE, na.rm = T))
     })
@@ -569,14 +569,14 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                               c('Rsquared', 'MSE'))
 
     if(compare_null){
-      cv_predictions_null <- lapply(seq_len(10), function(k){
+      cv_predictions_null <- lapply(seq_len(n_folds), function(k){
         test_data <- data[folds[[k]], 1:n_nodes]
         predictions <- predict_MRF(test_data, mrf_null)
         Rsquared <- vector()
         MSE <- vector()
         for(i in seq_len(ncol(predictions))){
           Rsquared[i] <- cor.test(test_data[, i], predictions[, i])[[4]]
-          MSE[i] <- mean(residuals(lm(test_data[, i] ~ predictions[, i])) ^ 2)
+          MSE[i] <- mean((test_data[, i] - predictions[, i]) ^ 2)
         }
         list(Rsquared = mean(Rsquared, na.rm = T), MSE = mean(MSE, na.rm = T))
       })
@@ -636,7 +636,17 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
   }
 
   if(missing(n_folds)) {
-    n_folds <- 10
+    if(nrow(data) < 50){
+      n_folds <- 2
+      warning('nrow(data) is less than 50, using 2-fold validation by default')
+    } else {
+      if(nrow(data) < 100){
+        n_folds <- 5
+        warning('nrow(data) is less than 100, using 5-fold validation by default')
+      }
+      n_folds <- 10
+      warning('n_folds missing, using 10-fold validation by default')
+    }
   } else {
     if(sign(n_folds) == 1){
       #Make sure n_folds is a positive integer
@@ -716,7 +726,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  cv = TRUE, family = 'binomial'))
+                  fixed_lambda =  FALSE, family = 'binomial'))
 
     if(compare_null){
       cat("Generating null model (no covariates)", "\n", sep = "")
@@ -725,7 +735,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         cv = TRUE, family = 'binomial'))
+                         fixed_lambda =  FALSE, family = 'binomial'))
     }
   }
 
@@ -735,7 +745,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  cv = TRUE, family = 'poisson'))
+                  fixed_lambda =  FALSE, family = 'poisson'))
 
     if(compare_null){
       cat("Generating null model (no covariates)", "\n", sep = "")
@@ -744,7 +754,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         cv = TRUE, family = 'poisson'))
+                         fixed_lambda =  FALSE, family = 'poisson'))
     }
   }
 
@@ -754,7 +764,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  cv = TRUE, family = 'gaussian'))
+                  fixed_lambda =  FALSE, family = 'gaussian'))
 
     if(compare_null){
       cat("Generating null model (no covariates)", "\n", sep = "")
@@ -763,7 +773,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         cv = TRUE, family = 'gaussian'))
+                         fixed_lambda =  FALSE, family = 'gaussian'))
     }
   }
 

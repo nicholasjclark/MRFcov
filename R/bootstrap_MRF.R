@@ -41,7 +41,7 @@
 #'before cross-multiplication. Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
-#'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
+#'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the
 #'cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 #'that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 #'at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate

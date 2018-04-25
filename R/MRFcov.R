@@ -37,7 +37,7 @@
 #'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
-#'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
+#'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the
 #'cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 #'that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 #'at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
@@ -209,6 +209,20 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     n_covariates <- ncol(data) - n_nodes
   }
 
+  # Specify number of folds for cv.glmnet based on data size
+    if(nrow(data) < 50){
+      # If less than 50 observations, use leave one out cv
+      n_folds <- nrow(data)
+    } else {
+      # If > 50 but < 100 observations, use 15-fold cv
+      if(nrow(data) < 100){
+        n_folds <- 15
+      } else {
+        # else use the default for cv.glmnet (10-fold cv)
+        n_folds <- 10
+      }
+    }
+
   #### Use sqrt mean transformation for Poisson variables ####
   if(family == 'poisson'){
     warning('Poisson variables will be standardised by their square root means. Please
@@ -235,8 +249,10 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   }
 
   #### Extract sds of variables for later back-conversion of coefficients ####
-  mrf_sds = as.vector(t(data.frame(mrf_data) %>%
+  mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                             dplyr::summarise_all(dplyr::funs(sd(.)))))
+  #Ensure finite sd values
+  mrf_sds[mrf_sds == 0] <- 1
 
   #### Gather parameter values needed for indexing and naming output objects ####
   #Gather node variable (i.e. species) names
@@ -298,7 +314,8 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
   if(parallel_compliant){
     clusterExport(NULL, c('mrf_data',
-                          'lambda1','lambda2','n_nodes','family','fixed_lambda'),
+                          'lambda1','lambda2','n_nodes','family','fixed_lambda',
+                          'n_folds'),
                   envir = environment())
 
     #### If not using cross-validation, use function 'penalized' from package penalized for
@@ -307,7 +324,6 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       #Specify family name in penalized syntax
       if(family == 'binomial') fam = 'logistic'
       if(family == 'gaussian') fam = 'linear'
-      #if(family == 'poisson') fam = 'poisson'
 
       #Export the necessary library
       clusterEvalQ(cl, library(penalized))
@@ -327,7 +343,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       mrf_mods <-  parLapply(NULL, seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = lambda2,
-                  nfolds = 10, weights = rep(1, nrow(mrf_data)),
+                  nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
                   intercept = TRUE, standardize = TRUE)
 
       })
@@ -340,7 +356,6 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     if(fixed_lambda){
       if(family == 'binomial') fam <- 'logistic'
       if(family == 'gaussian') fam <- 'linear'
-      if(family == 'poisson') fam <- 'poisson'
 
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
@@ -353,7 +368,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = lambda2,
-                  nfolds = 10, weights = rep(1, nrow(mrf_data)),
+                  nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
                   intercept = TRUE, standardize = TRUE)
       })
     }
@@ -501,7 +516,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   #by the input variable's standard deviation ####
   scaled_direct_coefs <- sweep(as.matrix(direct_coefs[, 2 : ncol(direct_coefs)]),
                                MARGIN = 2, mrf_sds, `/`)
-  coef_rel_importances <- t(apply(scaled_direct_coefs, 1, function(i) i^2 / sum(i^2)))
+  coef_rel_importances <- t(apply(scaled_direct_coefs, 1, function(i) (i^2) / sum(i^2)))
   mean_key_coefs <- lapply(seq_len(n_nodes), function(x){
     if(length(which(coef_rel_importances[x, ] > 0.01)) == 1){
       node_coefs <- data.frame(Variable = names(which((coef_rel_importances[x, ] > 0.01) == T)),

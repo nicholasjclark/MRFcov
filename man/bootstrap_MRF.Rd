@@ -52,7 +52,7 @@ columns in \code{data}, corresponding to no additional covariates}
 \item{n_covariates}{Positive integer. The number of covariates in \code{data},
 before cross-multiplication. Default is \code{ncol(data) - n_nodes}}
 
-\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the 10-fold
+\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate

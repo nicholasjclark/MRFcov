@@ -87,7 +87,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
     data <- prep_MRF_covariates(data, n_nodes = n_nodes)
   }
 
-  # Calculate predictions using direct coefficients element from the model
+  # Calculate linear predictions using the `direct_coefs`` element from the model
   predictions <- matrix(NA, n_obs, n_nodes)
   colnames(predictions) <- node_names
 
@@ -99,7 +99,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
     }
   }
 
-  # Back-convert linear predictions using inverse of the poisson scale factors
+  # Back-convert linear predictions using the poisson scale factors
     for(i in seq_len(n_nodes)){
         predictions[, i] <- predictions[, i] * MRF_mod$poiss_sc_factors[[i]]
     }
@@ -128,7 +128,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
            Binary_predictions = binary_predictions))
 
   } else if((MRF_mod$mod_family == 'poisson')){
-    count_predictions <- ifelse(predictions <= 0, 0, round(predictions, 0))
+    count_predictions <- ifelse(predictions <= 0.5, 0, round(predictions, 0))
     return(predictions = count_predictions)
 
   } else {
