@@ -608,7 +608,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
 #' Replicate cv_MRF_diag for node-optimised MRF / CRF models
 #'
 #' \code{cv_MRF_diag_rep} fits a single node-optimised model (i.e. \code{fixed_lambda = FALSE})
-#' and test's this model's predictive performance across test subsets of the data.
+#' and test's this model's predictive performance across multiple test subsets of the \code{data}.
 #' \cr
 #' \cr
 #' Both functions assess model predictive performance and produce

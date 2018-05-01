@@ -17,7 +17,8 @@ all covariates are scaled and centred (i.e. by using the function
 \code{\link[base]{scale}} or similar)}
 
 \item{n_bootstraps}{Positive integer. Represents the total number of bootstrap samples
-to test in each iteration. Default is 100.}
+to test in each of \code{n_its} or \code{seq(min_lambda1, max_lambda1, by_lambda1)} iterations.
+Default is \code{10}.}
 
 \item{sample_seed}{Numeric. Used as the seed value for generating bootstrap replicates, allowing
 users to generate replicated datasets on different systems. Default is a random seed}
@@ -32,7 +33,7 @@ If \code{fixed_lambda = FALSE}, this value is ignored and penalization parameter
 \code{lambda1_seq = seq(min_lambda1, max_lambda1, by_lambda1)}.
 If \code{fixed_lambda = FALSE}, this value is ignored and penalization parameters are optimized automatially.}
 
-\item{lambda2}{Numeric (>= 0). Value for l2−regularization, where larger values lead
+\item{lambda2}{Numeric \code{(>= 0)}. Value for l2−regularization, where larger values lead
 to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
 may be necessary for large or particularly sparse datasets}
 
@@ -43,7 +44,7 @@ or \code{mean} (take the mean of the two coefficients). Default is \code{mean}}
 
 \item{n_nodes}{Positive integer. The index of the last column in \code{data}
 which is represented by a node in the final graph. Columns with index
-greater than n_nodes are taken as covariates. Default is the number of
+greater than \code{n_nodes} are taken as covariates. Default is the number of
 columns in \code{data}, corresponding to no additional covariates}
 
 \item{n_cores}{Integer. The number of cores to spread the job across using
@@ -62,10 +63,14 @@ and \code{by_lambda1} are ignored}
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
 
-\item{n_its}{Positive integer. The number of iterations to perform \code{n_bootstrap} replicates
-across. If \code{fixed_lambda = TRUE}, this value is ignored and \code{n_its} is taken from the length of
+\item{n_its}{Positive integer. The number of iterations to perform \code{n_bootstraps} replicates
+across. The use of two parameters provides more control for optimising parallel computations. It is
+generally recommended to use a higher number for \code{n_its} relative to \code{n_bootstraps}, as
+the job will be split across cores based on the \code{n_its} parameter.
+If \code{fixed_lambda = TRUE}, this value is ignored and \code{n_its} is taken from the length of
 \code{lambda1_seq = seq(min_lambda1, max_lambda1, by_lambda1)}. Default when \code{fixed_lambda = FALSE}
-is \code{100}}
+is \code{100}. This coincides with the default \code{n_bootstraps} of \code{10} to produce
+\code{1000} bootstrap replicates in total.}
 }
 \value{
 A \code{list} containing:
@@ -110,14 +115,18 @@ in paramter esimates, the dataset is bootstrapped a user-specified number of tim
 by shuffling row observations, using \code{dplyr::sample_n(data, nrow(data), TRUE)},
 to account for uncertainty in parameter estimates.
 Parameter estimates from the set of bootstrapped models are summarised
-to present confidence intervals.
+to present means and confidence intervals.
 }
 \examples{
 \dontrun{
 data("Bird.parasites")
+
+# Perform 100 bootstrap replicates in total
 bootedCRF <- bootstrap_MRF(data = Bird.parasites,
-                          n_nodes = 4, n_its = 10, n_bootstraps = 100,
-                          family = 'binomial')}
+                          n_nodes = 4, n_bootstraps = 5,
+                          n_its = 20,
+                          family = 'binomial',
+                          n_cores = 3)}
 }
 \seealso{
 \code{\link{MRFcov}},

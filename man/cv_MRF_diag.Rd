@@ -85,7 +85,7 @@ optimisation). If \code{plot = FALSE}, a matrix of prediction metrics is returne
 range of l1−regularization values.
 
 \code{cv_MRF_diag_rep} fits a single node-optimised model (i.e. \code{fixed_lambda = FALSE})
-and test's this model's predictive performance across test subsets of the data.
+and test's this model's predictive performance across multiple test subsets of the \code{data}.
 \cr
 \cr
 Both functions assess model predictive performance and produce
