@@ -211,8 +211,10 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
       }
     }
   } else{
-    lambda2 <- 1
     lambda1 <- 1
+    if(missing(lambda2)){
+      lambda2 <- 0
+    }
   }
 
   #### Basic checks on data arguments ####
@@ -378,6 +380,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     #Prep the list of booted datasets for MRF models
     prepped_datas <-parLapply(NULL, booted_datas, prep_MRF_covariates,
                          n_nodes = n_nodes)
+    rm(booted_datas)
 
     clusterExport(NULL, c('prepped_datas'),
                   envir = environment())
@@ -385,14 +388,15 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     lambda_results <- parLapply(NULL, lambda1_seq, function(l) {
       booted_mrfs <- lapply(seq_len(n_bootstraps), function(x) {
         sample_data <- sample(seq_len(100), 1)
-        mod <- MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
+        mod <- suppressWarnings(MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
                       lambda2 = lambda2,
                       symmetrise= symmetrise,
                       n_nodes = n_nodes,
                       n_cores = 1,
                       prep_covariates = FALSE,
                       n_covariates = n_covariates,
-                      fixed_lambda = fixed_lambda, family = family)
+                      fixed_lambda = fixed_lambda, family = family,
+                      bootstrap = TRUE))
 
         list(direct_coefs = mod$direct_coefs,
              indirect_coefs = mod$indirect_coefs)
@@ -440,11 +444,15 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
     indirect_coef_list <- booted_mrfs %>%
       purrr::map('indirect_coefs')
 
+    rm(booted_mrfs)
+
     indirect_coef_means <-lapply(seq_along(indirect_coef_list[[1]]), function(x){
       Reduce(`+`, sapply(indirect_coef_list, "[[", x)) / length(indirect_coef_list)
       })
     names(indirect_coef_means) <- names(indirect_coef_list[[1]])
 
+    #Clear un-needed objects and return parameters of interest
+    gc()
     list(key_covariates = key_covariates,
          raw_coefs = direct_coef_list,
          indirect_coefs = indirect_coef_means)
@@ -456,18 +464,20 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
  #### If parallel loading fails, or if n_cores = 1, use lapply instead ####
       prepped_datas <-lapply(booted_datas, prep_MRF_covariates,
                            n_nodes = n_nodes)
+      rm(booted_datas)
 
       lambda_results <- lapply(lambda1_seq, function(l) {
         booted_mrfs <- lapply(seq_len(n_bootstraps), function(x) {
           sample_data <- sample(seq_len(100), 1)
-          mod <- MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
+          mod <- suppressWarnings(MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
                         lambda2 = lambda2,
-                        symmetrise =  symmetrise,
+                        symmetrise = symmetrise,
                         n_nodes = n_nodes,
                         n_cores = 1,
                         prep_covariates = FALSE,
                         n_covariates = n_covariates,
-                        fixed_lambda = fixed_lambda, family = family)
+                        fixed_lambda = fixed_lambda, family = family,
+                        bootstrap = TRUE))
 
           list(direct_coefs = mod$direct_coefs,
                indirect_coefs = mod$indirect_coefs)
@@ -479,7 +489,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
         direct_coef_means <- apply(array(unlist(direct_coef_list),
                                   c(nrow(booted_mrfs[[1]]$direct_coefs),
                                     ncol(booted_mrfs[[1]]$direct_coefs),
-                                    length(booted_mrfs))), c(1,2), mean)
+                                    length(booted_mrfs))), c(1, 2), mean)
         rownames(direct_coef_means) <- rownames(booted_mrfs[[1]]$direct_coefs)
         colnames(direct_coef_means) <- colnames(booted_mrfs[[1]]$direct_coefs)
 
@@ -497,13 +507,13 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
 
         #Create list of covariates that are not zero for each node in data
         key_covariates <- lapply(seq_len(n_nodes), function(x){
-          cov_prop_retained <- apply(data.frame(prop_covs_retained)[x,],2,
+          cov_prop_retained <- apply(data.frame(prop_covs_retained)[x,], 2,
                                      function(j) ifelse(j < 0.9, NA, j))
           cov_mean_coef <- as.vector(direct_coef_means[x,])
           cov_summary <- na.omit(cbind(cov_prop_retained, cov_mean_coef))
           cleaned_prop_retained <- cov_prop_retained[!is.na(cov_prop_retained)]
           cov_df <- data.frame(Proportion_retained = cleaned_prop_retained,
-                               Mean_coefficient = cov_summary[,2])
+                               Mean_coefficient = cov_summary[, 2])
           cov_df <- cov_df[order(-abs(cov_df[, 2])), ]
         })
         names(key_covariates) <- colnames(prepped_datas[[1]])[1:n_nodes]
@@ -511,17 +521,22 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, min_lambda1,
         #Calculate mean indirect interaction coefficients from bootstrap samps
         indirect_coef_list <- booted_mrfs %>%
           purrr::map('indirect_coefs')
+        rm(booted_mrfs)
 
         indirect_coef_means <-lapply(seq_along(indirect_coef_list[[1]]), function(x){
           Reduce(`+`, sapply(indirect_coef_list, "[[", x)) / length(indirect_coef_list)
         })
         names(indirect_coef_means) <- names(indirect_coef_list[[1]])
+        rm(indirect_coef_list)
 
+        #Clear un-needed objects and return parameters of interest
+        gc()
         list(key_covariates = key_covariates,
              raw_coefs = direct_coef_list,
              indirect_coefs = indirect_coef_means)
       })
     }
+  rm(prepped_datas)
 
   #### Calculate summary statistics of coefficients from bootstrapped models ####
   #Name each list element by its iteration value

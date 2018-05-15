@@ -5,7 +5,7 @@
 \title{Markov Random Fields with covariates}
 \usage{
 MRFcov(data, lambda1, lambda2, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, fixed_lambda)
+  n_covariates, family, fixed_lambda, bootstrap = FALSE)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -16,9 +16,10 @@ l1−regularization parameter for all node-specific regressions. If \code{fixed_
 this value is ignored and penalization parameters are optimized automatially.
 See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
 
-\item{lambda2}{Numeric (>= 0). Value for l2−regularization, where larger values lead
-to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
-may be necessary for large or particularly sparse datasets}
+\item{lambda2}{Positive numeric. Value for l2−regularization, where larger values lead
+to stronger shrinking of coefficient magnitudes. Default is \code{0}, but larger values
+may be necessary for large or particularly sparse datasets. Takes values between
+\code{0} and \code{5}.}
 
 \item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
 (which are taken from separate regressions). Options are \code{min} (take the coefficient with the
@@ -49,14 +50,14 @@ cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{
 that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
 regression). Default is \code{FALSE}}
+
+\item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
 }
 \value{
 A \code{list} containing:
 \itemize{
    \item \code{graph}: Estimated parameter matrix of interaction effects
    \item \code{intercepts}: Estimated parameter vector of node intercepts
-   \item \code{results}: \code{list} of length \code{n_nodes} containing results of
-   individual regularized logistic regressions
    \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
    each covariate on node interactions
    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on

@@ -88,16 +88,13 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
   }
 
   # Calculate linear predictions using the `direct_coefs`` element from the model
-  predictions <- matrix(NA, n_obs, n_nodes)
-  colnames(predictions) <- node_names
-
   if((MRF_mod$mod_family == 'poisson')){
-  for(i in seq_len(n_nodes)){
-    for(j in seq_len(n_obs)){
-      predictions[j, i] <- sum(data[j, ] * MRF_mod$direct_coefs[i, -1]) +
-                                       MRF_mod$intercepts[i]
+    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      apply(data, 1, function(j) sum(j * MRF_mod$direct_coefs[i, -1]) +
+                                                 MRF_mod$intercepts[i])
     }
-  }
+    ))
+    colnames(predictions) <- node_names
 
   # Back-convert linear predictions using the poisson scale factors
     for(i in seq_len(n_nodes)){
@@ -105,20 +102,20 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
     }
 
 } else if((MRF_mod$mod_family == 'binomial')){
-  for(i in seq_len(n_nodes)){
-    for(j in seq_len(n_obs)){
-      predictions[j, i] <- inverse_logit(sum(data[j, ] * MRF_mod$direct_coefs[i, -1]) +
-                                           MRF_mod$intercepts[i])
+  predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+    apply(data, 1, function(j) inverse_logit(sum(j * MRF_mod$direct_coefs[i, -1]) +
+                                               MRF_mod$intercepts[i]))
     }
-  }
+    ))
+  colnames(predictions) <- node_names
 
 } else {
-  for(i in seq_len(n_nodes)){
-    for(j in seq_len(n_obs)){
-      predictions[j, i] <- sum(data[j, ] * MRF_mod$direct_coefs[i, -1]) +
-                           MRF_mod$intercepts[i]
-    }
+  predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+    apply(data, 1, function(j) sum(j * MRF_mod$direct_coefs[i, -1]) +
+                                               MRF_mod$intercepts[i])
   }
+  ))
+  colnames(predictions) <- node_names
 }
 
 #### Return the appropriate predictions based on family ####

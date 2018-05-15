@@ -48,6 +48,8 @@
 #'find the \code{lambda1} value that minimises mean cross-validated error
 #'@param cached_model Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
 #'unneccessary replication of node-optimised model fitting
+#'@param cached_predictions Used by function \code{cv_MRF_diag_rep} to store predictions from
+#'optimised models and prevent unneccessary replication
 #'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
 #'either a plot of  relationships between l1−regularization values and predictive metrics
 #'(if \code{fixed_lambda = FALSE}) or boxplots of predictive metrics across test sets using the
@@ -115,7 +117,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                         symmetrise, n_nodes, lambda2, n_cores,
                         sample_seed, n_folds, n_fold_runs, n_covariates,
                         compare_null, family, plot = TRUE, fixed_lambda = FALSE,
-                        cached_model){
+                        cached_model, cached_predictions){
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -431,32 +433,21 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
   if(family == 'binomial'){
     folds <- caret::createFolds(rownames(data), n_folds)
+    all_predictions <- if(missing(cached_predictions)){
+      predict_MRF(data, mrf)
+    } else {
+      cached_predictions$predictions
+    }
+
     cv_predictions <- lapply(seq_len(n_folds), function(k){
       test_data <- data[folds[[k]], ]
-      predictions <- predict_MRF(test_data, mrf)
+      predictions <- all_predictions[[2]][folds[[k]], ]
 
       #Calculate positive and negative predictive values
-      true_pos <- false_pos <- true_neg <- false_neg <- matrix(NA, ncol = ncol(predictions[[2]]),
-                                                               nrow = nrow(predictions[[2]]))
-      for(i in seq_len(nrow(true_pos))){
-        for(j in seq_len(ncol(true_pos))){
-          true_pos[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                             as.numeric(test_data[i, j]))) &
-            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
-
-          false_pos[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                               as.numeric(test_data[i, j]))) &
-            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
-
-          true_neg[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                             as.numeric(test_data[i, j]))) &
-            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
-
-          false_neg[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                               as.numeric(test_data[i, j]))) &
-            isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
-        }
-      }
+      true_pos <- (predictions == test_data[, c(1:n_nodes)])[test_data[, c(1:n_nodes)] == 1]
+      false_pos <- (predictions == 1)[predictions != test_data[, c(1:n_nodes)]]
+      true_neg <- (predictions == test_data[, c(1:n_nodes)])[test_data[, c(1:n_nodes)] == 0]
+      false_neg <- (predictions == 0)[predictions != test_data[, c(1:n_nodes)]]
 
       #Calculate diagnostic predictive values
       pos_pred <- sum(true_pos, na.rm = TRUE) /
@@ -468,7 +459,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
       specificity <- sum(true_neg, na.rm = TRUE) /
         (sum(true_neg, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
       tot_pred <- (sum(true_pos, na.rm = TRUE) + sum(true_neg, na.rm = TRUE)) /
-        (length(true_pos))
+        (length(as.matrix(test_data[, c(1:n_nodes)])))
 
     list(mean_pos_pred = mean(pos_pred, na.rm = TRUE),
          mean_neg_pred = mean(neg_pred, na.rm = TRUE),
@@ -483,32 +474,21 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
                                 'mean_specificity'))
 
     if(compare_null){
+      all_predictions <- if(missing(cached_predictions)){
+        predict_MRF(data[, 1:n_nodes], mrf_null)
+      } else {
+        cached_predictions$null_predictions
+      }
+
       cv_predictions_null <- lapply(seq_len(n_folds), function(k){
         test_data <- data[folds[[k]], 1:n_nodes]
-        predictions <- predict_MRF(test_data, mrf_null)
+        predictions <- all_predictions[[2]][folds[[k]], ]
 
         #Calculate positive and negative predictive values
-        true_pos <- false_pos <- true_neg <- false_neg <- matrix(NA, ncol = ncol(predictions[[2]]),
-                                                                 nrow = nrow(predictions[[2]]))
-        for(i in seq_len(nrow(true_pos))){
-          for(j in seq_len(ncol(true_pos))){
-            true_pos[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                               as.numeric(test_data[i, j]))) &
-              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
-
-            false_pos[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                                 as.numeric(test_data[i, j]))) &
-              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 1))
-
-            true_neg[i, j] <- isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                               as.numeric(test_data[i, j]))) &
-              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
-
-            false_neg[i, j] <- !isTRUE(all.equal(as.numeric(predictions[[2]][i, j]),
-                                                 as.numeric(test_data[i, j]))) &
-              isTRUE(all.equal(as.numeric(predictions[[2]][i, j]), 0))
-          }
-        }
+        true_pos <- (predictions == test_data)[test_data == 1]
+        false_pos <- (predictions == 1)[predictions != test_data]
+        true_neg <- (predictions == test_data)[test_data == 0]
+        false_neg <- (predictions == 0)[predictions != test_data]
 
         #Calculate diagnostic predictive values
         pos_pred <- sum(true_pos, na.rm = TRUE) /
@@ -520,7 +500,7 @@ cv_MRF_diag <- function(data, min_lambda1, max_lambda1, by_lambda1,
         specificity <- sum(true_neg, na.rm = TRUE) /
           (sum(true_neg, na.rm = TRUE) + sum(false_pos, na.rm = TRUE))
         tot_pred <- (sum(true_pos, na.rm = TRUE) + sum(true_neg, na.rm = TRUE)) /
-          (length(true_pos))
+          (length(as.matrix(test_data)))
 
         list(mean_pos_pred = mean(pos_pred, na.rm = TRUE),
              mean_neg_pred = mean(neg_pred, na.rm = TRUE),
@@ -719,7 +699,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
   }
 
   #### Generate cached model(s) to avoid unneccessary refit in each run of n_fold_runs ####
-  cat("Generating node-optimised Markov random fields model", "\n", sep = "")
+  cat("Generating node-optimised Conditional Random Fields model", "\n", sep = "")
   if(family == 'binomial'){
     mrf <- suppressWarnings(MRFcov(data = data,
                   lambda2 = lambda2,
@@ -729,7 +709,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                   fixed_lambda =  FALSE, family = 'binomial'))
 
     if(compare_null){
-      cat("Generating null model (no covariates)", "\n", sep = "")
+      cat("Generating Markov Random Fields model (no covariates)", "\n", sep = "")
       mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
                          lambda2 = lambda2,
                          symmetrise =  symmetrise,
@@ -783,6 +763,12 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
     cached_model$mrf_null <- mrf_null
   }
 
+  # Store cached predictions in a list
+  cached_predictions <- list(predictions = predict_MRF(data, cached_model$mrf))
+  if(compare_null){
+    cached_predictions$null_predictions <- predict_MRF(data[, 1:n_nodes], cached_model$mrf_null)
+  }
+
   #### Replicate cv_MRF_diag n_fold_runs times, using the cached models in each run ####
   repped_cvs <- lapply(seq_len(n_fold_runs), function(x){
     cat("Processing cross-validation run ", x, " of ", n_fold_runs, "...\n", sep = "")
@@ -791,6 +777,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, lambda2, n_cores,
                 n_cores = n_cores, family = family,
                 compare_null = compare_null, plot = FALSE,
                 cached_model = cached_model,
+                cached_predictions = cached_predictions,
                 sample_seed = sample_seed)
   })
 

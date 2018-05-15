@@ -7,7 +7,8 @@
 \usage{
 cv_MRF_diag(data, min_lambda1, max_lambda1, by_lambda1, symmetrise, n_nodes,
   lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates,
-  compare_null, family, plot = TRUE, fixed_lambda = FALSE, cached_model)
+  compare_null, family, plot = TRUE, fixed_lambda = FALSE, cached_model,
+  cached_predictions)
 
 cv_MRF_diag_rep(data, symmetrise, n_nodes, lambda2, n_cores, sample_seed,
   n_folds, n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
@@ -72,6 +73,9 @@ find the \code{lambda1} value that minimises mean cross-validated error}
 
 \item{cached_model}{Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
 unneccessary replication of node-optimised model fitting}
+
+\item{cached_predictions}{Used by function \code{cv_MRF_diag_rep} to store predictions from
+optimised models and prevent unneccessary replication}
 }
 \value{
 If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be

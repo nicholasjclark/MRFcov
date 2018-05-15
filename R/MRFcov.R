@@ -16,9 +16,10 @@
 #'l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
 #'this value is ignored and penalization parameters are optimized automatially.
 #'See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation
-#'@param lambda2 Numeric (>= 0). Value for l2−regularization, where larger values lead
-#'to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
-#'may be necessary for large or particularly sparse datasets
+#'@param lambda2 Positive numeric. Value for l2−regularization, where larger values lead
+#'to stronger shrinking of coefficient magnitudes. Default is \code{0}, but larger values
+#'may be necessary for large or particularly sparse datasets. Takes values between
+#'\code{0} and \code{5}.
 #'@param symmetrise The method to use for symmetrising corresponding parameter estimates
 #'(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
 #'smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
@@ -42,13 +43,12 @@
 #'that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 #'at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
 #'regression). Default is \code{FALSE}
+#'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} containing:
 #'\itemize{
 #'    \item \code{graph}: Estimated parameter matrix of interaction effects
 #'    \item \code{intercepts}: Estimated parameter vector of node intercepts
-#'    \item \code{results}: \code{list} of length \code{n_nodes} containing results of
-#'    individual regularized logistic regressions
 #'    \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
 #'    each covariate on node interactions
 #'    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
@@ -118,7 +118,7 @@
 #'
 MRFcov <- function(data, lambda1, lambda2, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, fixed_lambda) {
+                   family, fixed_lambda, bootstrap = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -154,6 +154,9 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   } else {
     if(lambda2 < 0){
       stop('Please provide a non-negative numeric value for lambda2')
+    }
+    if(lambda2 > 5){
+      lambda2 <- 5
     }
   }
 
@@ -251,8 +254,12 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   #### Extract sds of variables for later back-conversion of coefficients ####
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                             dplyr::summarise_all(dplyr::funs(sd(.)))))
-  #Ensure finite sd values
-  mrf_sds[mrf_sds == 0] <- 1
+
+  if(range(mrf_sds)[2] > 1.5){
+    mrf_sds <- rep(1, length(mrf_sds))
+  } else {
+    mrf_sds[mrf_sds < 1] <- 1
+  }
 
   #### Gather parameter values needed for indexing and naming output objects ####
   #Gather node variable (i.e. species) names
@@ -333,18 +340,25 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, lambda2 = lambda2, steps = 1,
-                  model = fam, standardize = TRUE, trace = F, maxiter = 5000)
+                  model = fam, standardize = TRUE, trace = F, maxiter = 25000)
       })
 
     } else {
       #Use function 'cv.glmnet' from package glmnet if cross-validation is specified
-      #Each node-wise regression will be optimised separately using 10-fold cv, reducing user-bias
+      #Each node-wise regression will be optimised separately using cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
+      alpha <- if(lambda2 == 0){
+        0
+      } else {
+        lambda2
+      }
+
       mrf_mods <-  parLapply(NULL, seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data[,i], family = family, alpha = lambda2,
+                  y = mrf_data[,i], family = family, alpha = alpha,
                   nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
-                  intercept = TRUE, standardize = TRUE)
+                  lambda = exp(seq(log(0.00001), log(5), length.out = 100)),
+                  intercept = TRUE, standardize = TRUE, maxit = 25000)
 
       })
     }
@@ -361,15 +375,22 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, lambda2 = lambda2, steps = 1,
-                  model = fam, standardize = TRUE, trace = F, maxiter = 5000)
+                  model = fam, standardize = TRUE, trace = F, maxiter = 25000)
       })
 
     } else {
+      alpha <- if(lambda2 == 0){
+        0
+      } else {
+        lambda2
+      }
+
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = lambda2,
                   nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
-                  intercept = TRUE, standardize = TRUE)
+                  lambda = exp(seq(log(0.00001), log(5), length.out = 100)),
+                  intercept = TRUE, standardize = TRUE, maxit = 25000)
       })
     }
   }
@@ -386,6 +407,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       coefs
     })
   }
+  rm(mrf_mods)
 
   #If covariates are included, extract their coefficients from each model
   if(n_covariates > 0){
@@ -412,7 +434,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
     #Re-order columns to match input data and give clearer names
     column_order <- c('X.Intercept.', colnames(mrf_data))
-    direct_coefs = direct_coefs[,column_order]
+    direct_coefs <- direct_coefs[, column_order]
     colnames(direct_coefs) <- c('Intercept', colnames(mrf_data))
     rownames(direct_coefs) <- node_names
     rm(column_order)
@@ -423,7 +445,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   }
 
   #### Function to symmetrize corresponding coefficients ####
-  symmetr <- function(coef_matrix){
+  symmetr <- function(coef_matrix, check_directs = FALSE, direct_upper = NULL){
     coef_matrix_upper <- coef_matrix[upper.tri(coef_matrix)]
     coef_matrix.lower <- t(coef_matrix)[upper.tri(coef_matrix)]
 
@@ -443,6 +465,14 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       coef_matrix_upper_new <- ifelse(abs(coef_matrix_upper) > abs(coef_matrix.lower),
                                       coef_matrix_upper, coef_matrix.lower)
       }
+
+     if(check_directs){
+     # For indirect interactions, conditional relationships can only occur if
+     # a direct interaction is found
+       direct_upper <- direct_upper[upper.tri(direct_upper)]
+       direct_upper[direct_upper > 0] <- 1
+       coef_matrix_upper_new <- coef_matrix_upper_new * direct_upper
+       }
 
     coef_matrix_sym <- matrix(0, n_nodes, n_nodes)
     intercepts <- diag(coef_matrix)
@@ -481,7 +511,8 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     #Symmetrize corresponding interaction coefficients
     indirect_coefs <- lapply(seq_along(covariate_matrices), function(x){
       matrix_to_sym <- covariate_matrices[[x]]
-      sym_matrix <- symmetr(matrix_to_sym)
+      sym_matrix <- symmetr(matrix_to_sym, check_directs = TRUE,
+                            direct_upper = interaction_matrix_sym[[1]])
       dimnames(sym_matrix[[1]])[[1]] <- node_names
       colnames(sym_matrix[[1]]) <- node_names
       list(sym_matrix[[1]])
@@ -493,7 +524,8 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
     #Replace unsymmetric indirect interaction coefficients with symmetric versions
     covs_to_sym <- ncol(direct_coefs) - (1 + n_nodes + n_covariates)
-    covs_to_sym_end <- seq(n_nodes, covs_to_sym, by = n_nodes) + (1 + n_nodes + n_covariates)
+    covs_to_sym_end <- seq(n_nodes, covs_to_sym,
+                           by = n_nodes) + (1 + n_nodes + n_covariates)
     covs_to_sym_beg <- covs_to_sym_end - (n_nodes - 1)
 
     for(i in seq_len(n_covariates)){
@@ -514,6 +546,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
   #### Calculate relative importances of coefficients by scaling each coef
   #by the input variable's standard deviation ####
+  if(!bootstrap){
   scaled_direct_coefs <- sweep(as.matrix(direct_coefs[, 2 : ncol(direct_coefs)]),
                                MARGIN = 2, mrf_sds, `/`)
   coef_rel_importances <- t(apply(scaled_direct_coefs, 1, function(i) (i^2) / sum(i^2)))
@@ -535,12 +568,13 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     node_coefs <- node_coefs[order(-node_coefs[, 2]), ]
   })
   names(mean_key_coefs) <- rownames(direct_coefs)
+  }
 
 #### Return as a list ####
+if(!bootstrap){
 if(return_poisson){
   return(list(graph = interaction_matrix_sym[[1]],
               intercepts = interaction_matrix_sym[[2]],
-              results = mrf_mods,
               direct_coefs = direct_coefs,
               indirect_coefs = indirect_coefs,
               param_names = colnames(mrf_data),
@@ -551,7 +585,6 @@ if(return_poisson){
 }  else {
   return(list(graph = interaction_matrix_sym[[1]],
               intercepts = interaction_matrix_sym[[2]],
-              results = mrf_mods,
               direct_coefs = direct_coefs,
               indirect_coefs = indirect_coefs,
               param_names = colnames(mrf_data),
@@ -559,5 +592,10 @@ if(return_poisson){
               mod_type = 'MRFcov',
               mod_family = family))
 
+}
+} else {
+  #If bootstrap function is called, only return necessary parameters to save memory
+  return(list(direct_coefs = direct_coefs,
+              indirect_coefs = indirect_coefs))
 }
 }
