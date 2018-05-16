@@ -1,0 +1,18 @@
+citHeader("To cite MRFcov in publications use:")
+
+citEntry(entry = "Article",
+         title        = "Unravelling changing interspecific interactions across environmental gradients using Markov random fields",
+         author       = personList(as.person("Nicholas J. Clark"),
+                                   as.person("Konstans Wells"),
+                                   as.person("Oscar Lindberg")),
+         journal      = "Ecology",
+         year         = "2018",
+         url          = "https://doi.org/10.1002/ecy.2221",
+
+
+         textVersion  =
+           paste("Nicholas J. Clark, Konstans Wells, Oscar Lindberg (2018).",
+                 "Unravelling changing interspecific interactions across environmental gradients using Markov random fields",
+                 "Ecology",
+                 "URL https://doi.org/10.1002/ecy.2221")
+)

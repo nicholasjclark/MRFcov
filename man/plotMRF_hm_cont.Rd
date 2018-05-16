@@ -4,8 +4,7 @@
 \alias{plotMRF_hm_cont}
 \title{Plot heatmaps of varying interaction coefficients for a continuous covariate}
 \usage{
-plotMRF_hm_cont(data, MRF_mod, node_names, covariate, main, n_plot_columns,
-  plot_booted_coefs)
+plotMRF_hm_cont(data, MRF_mod, node_names, covariate, main, n_plot_columns)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the
@@ -22,10 +21,6 @@ is to use rownames from the \code{MRFcov$graph} slot}
 
 \item{n_plot_columns}{An optional integer specifying the number of columns to use
 for plot facetting}
-
-\item{plot_booted_coefs}{Logical. If \strong{TRUE}, mean interaction coefficients,
-taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \strong{FALSE}}
 }
 \value{
 A \code{ggplot2} object

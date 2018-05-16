@@ -6,12 +6,12 @@
 \title{MRF cross validation and assessment of predictive performance}
 \usage{
 cv_MRF_diag(data, min_lambda1, max_lambda1, by_lambda1, symmetrise, n_nodes,
-  lambda2, n_cores, sample_seed, n_folds, n_fold_runs, n_covariates,
-  compare_null, family, plot = TRUE, fixed_lambda = FALSE, cached_model,
+  n_cores, sample_seed, n_folds, n_fold_runs, n_covariates, compare_null,
+  family, plot = TRUE, fixed_lambda = FALSE, cached_model,
   cached_predictions)
 
-cv_MRF_diag_rep(data, symmetrise, n_nodes, lambda2, n_cores, sample_seed,
-  n_folds, n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
+cv_MRF_diag_rep(data, symmetrise, n_nodes, n_cores, sample_seed, n_folds,
+  n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -37,10 +37,6 @@ or \code{mean} (take the mean of the two coefficients). Default is \code{mean}}
 which is represented by a node in the final graph. Columns with index
 greater than n_nodes are taken as covariates. Default is the number of
 columns in \code{data}, corresponding to no additional covariates}
-
-\item{lambda2}{Numeric (>= 0). Value for l2−regularization, where larger values lead
-to stronger shrinking of coefficient magnitudes. Default is 0, but larger values
-may be necessary for large or particularly sparse datasets}
 
 \item{n_cores}{Positive integer. The number of cores to spread the job across using
 \code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)}

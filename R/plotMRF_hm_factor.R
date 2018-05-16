@@ -39,7 +39,7 @@
 #'
 plotMRF_hm_factor = function(MRF_mod, node_names, covariate,
                              base_contrast_name,
-                             main, n_plot_columns, plot_booted_coefs,
+                             main, n_plot_columns,
                              threshold){
 
   if(MRF_mod$mod_type == 'MRFcov'){

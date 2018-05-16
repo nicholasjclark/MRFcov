@@ -14,8 +14,8 @@ comp_rosalia_MRF(MRF_mod, rosalia_mod)
 \value{
 A \code{list} of two objects:
 \itemize{
-   \item \code{Positive_predictive_value}: The positive predictive value
-   \item \code{Negative_predictive_value}: The negative predictive value
+   \item \code{Positive_interactions}: The positive predictive value
+   \item \code{Negative_interactions}: The negative predictive value
    }
 }
 \description{

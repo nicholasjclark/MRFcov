@@ -14,12 +14,9 @@
 #'left-most variables are variables that are to be represented by nodes in the graph
 #'@param lambda1 Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
 #'l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
-#'this value is ignored and penalization parameters are optimized automatially.
+#'this value is ignored and penalization parameters are optimized automatially, using
+#'coordinated gradient descent to minimize cross-validated error.
 #'See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation
-#'@param lambda2 Positive numeric. Value for l2−regularization, where larger values lead
-#'to stronger shrinking of coefficient magnitudes. Default is \code{0}, but larger values
-#'may be necessary for large or particularly sparse datasets. Takes values between
-#'\code{0} and \code{5}.
 #'@param symmetrise The method to use for symmetrising corresponding parameter estimates
 #'(which are taken from separate regressions). Options are \code{min} (take the coefficient with the
 #'smallest absolute value), \code{max} (take the coefficient with the largest absolute value)
@@ -35,7 +32,8 @@
 #'columns in \code{data}, corresponding to no additional covariates
 #'@param n_cores Positive integer. The number of cores to spread the job across using
 #'\code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)
-#'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication
+#'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication.
+#'Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
 #'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the
@@ -88,7 +86,7 @@
 #'effects of the covariate on interactions between \code{j} and all other species
 #'(\code{/j}). Note that coefficients must be estimated on the same scale in order
 #'for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
-#'variables will be standardised using the square root mean transformation
+#'variables will be therefore standardised using the square root mean transformation
 #'\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
 #'will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
 #'will be returned so that coefficients can be unscaled before interpretation (this unscaling is
@@ -100,8 +98,8 @@
 #'\cr
 #'Note that since the number of parameters quickly increases with increasing
 #'numbers of species and covariates, LASSO penalization is used to regularize
-#'regressions based on values of regularization parameters \code{lambda1} and
-#'\code{lambda2}. This can be done either by minimising the cross-validated
+#'regressions based on values of the regularization parameter \code{lambda1}.
+#'This can be done either by minimising the cross-validated
 #'mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
 #'running all regressions at a single \code{lambda1} value. The latter approach may be
 #'useful for optimising all nodes as part of a joint graphical model, while the former
@@ -116,7 +114,7 @@
 #'
 #'@export
 #'
-MRFcov <- function(data, lambda1, lambda2, symmetrise,
+MRFcov <- function(data, lambda1, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
                    family, fixed_lambda, bootstrap = FALSE) {
 
@@ -147,17 +145,6 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
     warning('fixed_lambda not provided. Cross-validated optimisation will commence by default,
             ignoring lambda1')
     fixed_lambda <- FALSE
-  }
-
-  if(missing(lambda2)) {
-    lambda2 <- 0
-  } else {
-    if(lambda2 < 0){
-      stop('Please provide a non-negative numeric value for lambda2')
-    }
-    if(lambda2 > 5){
-      lambda2 <- 5
-    }
   }
 
   if(missing(n_cores)) {
@@ -213,12 +200,12 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
   }
 
   # Specify number of folds for cv.glmnet based on data size
-    if(nrow(data) < 50){
+    if(nrow(data) < 150){
       # If less than 50 observations, use leave one out cv
       n_folds <- nrow(data)
     } else {
-      # If > 50 but < 100 observations, use 15-fold cv
-      if(nrow(data) < 100){
+      # If > 150 but < 250 observations, use 15-fold cv
+      if(nrow(data) < 250){
         n_folds <- 15
       } else {
         # else use the default for cv.glmnet (10-fold cv)
@@ -321,7 +308,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
 
   if(parallel_compliant){
     clusterExport(NULL, c('mrf_data',
-                          'lambda1','lambda2','n_nodes','family','fixed_lambda',
+                          'lambda1','n_nodes','family','fixed_lambda',
                           'n_folds'),
                   envir = environment())
 
@@ -339,7 +326,7 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  lambda1 = lambda1, lambda2 = lambda2, steps = 1,
+                  lambda1 = lambda1, steps = 1,
                   model = fam, standardize = TRUE, trace = F, maxiter = 25000)
       })
 
@@ -347,17 +334,11 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       #Use function 'cv.glmnet' from package glmnet if cross-validation is specified
       #Each node-wise regression will be optimised separately using cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
-      alpha <- if(lambda2 == 0){
-        0
-      } else {
-        lambda2
-      }
-
-      mrf_mods <-  parLapply(NULL, seq_len(n_nodes), function(i) {
+      mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data[,i], family = family, alpha = alpha,
+                  y = mrf_data[,i], family = family, alpha = 1,
                   nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
-                  lambda = exp(seq(log(0.00001), log(5), length.out = 100)),
+                  #lambda = rev(seq(0.0001, 1, length.out = 100)),
                   intercept = TRUE, standardize = TRUE, maxit = 25000)
 
       })
@@ -374,22 +355,16 @@ MRFcov <- function(data, lambda1, lambda2, symmetrise,
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  lambda1 = lambda1, lambda2 = lambda2, steps = 1,
+                  lambda1 = lambda1, steps = 1,
                   model = fam, standardize = TRUE, trace = F, maxiter = 25000)
       })
 
     } else {
-      alpha <- if(lambda2 == 0){
-        0
-      } else {
-        lambda2
-      }
-
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data[,i], family = family, alpha = lambda2,
+                  y = mrf_data[,i], family = family, alpha = 1,
                   nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
-                  lambda = exp(seq(log(0.00001), log(5), length.out = 100)),
+                  #lambda = rev(seq(0.0001, 1, length.out = 100)),
                   intercept = TRUE, standardize = TRUE, maxit = 25000)
       })
     }

@@ -27,14 +27,14 @@ data.paras = data.frame(data.paras) %>%
 data.paras <- data.paras[, c(12:15, 23)]
 ```
 
-You can visualise the dataset to see how analysis data needs to be structured. In short, for (`family = "binomial"`) models, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Note that Gaussian continuous variables (`family = "gaussian"`) and Poisson non-negative counts (`family = "poisson"`) are also supported in `MRFcov`. Any covariates can be included as the right-most variables. It is recommended that these covariates all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have `mean = 0` and `sd = 1`, as this makes comparisons of their effect sizes very straightforward
+You can visualise the dataset to see how analysis data needs to be structured. In short, for (`family = "binomial"`) models, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Note that Gaussian continuous variables (`family = "gaussian"`) and Poisson non-negative counts (`family = "poisson"`) are also supported in `MRFcov`. Any covariates can be included as the right-most variables. It is recommended that these covariates all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have roughly `mean = 0` and `sd = 1`, as this makes LASSO variable selection and comparisons of effect sizes very straightforward
 ```{r eval=FALSE}
 help("Bird.parasites")
 View(Bird.parasites)
 ```
 
 ### Running MRFs and visualising interaction coefficients
-We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species (`4`). We also need to specify the family for the model (`binomial` in this case). We have two options for specifying the level of penalisation used in the LASSO algorithm. We can either specify a single `lambda1` value, which results in fitting penalised regressions using the same `lambda1` for each species (using function `penalized` in the `penalized` package), or we can allow `lambda1` to be optimised separately for each species through 10-fold cross validation (using function `cv.glmnet` in the `glmnet` package). It is generally advisable to use the second option (which is the default if `lambda1` is not supplied), as this ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we use 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
+We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species (`4`). We also need to specify the family for the model (`binomial` in this case). We have two options for specifying the level of penalisation used by the LASSO algorithm. We can either specify a single `lambda1` value, which results in fitting penalised regressions using the same `lambda1` for each species (using function `penalized` in the `penalized` package), or we can allow `lambda1` to be optimised separately for each species through cross validation (using function `cv.glmnet` in the `glmnet` package). It is generally advisable to use the second option (which is the default if `lambda1` is not supplied), as this ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we use 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
 ```{r,eval=FALSE}
 MRF_fit <- MRFcov(data = Bird.parasites[, c(1:4)], n_nodes = 4, family = 'binomial')
 ```
@@ -73,13 +73,13 @@ Visualise the estimated species interaction coefficients as a heatmap. These rep
 plotMRF_hm(MRF_mod = MRF_mod)
 ```
 
-We can also visualise how species interactions are predicted to change across covariate magnitudes. Because we are using a continuous covariate, we can use the function `plotMRF_HM_cont` to visualise changing interactions
+We can also visualise how species interactions are predicted to change across covariate magnitudes. Because we are using a continuous covariate, we can use the function `plotMRF_HM_cont` to visualise changing interactions (`cont` stands for continuous, in this cse)
 ```{r eval=FALSE}
 plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
                 main = 'Estimated interactions across host relative densities')
 ```
 
-Regression coefficients and their relative importances can be accessed as well. This call returns a matrix of the raw coefficient, as well as standardised coefficients (standardised by the `sd` of the covariate). Standardisation in this way helps to compare the relative influences of each parameter on the target species' occurrence probability
+Regression coefficients and their relative importances can be accessed as well. This call returns a matrix of the raw coefficient, as well as standardised coefficients (standardised by the `sd` of the covariate). Standardisation in this way helps to compare the relative influences of each parameter on the target species' occurrence probability. The list also contains contains each variable's relative importance (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
 ```{r eval = FALSE}
 MRF_mod$key_coefs$Hzosteropis
 ```
@@ -117,10 +117,11 @@ The returned object from `predict_MRF` depends on the family of the model. For `
 ```{r eval = FALSE}
 H.zos.pred.prev <- sum(fake.preds$Binary_predictions[, 'Hzosteropis']) / nrow(fake.preds$Binary_predictions)
 Plas.pred.prev <- sum(fake.preds$Binary_predictions[, 'Plas']) / nrow(fake.preds$Binary_predictions)
+Plas.pred.prev
 ```
 
 ### Choosing penalization parameters when using fixed lambda1 values
-If users decide to use the same `lambda1` value for each species in the graph, choosing the appropriate `lambda1` value often requires exploration of model predictive performance at different values. The function `cv_MRF_diag` uses cross-validation to examine how well models fitted with training datasets can predict observations that have been with-held from the data (test datasets) at different `lambda1` values. We also have the option of specifying `lambda2`, where values `>0` lead to more effective shrinkage of coefficients (sometimes this is necessary for large datasets with many potential predictors; see documentation in the `penalized` package for more details). Given the large number of models that may be required during cross-validation or bootstrapping (see below), we can use parallel computation by relying on functions in the [parallel](https://www.google.com.au/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwj6iZyPvcnYAhVLvrwKHaJ9AhUQFgg2MAE&url=https%3A%2F%2Fstat.ethz.ch%2FR-manual%2FR-devel%2Flibrary%2Fparallel%2Fdoc%2Fparallel.pdf&usg=AOvVaw2eR83aL93jttPIS-mLWzEL) package. Here we set `fixed_lambda = TRUE`, which allows us to test a sequence of `lambda1` values using `seq(min_lambda1, max_lambda1, by_lambda1)`.
+If users decide to implement the same `lambda1` value for each species in the graph, choosing the appropriate `lambda1` value often requires exploration of model predictive performance at different values. The function `cv_MRF_diag` uses cross-validation to examine how well models fitted with training datasets can predict observations that have been with-held from the data (test datasets) at different `lambda1` values (see documentation in the `penalized` package for more details). Given the large number of models that may be required during cross-validation or bootstrapping (see below), we can use parallel computation by relying on functions in the [parallel](https://www.google.com.au/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwj6iZyPvcnYAhVLvrwKHaJ9AhUQFgg2MAE&url=https%3A%2F%2Fstat.ethz.ch%2FR-manual%2FR-devel%2Flibrary%2Fparallel%2Fdoc%2Fparallel.pdf&usg=AOvVaw2eR83aL93jttPIS-mLWzEL) package. Here we set `fixed_lambda = TRUE`, which allows us to test a sequence of `lambda1` values using `seq(min_lambda1, max_lambda1, by_lambda1)`.
 ```{r eval=FALSE}
 cv_MRF_diag(data = Bird.parasites, fixed_lambda = TRUE, min_lambda1 = 0.5, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, family = 'binomial', n_cores = 3)
 ```
@@ -137,7 +138,7 @@ plotMRF_hm(MRF_mod = booted_MRF)
 ```
 
 ### Exploring regression coefficients and interpreting results
-Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of CRFs, as comparing the relative importances of interactions and fixed covariates using competing methods (such as Joint Species Distribution Models) is difficult. The `bootstrap_MRF` function conveniently returns a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
+Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of CRFs, as comparing the relative importances of interactions and fixed covariates using competing methods (such as Joint Species Distribution Models) is difficult. The `bootstrap_MRF` function conveniently returns a matrix of important coefficients for each node in the graph, as well as their relative importances
 ```{r eval=FALSE}
 booted_MRF$mean_key_coefs$Hzosteropis
 ```
@@ -153,3 +154,5 @@ booted_MRF$mean_key_coefs$Plas
 ```{r eval=FALSE}
 booted_MRF$mean_key_coefs$Microfilaria
 ```
+
+Note of course that inferences may differ when using fixed vs node-optimised penalization, and so users should consider which option fits their questions best (as stated above, node-optimisation is generally preferred, as it requires less guesswork about choosing the optimal `lambda1` values)

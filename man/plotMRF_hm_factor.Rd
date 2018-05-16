@@ -5,7 +5,7 @@
 \title{Plot heatmaps of varying interaction coefficients across factor levels}
 \usage{
 plotMRF_hm_factor(MRF_mod, node_names, covariate, base_contrast_name, main,
-  n_plot_columns, plot_booted_coefs, threshold)
+  n_plot_columns, threshold)
 }
 \arguments{
 \item{MRF_mod}{A fitted \code{MRFcov} object}

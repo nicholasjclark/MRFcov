@@ -1,8 +1,7 @@
 #### Cv for binomial models using the same lambda1 in each regression ####
-cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
-                   lambda2, symmetrise,
+cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,symmetrise,
                    n_nodes, n_cores, sample_seed, n_folds,
-                   n_fold_runs, n_covariates){
+                   n_fold_runs, n_covariates, fixed_lambda = TRUE){
 
   if(missing(symmetrise)){
     symmetrise <- 'mean'
@@ -27,14 +26,6 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
       n_fold_runs = ceiling(n_fold_runs)
     } else {
       stop('Please provide a positive integer for n_fold_runs')
-    }
-  }
-
-  if(missing(lambda2)) {
-    lambda2 <- 0
-  } else {
-    if(lambda2 < 0){
-      stop('Please provide a non-negative numeric value for lambda2')
     }
   }
 
@@ -185,7 +176,7 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
 
     #Export necessary data and variables to each cluster
-    clusterExport(NULL, c('lamda1_seq', 'n_folds', 'lambda2',
+    clusterExport(NULL, c('lamda1_seq', 'n_folds',
                           'symmetrise', 'n_nodes',
                           'data','nas_present', 'n_covariates',
                           'prepped_datas', 'n_fold_runs'),
@@ -231,12 +222,11 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run an MRFcov model using the training dataset
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'binomial')
 
         #Use output from the trained model to predict the test_data observations
@@ -331,12 +321,11 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run the models
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'binomial')
 
         test_preds <- predict_MRF(data = test_data, MRF_mod = trained_mrf,
@@ -397,9 +386,9 @@ cv_MRF <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
 #### CV for gaussian models using the same lambda1 in each regression ####
 cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
-                            lambda2, symmetrise,
+                            symmetrise,
                             n_nodes, n_cores, sample_seed, n_folds,
-                            n_fold_runs, n_covariates){
+                            n_fold_runs, n_covariates, fixed_lambda = TRUE){
   if(missing(symmetrise)){
     symmetrise <- 'mean'
   }
@@ -423,14 +412,6 @@ cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
       n_fold_runs = ceiling(n_fold_runs)
     } else {
       stop('Please provide a positive integer for n_fold_runs')
-    }
-  }
-
-  if(missing(lambda2)) {
-    lambda2 <- 0
-  } else {
-    if(lambda2 < 0){
-      stop('Please provide a non-negative numeric value for lambda2')
     }
   }
 
@@ -581,7 +562,7 @@ cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
 
     #Export necessary data and variables to each cluster
-    clusterExport(NULL, c('lamda1_seq', 'n_folds', 'lambda2',
+    clusterExport(NULL, c('lamda1_seq', 'n_folds',
                           'symmetrise', 'n_nodes',
                           'data','nas_present', 'n_covariates',
                           'prepped_datas', 'n_fold_runs'),
@@ -622,12 +603,11 @@ cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run an MRFcov model using the training dataset
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'gaussian')
 
         #Use output from the trained model to predict the test_data observations
@@ -691,12 +671,11 @@ cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run the models
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'gaussian')
 
         test_preds <- predict_MRF(data = test_data, MRF_mod = trained_mrf,
@@ -727,9 +706,9 @@ cv_MRF_gaussian <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
 #### CV for poisson models using the same lambda1 in each regression ####
 cv_MRF_poisson <- function(data, min_lambda1, max_lambda1, by_lambda1,
-                           lambda2, symmetrise,
+                           symmetrise,
                            n_nodes, n_cores, sample_seed, n_folds,
-                           n_fold_runs, n_covariates){
+                           n_fold_runs, n_covariates, fixed_lambda = TRUE){
 
   #### Specify default parameter values and initiate warnings ####
   if(missing(symmetrise)){
@@ -755,14 +734,6 @@ cv_MRF_poisson <- function(data, min_lambda1, max_lambda1, by_lambda1,
       n_fold_runs = ceiling(n_fold_runs)
     } else {
       stop('Please provide a positive integer for n_fold_runs')
-    }
-  }
-
-  if(missing(lambda2)) {
-    lambda2 <- 0
-  } else {
-    if(lambda2 < 0){
-      stop('Please provide a non-negative numeric value for lambda2')
     }
   }
 
@@ -918,7 +889,7 @@ cv_MRF_poisson <- function(data, min_lambda1, max_lambda1, by_lambda1,
     }
 
     #Export necessary data and variables to each cluster
-    clusterExport(NULL, c('lamda1_seq', 'n_folds', 'lambda2',
+    clusterExport(NULL, c('lamda1_seq', 'n_folds',
                           'symmetrise', 'n_nodes',
                           'data','nas_present', 'n_covariates',
                           'prepped_datas', 'n_fold_runs'),
@@ -964,12 +935,11 @@ cv_MRF_poisson <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run an MRFcov model using the training dataset
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'poisson')
 
         #Use output from the trained model to predict the test_data observations
@@ -1033,12 +1003,11 @@ cv_MRF_poisson <- function(data, min_lambda1, max_lambda1, by_lambda1,
 
         #Run the models
         trained_mrf <- MRFcov(data = training_data, lambda1 = l,
-                              lambda2 = lambda2,
                               symmetrise = symmetrise,
                               n_nodes = n_nodes,
                               n_cores = 1, prep_covariates = FALSE,
                               n_covariates = n_covariates,
-                              cv = FALSE,
+                              fixed_lambda = fixed_lambda,
                               family = 'poisson')
 
         test_preds <- predict_MRF(data = test_data, MRF_mod = trained_mrf,

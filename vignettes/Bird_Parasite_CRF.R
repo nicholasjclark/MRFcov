@@ -76,6 +76,7 @@ data("Bird.parasites")
 ## ----eval = FALSE--------------------------------------------------------
 #  H.zos.pred.prev <- sum(fake.preds$Binary_predictions[, 'Hzosteropis']) / nrow(fake.preds$Binary_predictions)
 #  Plas.pred.prev <- sum(fake.preds$Binary_predictions[, 'Plas']) / nrow(fake.preds$Binary_predictions)
+#  Plas.pred.prev
 
 ## ----eval=FALSE----------------------------------------------------------
 #  cv_MRF_diag(data = Bird.parasites, fixed_lambda = TRUE, min_lambda1 = 0.5, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, family = 'binomial', n_cores = 3)

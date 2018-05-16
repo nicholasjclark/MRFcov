@@ -3,7 +3,7 @@
 Overview
 --------
 
-The `MRFcov` package [![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159) (described by Clark *et al*, in press in *Ecology Statistical Reports*) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
+The `MRFcov` package [![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159) (described by Clark *et al*, published recently in [*Ecology Statistical Reports*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients.
 
 In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:
 
@@ -51,13 +51,15 @@ View(Bird.parasites)
 Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Here we specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate
 
 ``` r
-MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5)
+MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
+#> Warning in MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial"):
+#> lambda1 not provided, using cross-validation to optimise each regression
 ```
 
 Visualise the estimated species interaction coefficients as a heatmap
 
 ``` r
-plotMRF_hm(MRF_mod = MRF_mod)
+plotMRF_hm(MRF_mod)
 ```
 
 ![](README-Readme.fig1-1.png)
@@ -71,85 +73,46 @@ plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.par
 
 ![](README-Readme.fig2-1.png)
 
-### Choosing penalization parameters
-
-Choosing the appropriate `lambda1` value often requires exploration of model predictive performance at different values. The function `cv_MRF_diag` uses cross-validation to examine how well models fitted with training datasets can predict observations that have been with-held from the data (test datasets) at different `lambda1` values. We also have the option of specifying `lambda2`, where values `>0` lead to more effective shrinkage of coefficients (sometimes this is necessary for large datasets with many potential predictors; see documentation in the `penalized` package for more details). Given the large number of models that may be required during cross-validation or bootstrapping (see below), we can use parallel computation by relying on functions in the [parallel](https://www.google.com.au/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0ahUKEwj6iZyPvcnYAhVLvrwKHaJ9AhUQFgg2MAE&url=https%3A%2F%2Fstat.ethz.ch%2FR-manual%2FR-devel%2Flibrary%2Fparallel%2Fdoc%2Fparallel.pdf&usg=AOvVaw2eR83aL93jttPIS-mLWzEL) package. The number of worker clusters to split the job across can be specified using the `n_cores` argument
-
-``` r
-cv_MRF_diag(data = Bird.parasites, min_lambda1 = 0.4, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, n_cores = 3)
-```
-
-<img src="README-Readme.fig3-1.png" style="display: block; margin: auto;" />
-
-    #> TableGrob (4 x 1) "arrange": 4 grobs
-    #>   z     cells    name           grob
-    #> 1 1 (1-1,1-1) arrange gtable[layout]
-    #> 2 2 (2-2,1-1) arrange gtable[layout]
-    #> 3 3 (3-3,1-1) arrange gtable[layout]
-    #> 4 4 (4-4,1-1) arrange gtable[layout]
-
-### Bootstrapping the data and running models across a range of penalization values
-
-Here, `lambda1` values between 0.5 and 1.5 maintain reasonable **Sensitivity** (which represents the proportion of true positives that are correctly predicted). Because we are using rather rare parasite occurrences (prevalence of these parasites is fairly low), it is in our interest to use models that can maintain **Sensitivity**, as long as we are not at risk of overfitting (in this case, our maximum number of predictors is not very high, given that we only have four species and one covariate). Now that we have identified a suitable range of `lambda1` values, we can fit models to bootstrapped subsets of the data within this range to account for uncertainty.
-
-``` r
-booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, n_bootstraps = 50, min_lambda1 = 0.5, max_lambda1 = 1.5, by_lambda1 = 0.1, n_cores = 3)
-```
-
-Now we can visualise confidence intervals of interaction coefficients that were estimated across the full range of models
-
-``` r
-plotMRF_hm(MRF_mod = booted_MRF, plot_booted_coefs = TRUE)
-```
-
-<img src="README-Readme.fig4-1.png" style="display: block; margin: auto;" />
-
 ### Exploring regression coefficients and interpreting results
 
-Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of conditional MRFs, as competing methods (such as Joint Species Distribution Models) do not provide interpretable mechanisms for comparing the relative importances of interactions and fixed covariates. The `bootstrap_MRF` function conveniently returns a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
+Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of conditional MRFs, as competing methods (such as Joint Species Distribution Models) do not provide interpretable mechanisms for comparing the relative importances of interactions and fixed covariates. MRF functions conveniently return a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
 
 ``` r
-booted_MRF$mean_key_coefs$Hzosteropis
-#>                      Variable Rel_importance  Mean_coef
-#> 1                  Hkillangoi     0.68779004 -3.4115957
-#> 7 scale.prop.zos_Microfilaria     0.09965567 -1.2986156
-#> 3                Microfilaria     0.09472557  1.2660861
-#> 4              scale.prop.zos     0.05013569 -0.9210922
-#> 2                        Plas     0.02998505 -0.7123313
-#> 6         scale.prop.zos_Plas     0.02092861  0.5951134
-#> 5   scale.prop.zos_Hkillangoi     0.01677937 -0.5328652
+MRF_mod$key_coefs$Hzosteropis
+#>                      Variable Rel_importance Standardised_coef   Raw_coef
+#> 1                  Hkillangoi     0.67380687        -2.4142353 -2.4142353
+#> 5 scale.prop.zos_Microfilaria     0.12202530        -1.0273935 -1.0273935
+#> 3                Microfilaria     0.09683057         0.9152045  0.9152045
+#> 4              scale.prop.zos     0.09176848        -0.8909609 -0.8909609
+#> 2                        Plas     0.01229154        -0.3260731 -0.3260731
 ```
 
 ``` r
-booted_MRF$mean_key_coefs$Hkillangoi
-#>                     Variable Rel_importance  Mean_coef
-#> 1                Hzosteropis     0.73536185 -3.4115957
-#> 5        scale.prop.zos_Plas     0.12007524  1.3785856
-#> 2               Microfilaria     0.07190137 -1.0667818
-#> 3             scale.prop.zos     0.05234985 -0.9102584
-#> 4 scale.prop.zos_Hzosteropis     0.01793993 -0.5328652
+MRF_mod$key_coefs$Hkillangoi
+#>         Variable Rel_importance Standardised_coef   Raw_coef
+#> 1    Hzosteropis     0.77720735        -2.4142353 -2.4142353
+#> 2   Microfilaria     0.13257995        -0.9971261 -0.9971261
+#> 3 scale.prop.zos     0.09019079        -0.8224173 -0.8224173
 ```
 
 ``` r
-booted_MRF$mean_key_coefs$Plas
-#>                      Variable Rel_importance  Mean_coef
-#> 2                Microfilaria     0.40866599  1.7963063
-#> 5   scale.prop.zos_Hkillangoi     0.24069952  1.3785856
-#> 3              scale.prop.zos     0.18000363 -1.1921661
-#> 1                 Hzosteropis     0.06426460 -0.7123313
-#> 6 scale.prop.zos_Microfilaria     0.05676395  0.6694721
-#> 4  scale.prop.zos_Hzosteropis     0.04485463  0.5951134
+MRF_mod$key_coefs$Plas
+#>                      Variable Rel_importance Standardised_coef   Raw_coef
+#> 2                Microfilaria      0.6466905         1.5278142  1.5278142
+#> 3              scale.prop.zos      0.2689674        -0.9853082 -0.9853082
+#> 4 scale.prop.zos_Microfilaria      0.0469859         0.4118187  0.4118187
+#> 1                 Hzosteropis      0.0294568        -0.3260731 -0.3260731
 ```
 
 ``` r
-booted_MRF$mean_key_coefs$Microfilaria
-#>                     Variable Rel_importance  Mean_coef
-#> 3                       Plas     0.33870613  1.7963063
-#> 5 scale.prop.zos_Hzosteropis     0.17702048 -1.2986156
-#> 1                Hzosteropis     0.16826304  1.2660861
-#> 4             scale.prop.zos     0.14950081 -1.1934126
-#> 2                 Hkillangoi     0.11945751 -1.0667818
-#> 6        scale.prop.zos_Plas     0.04704649  0.6694721
+MRF_mod$key_coefs$Microfilaria
+#>                     Variable Rel_importance Standardised_coef   Raw_coef
+#> 3                       Plas     0.35143099         1.5278142  1.5278142
+#> 4             scale.prop.zos     0.18831959        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.15891783        -1.0273935 -1.0273935
+#> 2                 Hkillangoi     0.14969219        -0.9971261 -0.9971261
+#> 1                Hzosteropis     0.12610586         0.9152045  0.9152045
+#> 6        scale.prop.zos_Plas     0.02553354         0.4118187  0.4118187
 ```
 
 References
@@ -157,7 +120,7 @@ References
 
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.
 
-Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* (accepted 02/03/18)
+Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* DOI: <https://doi.org/10.1002/ecy.2221>
 
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
 

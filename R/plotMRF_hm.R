@@ -9,9 +9,6 @@
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param main An optional character title for the plot
-#'@param plot_booted_coefs Logical. If \code{TRUE}, interaction coefficients,
-#'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-#'will be plotted. Default is \code{FALSE}
 #'@return A \code{ggplot2} object
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}

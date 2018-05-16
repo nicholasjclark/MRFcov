@@ -4,7 +4,7 @@
 \alias{MRFcov}
 \title{Markov Random Fields with covariates}
 \usage{
-MRFcov(data, lambda1, lambda2, symmetrise, prep_covariates, n_nodes, n_cores,
+MRFcov(data, lambda1, symmetrise, prep_covariates, n_nodes, n_cores,
   n_covariates, family, fixed_lambda, bootstrap = FALSE)
 }
 \arguments{
@@ -15,11 +15,6 @@ left-most variables are variables that are to be represented by nodes in the gra
 l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
 this value is ignored and penalization parameters are optimized automatially.
 See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
-
-\item{lambda2}{Positive numeric. Value for l2−regularization, where larger values lead
-to stronger shrinking of coefficient magnitudes. Default is \code{0}, but larger values
-may be necessary for large or particularly sparse datasets. Takes values between
-\code{0} and \code{5}.}
 
 \item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
 (which are taken from separate regressions). Options are \code{min} (take the coefficient with the
@@ -100,8 +95,8 @@ models.
 \cr
 Note that since the number of parameters quickly increases with increasing
 numbers of species and covariates, LASSO penalization is used to regularize
-regressions based on values of regularization parameters \code{lambda1} and
-\code{lambda2}. This can be done either by minimising the cross-validated
+regressions based on values of the regularization parameter \code{lambda1}.
+This can be done either by minimising the cross-validated
 mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
 running all regressions at a single \code{lambda1} value. The latter approach may be
 useful for optimising all nodes as part of a joint graphical model, while the former
