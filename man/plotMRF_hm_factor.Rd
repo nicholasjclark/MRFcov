@@ -5,7 +5,7 @@
 \title{Plot heatmaps of varying interaction coefficients across factor levels}
 \usage{
 plotMRF_hm_factor(MRF_mod, node_names, covariate, base_contrast_name, main,
-  n_plot_columns, plot_booted_coefs, threshold)
+  n_plot_columns, threshold)
 }
 \arguments{
 \item{MRF_mod}{A fitted \code{MRFcov} object}
@@ -22,10 +22,6 @@ level}
 
 \item{n_plot_columns}{An optional integer specifying the number of columns to use
 for plot facetting}
-
-\item{plot_booted_coefs}{Logical. If \strong{TRUE}, mean interaction coefficients,
-taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \strong{FALSE}}
 
 \item{threshold}{Numeric. The coefficient threshold used for conditional interaction plotting.
 If regression coefficients for both nodes are below this threshold for a specific factor level,
@@ -52,7 +48,7 @@ must be provided
 \dontrun{
 data("Dipping.survey")
 CRFmod <- MRFcov(data = Dipping.survey, n_nodes = 16,
-                lambda1 = 4, lambda2 = 1)
+                family = 'binomial')
 plotMRF_hm_factor(MRF_mod = CRFmod, covariate = 'dipping.round',
                  base_contrast_name = '2')}
 

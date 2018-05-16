@@ -11,8 +11,8 @@
 #'@param rosalia_mod A fitted \code{\link[rosalia]{rosalia}} model
 #'@return A \code{list} of two objects:
 #'\itemize{
-#'    \item \code{Positive_predictive_value}: The positive predictive value
-#'    \item \code{Negative_predictive_value}: The negative predictive value
+#'    \item \code{Positive_interactions}: The positive predictive value
+#'    \item \code{Negative_interactions}: The negative predictive value
 #'    }
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link[rosalia]{rosalia}}
@@ -46,6 +46,6 @@ pos.pred <- sum(true.pos, na.rm = TRUE)/
 
 neg.pred <- sum(true.neg, na.rm = TRUE)/
                 (sum(true.neg, na.rm = TRUE) + sum(missed.neg, na.rm = TRUE))
-return(list(Positive_predictive_value = pos.pred,
-            Negative_predictive_value = neg.pred))
+return(list(Positive_interactions = pos.pred,
+            Negative_interactions = neg.pred))
 }

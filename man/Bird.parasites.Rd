@@ -25,4 +25,9 @@ in New Caledonian birds. The first four variables represent the parasite occurre
 and the last variable is a scaled continuous covariate representing host relative
 abundance.
 }
+\references{
+Clark, N.J., Wells, K., Dimitrov, D. & Clegg, S.M. (2016)
+Co-infections and environmental conditions drive the distributions of blood
+parasites in wild birds. Journal of Animal Ecology, 85, 1461-1470.
+}
 \keyword{datasets}

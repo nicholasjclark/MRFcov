@@ -4,7 +4,7 @@
 \alias{plotMRF_hm}
 \title{Plot MRF interaction parameters as a heatmap}
 \usage{
-plotMRF_hm(MRF_mod, node_names, main, plot_booted_coefs)
+plotMRF_hm(MRF_mod, node_names, main)
 }
 \arguments{
 \item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
@@ -14,17 +14,13 @@ object}
 is to use rownames from the \code{MRFcov$graph} slot}
 
 \item{main}{An optional character title for the plot}
-
-\item{plot_booted_coefs}{Logical. If \code{TRUE}, interaction coefficients,
-taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \code{FALSE}}
 }
 \value{
 A \code{ggplot2} object
 }
 \description{
-This function uses outputs from fitted \code{\link{MRFcov}} models to
-plot a heatmap of node interaction coefficients.
+This function uses outputs from fitted \code{\link{MRFcov}} and
+\code{\link{bootstrap_MRF}} models to plot a heatmap of node interaction coefficients.
 }
 \details{
 Interaction parameters from \code{MRF_mod} are plotted as a heatmap, where
@@ -33,8 +29,7 @@ red colours indicate positive interactions and blue indicate negative interactio
 \examples{
 \dontrun{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites,
-                n_nodes = 4, lambda1 = 0.5)
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4)
 plotMRF_hm(MRF_mod = CRFmod)}
 
 }

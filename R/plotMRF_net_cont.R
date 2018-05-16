@@ -11,9 +11,6 @@
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param covariate Character representing the continuous covariate name
 #'@param main An optional character title for the plot
-#'@param plot_booted_coefs Logical. If \strong{TRUE}, mean interaction coefficients,
-#'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-#'will be plotted. Default is \strong{FALSE}
 #'@param cutoff Positive numeric. Interaction coefficients whose absolute values are
 #'below this threshold will not be plotted. This is useful when many weak interactions
 #'tend to create cluttered and uninterpetable network plots. Default is \code{0}
@@ -39,10 +36,12 @@
 #'@export
 #'
 plotMRF_net_cont = function(data, MRF_mod, node_names, covariate,
-                           main, plot_booted_coefs, cutoff, plot){
+                           main, cutoff, plot){
 
-  if(missing(plot_booted_coefs)){
+  if(MRF_mod$mod_type == 'MRFcov'){
     plot_booted_coefs <- FALSE
+  } else {
+    plot_booted_coefs <- TRUE
   }
 
   if(missing(plot)){

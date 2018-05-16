@@ -4,8 +4,7 @@
 \alias{plotMRF_hm_cont}
 \title{Plot heatmaps of varying interaction coefficients for a continuous covariate}
 \usage{
-plotMRF_hm_cont(data, MRF_mod, node_names, covariate, main, n_plot_columns,
-  plot_booted_coefs)
+plotMRF_hm_cont(data, MRF_mod, node_names, covariate, main, n_plot_columns)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the
@@ -22,10 +21,6 @@ is to use rownames from the \code{MRFcov$graph} slot}
 
 \item{n_plot_columns}{An optional integer specifying the number of columns to use
 for plot facetting}
-
-\item{plot_booted_coefs}{Logical. If \strong{TRUE}, mean interaction coefficients,
-taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \strong{FALSE}}
 }
 \value{
 A \code{ggplot2} object
@@ -40,14 +35,6 @@ Observed values of the specified \code{covariate} are extracted by
 name matching of \code{colnames(data)}. Interaction parameters from \code{MRF_mod} are
 are then predicted at \code{quantile(probs = c(0, 0.25, 0.75, 1))} of observed values, where
 red colours indicate positive interactions and blue indicate negative interactions
-}
-\examples{
-\dontrun{
-data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites,
-                n_nodes = 4, lambda1 = 0.5)
-plotMRF_hm_cont(data = Bird.parasites, MRF_mod = CRFmod,
-               covariate = 'scale.prop.zos')}
 }
 \seealso{
 \code{\link{MRFcov}}, \code{bootstrap_MRF}

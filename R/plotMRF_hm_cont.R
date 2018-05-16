@@ -13,9 +13,6 @@
 #'@param main An optional character title for the plot
 #'@param n_plot_columns An optional integer specifying the number of columns to use
 #'for plot facetting
-#'@param plot_booted_coefs Logical. If \strong{TRUE}, mean interaction coefficients,
-#'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-#'will be plotted. Default is \strong{FALSE}
 #'@return A \code{ggplot2} object
 #'@seealso \code{\link{MRFcov}}, \code{bootstrap_MRF}
 #'
@@ -27,21 +24,25 @@
 #'@examples
 #'\dontrun{
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites,
-#'                 n_nodes = 4, lambda1 = 0.5)
-#'plotMRF_hm_cont(data = Bird.parasites, MRF_mod = CRFmod,
-#'                covariate = 'scale.prop.zos')}
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial)
+#'plotMRF_hm_cont(data = Bird.parasites, MRF_mod = CRFmod, covariate = 'scale.prop.zos')}
 #'@export
 #'
 plotMRF_hm_cont = function(data, MRF_mod, node_names, covariate,
-                           main, n_plot_columns, plot_booted_coefs){
+                           main, n_plot_columns){
 
   if(missing(n_plot_columns)){
     n_plot_columns <- 2
   }
 
-  if(missing(plot_booted_coefs)){
+  if(MRF_mod$mod_type == 'MRFcov'){
     plot_booted_coefs <- FALSE
+  } else {
+    plot_booted_coefs <- TRUE
+  }
+
+  if(!plot_booted_coefs){
+    n_nodes <- ncol(MRF_mod$graph)
   }
 
   #### Function to get the upper triangle of a symmetric matrix ####

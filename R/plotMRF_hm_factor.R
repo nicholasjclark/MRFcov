@@ -13,9 +13,6 @@
 #'@param main An optional character title for the plot
 #'@param n_plot_columns An optional integer specifying the number of columns to use
 #'for plot facetting
-#'@param plot_booted_coefs Logical. If \strong{TRUE}, mean interaction coefficients,
-#'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-#'will be plotted. Default is \strong{FALSE}
 #'@param threshold Numeric. The coefficient threshold used for conditional interaction plotting.
 #'If regression coefficients for both nodes are below this threshold for a specific factor level,
 #'both nodes are considered to be predicted as absent from that level and no interactions will be plotted.
@@ -34,7 +31,7 @@
 #'\dontrun{
 #'data("Dipping.survey")
 #'CRFmod <- MRFcov(data = Dipping.survey, n_nodes = 16,
-#'                 lambda1 = 4, lambda2 = 1)
+#'                 family = 'binomial')
 #'plotMRF_hm_factor(MRF_mod = CRFmod, covariate = 'dipping.round',
 #'                  base_contrast_name = '2')}
 #'
@@ -42,11 +39,13 @@
 #'
 plotMRF_hm_factor = function(MRF_mod, node_names, covariate,
                              base_contrast_name,
-                             main, n_plot_columns, plot_booted_coefs,
+                             main, n_plot_columns,
                              threshold){
 
-  if(missing(plot_booted_coefs)){
+  if(MRF_mod$mod_type == 'MRFcov'){
     plot_booted_coefs <- FALSE
+  } else {
+    plot_booted_coefs <- TRUE
   }
 
   if(missing(threshold)){

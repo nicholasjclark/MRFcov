@@ -4,54 +4,47 @@
 \alias{predict_MRF}
 \title{Predict training observations from fitted MRFcov models}
 \usage{
-predict_MRF(data, MRF_mod, n_nodes)
+predict_MRF(data, MRF_mod, prep_covariates = TRUE)
 }
 \arguments{
 \item{data}{Dataframe. The input data to be predicted, where the \code{n_nodes}
-left-most variables are binary occurrences to be represented by nodes in the graph}
+left-most variables are binary occurrences to be represented by nodes in the graph.
+Colnames from this sample dataset must exactly match the colnames in the dataset that
+was used to fit the \code{MRF_mod}}
 
 \item{MRF_mod}{A fitted \code{\link{MRFcov}} model object}
 
-\item{n_nodes}{Positive integer. The index of the last column in data
-which is represented by a node in the final graph. Columns with index
-greater than \code{n_nodes} are taken as covariates. Default is the number of
-columns in data, corresponding to no additional covariates}
+\item{prep_covariates}{Logical flag stating whether to prep the dataset
+by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)}
 }
 \value{
-A \code{list} of three objects:
-\itemize{
-   \item \code{binary_predictions}: \code{data.frame} containing the binary predicted
-   values for node variables observations in data
-   \item \code{linear_predictions}: \code{data.frame} containing the linear predicted values
-   for node variables in data
-   \item \code{predicted_probabilities}: \code{data.frame} containing the predicted occurrence
-   probabilities for node variables in data (calculated as \code{exp(linear_predictions)})
-   }
+A \code{matrix} containing predictions for each observation in \code{data}. If
+\code{family = "binomial"}, a second element containing binary
+predictions for nodes is returned.
 }
 \description{
 This function calculates linear predictors for node observations
 using equations from a \code{\link{MRFcov}}.
 }
 \details{
-Binary occurrences for nodes in \code{data} are predicted using linear predictions
-from \code{MRF_mod}. This function is primarily used by
-other functions in the package (namely \code{\link{cv_MRF}} and
-\code{\link{cv_MRF_diag}})
+Observations for nodes in \code{data} are predicted using linear predictions
+from \code{MRF_mod}. If \code{family = "binomial"}, a second element containing binary
+predictions for nodes is returned.
 }
 \examples{
 \dontrun{
 data("Bird.parasites")
 # Fit a model to a subset of the data (training set)
-CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, lambda1 = 0.5)
+CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")
 
 # If covariates are included, prep the dataset for gathering predictions
 prepped_pred <- prep_MRF_covariates(Bird.parasites[301:nrow(Bird.parasites), ], n_nodes = 4)
 
 # Predict occurrences for the remaining subset (test set)
-predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod, n_nodes = 4)
+predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod)
 
-# Visualise predicted occurrence probabilities for nodes in the test set
-predictions$predicted_probabilities}
+# Visualise predicted occurrences for nodes in the test set
+predictions$Binary_predictions}
 
 }
 \seealso{

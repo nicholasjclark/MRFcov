@@ -1,7 +1,7 @@
 #'Plot MRF interaction parameters as a heatmap
 #'
-#'This function uses outputs from fitted \code{\link{MRFcov}} models to
-#'plot a heatmap of node interaction coefficients.
+#'This function uses outputs from fitted \code{\link{MRFcov}} and
+#'\code{\link{bootstrap_MRF}} models to plot a heatmap of node interaction coefficients.
 #'
 #'
 #'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
@@ -9,9 +9,6 @@
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param main An optional character title for the plot
-#'@param plot_booted_coefs Logical. If \code{TRUE}, interaction coefficients,
-#'taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-#'will be plotted. Default is \code{FALSE}
 #'@return A \code{ggplot2} object
 #'
 #'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
@@ -22,13 +19,12 @@
 #'@examples
 #'\dontrun{
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites,
-#'                 n_nodes = 4, lambda1 = 0.5)
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4)
 #'plotMRF_hm(MRF_mod = CRFmod)}
 #'
 #'@export
 #'
-plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
+plotMRF_hm = function(MRF_mod, node_names, main){
 
   #### Function to get the upper triangle of a symmetric matrix ####
   get_upper_tri <- function(cormat){
@@ -36,13 +32,16 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_booted_coefs){
     return(cormat)
   }
 
-  if(missing(plot_booted_coefs)){
-    plot_booted_coefs <- FALSE
-  }
-
   #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
   if('beta' %in% names(MRF_mod)){
     MRF_mod$graph <- MRF_mod$beta
+    MRF_mod$mod_type <- 'MRFcov'
+  }
+
+  if(MRF_mod$mod_type == 'MRFcov'){
+    plot_booted_coefs <- FALSE
+  } else {
+    plot_booted_coefs <- TRUE
   }
 
   if(!plot_booted_coefs){

@@ -51,5 +51,7 @@
 #'   \item{dipping_round6}{model matrix variable for the factor \emph{dipping_round}, round 6. The
 #'   base contrast level for this variable is round 2}
 #' }
+#' @references Golding, N., Nunn, M.A. & Purse, B.V. (2015) Identifying biotic interactions
+#' which drive the spatial distribution of a mosquito community. Parasites & Vectors, 8, 367
 #' @source \url{https://doi.org/10.6084/m9.figshare.1420528.v1}
 "Dipping.survey"

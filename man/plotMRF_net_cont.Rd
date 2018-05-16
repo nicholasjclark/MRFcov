@@ -4,8 +4,7 @@
 \alias{plotMRF_net_cont}
 \title{Plot networks of varying interaction coefficients for a continuous covariate}
 \usage{
-plotMRF_net_cont(data, MRF_mod, node_names, covariate, main, plot_booted_coefs,
-  cutoff, plot)
+plotMRF_net_cont(data, MRF_mod, node_names, covariate, main, cutoff, plot)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the
@@ -19,10 +18,6 @@ is to use rownames from the \code{MRFcov$graph} slot}
 \item{covariate}{Character representing the continuous covariate name}
 
 \item{main}{An optional character title for the plot}
-
-\item{plot_booted_coefs}{Logical. If \strong{TRUE}, mean interaction coefficients,
-taken as output from a \code{bootstrap_MRF} object supplied as \code{MRF_mod},
-will be plotted. Default is \strong{FALSE}}
 
 \item{cutoff}{Positive numeric. Interaction coefficients whose absolute values are
 below this threshold will not be plotted. This is useful when many weak interactions

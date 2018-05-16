@@ -62,4 +62,8 @@ Golding, N., Nunn, M.A. & Purse, B.V. (2015).
 Identifying biotic interactions which drive the spatial distribution of a mosquito community.
 Parasites & Vectors, 8, 367.
 }
+\references{
+Golding, N., Nunn, M.A. & Purse, B.V. (2015) Identifying biotic interactions
+which drive the spatial distribution of a mosquito community. Parasites & Vectors, 8, 367
+}
 \keyword{datasets}
