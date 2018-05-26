@@ -4,9 +4,8 @@
 \alias{bootstrap_MRF}
 \title{Bootstrap observations to estimate MRF parameter coefficients}
 \usage{
-bootstrap_MRF(data, n_bootstraps, sample_seed, min_lambda1, max_lambda1,
-  by_lambda1, symmetrise, n_nodes, n_cores, n_covariates, fixed_lambda, family,
-  n_its)
+bootstrap_MRF(data, n_bootstraps, n_its, sample_seed, min_lambda1, max_lambda1,
+  by_lambda1, symmetrise, n_nodes, n_cores, n_covariates, family, fixed_lambda)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -19,6 +18,15 @@ all covariates are scaled and centred (i.e. by using the function
 \item{n_bootstraps}{Positive integer. Represents the total number of bootstrap samples
 to test in each of \code{n_its} or \code{seq(min_lambda1, max_lambda1, by_lambda1)} iterations.
 Default is \code{10}.}
+
+\item{n_its}{Positive integer. The number of iterations to perform \code{n_bootstraps} replicates
+across. The use of two parameters provides more control for optimising parallel computations. It is
+generally recommended to use a higher number for \code{n_its} relative to \code{n_bootstraps}, as
+the job will be split across cores based on the \code{n_its} parameter.
+If \code{fixed_lambda = TRUE}, this value is ignored and \code{n_its} is taken from the length of
+\code{lambda1_seq = seq(min_lambda1, max_lambda1, by_lambda1)}. Default when \code{fixed_lambda = FALSE}
+is \code{10}. This coincides with the default \code{n_bootstraps} of \code{10} to produce
+\code{100} bootstrap replicates in total.}
 
 \item{sample_seed}{Numeric. Used as the seed value for generating bootstrap replicates, allowing
 users to generate replicated datasets on different systems. Default is a random seed}
@@ -49,24 +57,15 @@ columns in \code{data}, corresponding to no additional covariates}
 \item{n_covariates}{Positive integer. The number of covariates in \code{data},
 before cross-multiplication. Default is \code{ncol(data) - n_nodes}}
 
+\item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
+
 \item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 that minimises mean cross-validated error. If \code{TRUE}, each regression is run
 at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
 regression). Default is \code{FALSE}, meaning that arguments to \code{min_lambda1}, \code{max_lambda1}
 and \code{by_lambda1} are ignored}
-
-\item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
-non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
-
-\item{n_its}{Positive integer. The number of iterations to perform \code{n_bootstraps} replicates
-across. The use of two parameters provides more control for optimising parallel computations. It is
-generally recommended to use a higher number for \code{n_its} relative to \code{n_bootstraps}, as
-the job will be split across cores based on the \code{n_its} parameter.
-If \code{fixed_lambda = TRUE}, this value is ignored and \code{n_its} is taken from the length of
-\code{lambda1_seq = seq(min_lambda1, max_lambda1, by_lambda1)}. Default when \code{fixed_lambda = FALSE}
-is \code{100}. This coincides with the default \code{n_bootstraps} of \code{10} to produce
-\code{1000} bootstrap replicates in total.}
 }
 \value{
 A \code{list} containing:
@@ -102,7 +101,9 @@ A \code{list} containing:
 \description{
 This function runs \code{\link{MRFcov}} models multiple times using either a user-specified
 range of l1 regularization values or cross-validation. To capture uncertainty
-in paramter esimates, the dataset is bootstrapped a user-specified number of times in each iteration.
+in paramter esimates, the dataset is shuffled and missing values are imputed
+in each bootstrap iteration. Two parameters control the number of bootstrap iterations
+to perform in order to facilitate optimal parallel computing.
 }
 \details{
 \code{MRFcov} models are either run across the specified sequence of
@@ -119,8 +120,7 @@ data("Bird.parasites")
 
 # Perform 100 bootstrap replicates in total
 bootedCRF <- bootstrap_MRF(data = Bird.parasites,
-                          n_nodes = 4, n_bootstraps = 5,
-                          n_its = 20,
+                          n_nodes = 4,
                           family = 'binomial',
                           n_cores = 3)}
 }

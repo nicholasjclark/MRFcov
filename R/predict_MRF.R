@@ -14,7 +14,7 @@
 #'\code{family = "binomial"}, a second element containing binary
 #'predictions for nodes is returned.
 #'
-#'@seealso \code{\link{MRFcov}}, \code{\link{cv_MRF}}
+#'@seealso \code{\link{MRFcov}}, \code{\link{cv_MRF_diag}}
 #'
 #'@details Observations for nodes in \code{data} are predicted using linear predictions
 #'from \code{MRF_mod}. If \code{family = "binomial"}, a second element containing binary

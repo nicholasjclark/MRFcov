@@ -12,23 +12,27 @@ knitr::opts_chunk$set(
 )
 ```
 
-## Overview
+*MRFcov*: Markov Random Fields with additional covariates in R
+================
+[![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159)[![GitHub version](https://badge.fury.io/gh/nicholasjclark%2FMRFcov.svg)](https://github.com/nicholasjclark/MRFcov)  
+  
+[Releases](https://github.com/nicholasjclark/MRFcov/releases)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[Reporting Issues](https://github.com/nicholasjclark/MRFcov/issues)&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;[Blogpost](http://nicholasjclark.weebly.com/biotic-interactions.html)
+<img align="right" src=http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/nclark-network-changes_orig.gif alt="animated gif" width="360" height="235"/>
 
-The `MRFcov` package [![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159) (described by Clark *et al*, published recently in [*Ecology Statistical Reports*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)) provides functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. 
+
+`MRFcov` (described by Clark *et al*, published in [*Ecology Statistical Reports*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)) provides `R` functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. 
   
-In principle, `MRFcov` models that use species' occurrences as outcome variables are similar to joint species distribution models in that variance in occurrences can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:  
+## Why Use Conditional Random Fields?
+In principle, `MRFcov` models that use species' occurrences or abundances as outcome variables are similar to [Joint Species Distribution models](https://methodsblog.wordpress.com/2015/12/22/warton_ovaskainen/) in that variance can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:  
   
-(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving occurrence probabilities  
+(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving abundanecs or occurrence probabilities  
   
 (2) Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"  
   
 (3) Estimate how interactions are predicted to change across environmental gradients
   
-At present, only binary response variables can be included (1s and 0s, which are commonly used in multispecies occurrence data), though models accomodating different data structures may be added in future.  
   
 MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) and [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) packages.  
-  
-*This project is licensed under the terms of the GNU General Public License (GNU GPLv3)*
 
 ## Installation
 
@@ -39,7 +43,7 @@ You can install the `MRFcov` package into `R` directly from `GitHub` using:
 devtools::install_github("nicholasjclark/MRFcov")
 ```
 
-## Usage
+## Brief Overview
 
 We can explore the model's primary functions using a test dataset that is available with the package. Load the `Bird.parasites` dataset, which contains binary occurrences of four avian blood parasites in New Caledonian *Zosterops* species ([available in its original form at Dryad](http://dx.doi.org/10.5061/dryad.pp6k4); Clark *et al* 2016). A single continuous covariate is also included (`scale.prop.zos`), which reflects the relative abundance of *Zosterops* species among different sample sites
 ```{r, message=FALSE, warning=FALSE}
@@ -47,24 +51,29 @@ library(MRFcov)
 data("Bird.parasites")
 ```
 
-Visualise the dataset to see how analysis data needs to be structured. In short, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Any covariates can be included as the right-most variables. Note, these covariates should all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have `mean = 0` and `sd = 1`
+Visualise the dataset to see how analysis data needs to be structured. In short, when estimating co-occurrence probabilities, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Any covariates can be included as the right-most variables. Note, these covariates should ideally be on a similar scale, using the `scale` function for continuous covariates (or similar) so that covariates generally have `mean = 0` and `sd = 1`
 ```{r eval=FALSE}
 help("Bird.parasites")
 View(Bird.parasites)
 ```
 
+You can read more about specific requirements of data formats (for example, one-hot encoding of categorical covariates) in the supplied vignette
+```{r eval = FALSE}
+vignette("CRF_data_prep")
+```
+
 ### Running MRFs and visualising interaction coefficients
-Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Here we specify a weak penalization parameter (`lambda1`) for the LASSO variable selection as we only have a single covariate
+Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Here we allow the species-specific regressions to be individually optimised through cross-validated LASSO regressions (the default option when no `lambda1` regularization value is specified). This will produce a warning for reassurance
 ```{r}
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 ```
 
-Visualise the estimated species interaction coefficients as a heatmap
+Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients
 ```{r Readme.fig1, fig.height=3.5, fig.width=4, message=FALSE}
 plotMRF_hm(MRF_mod)
 ```
 
-Visualise how species interactions are predicted to change across covariate magnitudes
+For more in-depth visualisation, we can plot how species interactions are predicted to change across covariate magnitudes
 ```{r Readme.fig2, fig.height=4.75, fig.width=5, message=FALSE}
 plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
                 main = 'Estimated interactions across host relative densities')
@@ -88,12 +97,20 @@ MRF_mod$key_coefs$Plas
 MRF_mod$key_coefs$Microfilaria
 ```
 
+To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method
+```{r eval=FALSE}
+vignette("Bird_Parasite_CRF")
+```
+
+Clark *et al* 2018 [*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)&nbsp;|&nbsp;[PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf)
+
 ## References
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.   
   
-Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* DOI: https://doi.org/10.1002/ecy.2221    
+Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* DOI: https://doi.org/10.1002/ecy.2221  
   
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.  
   
-Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.
-
+Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.  
+  
+*This project is licensed under the terms of the GNU General Public License (GNU GPLv3)*

@@ -13,7 +13,8 @@ left-most variables are variables that are to be represented by nodes in the gra
 
 \item{lambda1}{Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
 l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
-this value is ignored and penalization parameters are optimized automatially.
+this value is ignored and penalization parameters are optimized automatially, using
+coordinated gradient descent to minimize cross-validated error.
 See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
 
 \item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
@@ -35,7 +36,8 @@ columns in \code{data}, corresponding to no additional covariates}
 \item{n_cores}{Positive integer. The number of cores to spread the job across using
 \code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)}
 
-\item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication}
+\item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication.
+Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
@@ -83,7 +85,7 @@ are also estimated for the effect of the covariate on \code{j} and the
 effects of the covariate on interactions between \code{j} and all other species
 (\code{/j}). Note that coefficients must be estimated on the same scale in order
 for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
-variables will be standardised using the square root mean transformation
+variables will be therefore standardised using the square root mean transformation
 \code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
 will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
 will be returned so that coefficients can be unscaled before interpretation (this unscaling is
