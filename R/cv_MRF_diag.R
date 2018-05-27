@@ -43,9 +43,9 @@
 #'for each individual node. The default value, \code{FALSE}, allows node-specific regressions
 #'to be optimized using the cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
 #'find the \code{lambda1} value that minimises mean cross-validated error
-#'@param cached_model Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
+#'@param cached_model Used by function \code{\link{cv_MRF_diag_rep}} to store an optimised model and prevent
 #'unneccessary replication of node-optimised model fitting
-#'@param cached_predictions Used by function \code{cv_MRF_diag_rep} to store predictions from
+#'@param cached_predictions Used by function \code{\link{cv_MRF_diag_rep}} to store predictions from
 #'optimised models and prevent unneccessary replication
 #'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
 #'either a plot of  relationships between l1−regularization values and predictive metrics

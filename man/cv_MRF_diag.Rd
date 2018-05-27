@@ -67,10 +67,10 @@ for each individual node. The default value, \code{FALSE}, allows node-specific 
 to be optimized using the cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to
 find the \code{lambda1} value that minimises mean cross-validated error}
 
-\item{cached_model}{Used by function \code{cv_MRF_diag_rep} to store an optimised model and prevent
+\item{cached_model}{Used by function \code{\link{cv_MRF_diag_rep}} to store an optimised model and prevent
 unneccessary replication of node-optimised model fitting}
 
-\item{cached_predictions}{Used by function \code{cv_MRF_diag_rep} to store predictions from
+\item{cached_predictions}{Used by function \code{\link{cv_MRF_diag_rep}} to store predictions from
 optimised models and prevent unneccessary replication}
 }
 \value{
@@ -119,7 +119,7 @@ data("Bird.parasites")
 cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
            n_cores = 3, family = 'binomial')
 
-# Generate boxplots comparing the CRF to a 'null model' (no covariates)
+# Generate boxplots comparing the CRF to an MRF model (no covariates)
 cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
            n_cores = 3, family = 'binomial',
            compare_null = TRUE)

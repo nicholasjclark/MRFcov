@@ -123,6 +123,14 @@ MRFcov <- function(data, lambda1, symmetrise,
     stop('Please select one of the three family options:
          "gaussian", "poisson", "binomial"')
 
+  if(any(is.na(data))){
+    stop('NAs detected. Consider removing, replacing or using the bootstrap_mrf function to impute NAs')
+  }
+
+  if(any(!is.finite(as.matrix(data)))){
+    stop('No infinite values permitted')
+  }
+
   if(missing(symmetrise)){
     symmetrise <- 'mean'
   }
@@ -131,20 +139,24 @@ MRFcov <- function(data, lambda1, symmetrise,
     stop('Please select one of the three options for symmetrising coefficients:
          "min", "max", "mean"')
 
-  if(missing(lambda1)) {
-    warning('lambda1 not provided, using cross-validation to optimise each regression')
-    fixed_lambda <- FALSE
-    lambda1 <- 0
-  } else {
-    if(lambda1 < 0){
-      stop('Please provide a non-negative numeric value for lambda1')
-    }
-  }
-
   if(missing(fixed_lambda)){
     warning('fixed_lambda not provided. Cross-validated optimisation will commence by default,
             ignoring lambda1')
     fixed_lambda <- FALSE
+  }
+
+  if(!fixed_lambda){
+    lambda1 <- 1
+  }
+
+  if(missing(lambda1)) {
+    warning('lambda1 not provided, using cross-validation to optimise each regression')
+    fixed_lambda <- FALSE
+    lambda1 <- 1
+  } else {
+    if(lambda1 < 0){
+      stop('Please provide a non-negative numeric value for lambda1')
+    }
   }
 
   if(missing(n_cores)) {
@@ -175,12 +187,8 @@ MRFcov <- function(data, lambda1, symmetrise,
     }
   }
 
-  if(any(is.na(data))){
-    stop('NAs detected. Consider removing, replacing or using the bootstrap_mrf function to impute NAs')
-  }
-
-  if(any(!is.finite(as.matrix(data)))){
-    stop('No infinite values permitted')
+  if(n_nodes < 2){
+    stop('Cannot generate a graphical model with less than 2 nodes')
   }
 
   if(missing(prep_covariates) & n_nodes < ncol(data)){
