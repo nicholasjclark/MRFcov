@@ -483,7 +483,8 @@ MRFcov <- function(data, lambda1, symmetrise,
     covariate_matrices <- lapply(seq_len(n_covariates), function(x){
       cov_matrix <- matrix(0, n_nodes, n_nodes)
       for(i in seq_len(n_nodes)){
-        cov_names_match <- grepl(paste(cov_names[x], '_', sep = ''), names(cov_coefs[[i]]))
+        cov_names_match <- grepl(paste('^', cov_names[x], '_', sep = ''),
+                                 names(cov_coefs[[i]]))
         cov_matrix[i,-i] <- cov_coefs[[i]][cov_names_match]
         cov_matrix[i,i] <- cov_coefs[[i]][x]
         cov_matrix[is.na(cov_matrix)] <- 0
