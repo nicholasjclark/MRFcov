@@ -4,7 +4,7 @@
 \alias{plotMRF_hm}
 \title{Plot MRF interaction parameters as a heatmap}
 \usage{
-plotMRF_hm(MRF_mod, node_names, main)
+plotMRF_hm(MRF_mod, node_names, main, plot_observed_vals, data)
 }
 \arguments{
 \item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
@@ -14,6 +14,16 @@ object}
 is to use rownames from the \code{MRFcov$graph} slot}
 
 \item{main}{An optional character title for the plot}
+
+\item{plot_observed_vals}{Logical. If \code{TRUE} and the family of the fitted \code{MRFcov}
+model is \code{'binomial'} (or if the model is a \code{rosalia} model),
+then raw observed occurrence and co-occurrence values will be extracted from \code{data} and overlaid on
+the resulting heatmap. Note, this option is not available for \code{bootstrap_MRF} models}
+
+\item{data}{Optional \code{dataframe} containing the input data where the left-most columns represent
+binary occurrences of species that are represented by nodes in the graph. This call is only necessary
+if users wish to overlay raw observed occurrence and co-occurrence values on the
+heatmap of node interaction coefficients (only avaiable for \code{family = 'binomial'} models)}
 }
 \value{
 A \code{ggplot2} object
@@ -24,13 +34,18 @@ This function uses outputs from fitted \code{\link{MRFcov}} and
 }
 \details{
 Interaction parameters from \code{MRF_mod} are plotted as a heatmap, where
-red colours indicate positive interactions and blue indicate negative interactions
+red colours indicate positive interactions and blue indicate negative interactions. If
+\code{plot_observed_vals == TRUE}, raw observed values of single occurrences (on the diagonal)
+and co-occurrences for each species in \code{data} are overlaid on the plot
+(only avaiable for \code{family = 'binomial'} models). Note, this option is not
+available for \code{bootstrap_MRF} models
 }
 \examples{
 \dontrun{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4)
-plotMRF_hm(MRF_mod = CRFmod)}
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
+plotMRF_hm(MRF_mod = CRFmod)
+plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)}
 
 }
 \seealso{
