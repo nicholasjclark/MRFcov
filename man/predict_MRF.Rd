@@ -48,5 +48,5 @@ predictions$Binary_predictions}
 
 }
 \seealso{
-\code{\link{MRFcov}}, \code{\link{cv_MRF}}
+\code{\link{MRFcov}}, \code{\link{cv_MRF_diag}}
 }

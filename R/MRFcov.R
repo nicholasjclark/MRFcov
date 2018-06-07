@@ -343,12 +343,20 @@ MRFcov <- function(data, lambda1, symmetrise,
       #Each node-wise regression will be optimised separately using cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
       mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
-        cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+        mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = 1,
                   nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
                   #lambda = rev(seq(0.0001, 1, length.out = 100)),
-                  intercept = TRUE, standardize = TRUE, maxit = 25000)
+                  intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
 
+        if(inherits(mod, 'try-error')){
+          mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+                           y = mrf_data[,i], family = family, alpha = 1,
+                           nfolds = 20, weights = rep(1, nrow(mrf_data)),
+                           lambda = rev(seq(0.0001, 1, length.out = 100)),
+                           intercept = TRUE, standardize = TRUE, maxit = 25000)
+        }
+        mod
       })
     }
     stopCluster(cl)
@@ -369,11 +377,20 @@ MRFcov <- function(data, lambda1, symmetrise,
 
     } else {
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
-        cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
-                  y = mrf_data[,i], family = family, alpha = 1,
-                  nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
-                  #lambda = rev(seq(0.0001, 1, length.out = 100)),
-                  intercept = TRUE, standardize = TRUE, maxit = 25000)
+        mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+                             y = mrf_data[,i], family = family, alpha = 1,
+                             nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
+                             #lambda = rev(seq(0.0001, 1, length.out = 100)),
+                             intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
+
+        if(inherits(mod, 'try-error')){
+          mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
+                           y = mrf_data[,i], family = family, alpha = 1,
+                           nfolds = 20, weights = rep(1, nrow(mrf_data)),
+                           lambda = rev(seq(0.0001, 1, length.out = 100)),
+                           intercept = TRUE, standardize = TRUE, maxit = 25000)
+        }
+        mod
       })
     }
   }
@@ -483,7 +500,8 @@ MRFcov <- function(data, lambda1, symmetrise,
     covariate_matrices <- lapply(seq_len(n_covariates), function(x){
       cov_matrix <- matrix(0, n_nodes, n_nodes)
       for(i in seq_len(n_nodes)){
-        cov_names_match <- grepl(paste(cov_names[x], '_', sep = ''), names(cov_coefs[[i]]))
+        cov_names_match <- grepl(paste('^', cov_names[x], '_', sep = ''),
+                                 names(cov_coefs[[i]]))
         cov_matrix[i,-i] <- cov_coefs[[i]][cov_names_match]
         cov_matrix[i,i] <- cov_coefs[[i]][x]
         cov_matrix[is.na(cov_matrix)] <- 0

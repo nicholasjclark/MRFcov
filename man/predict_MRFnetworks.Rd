@@ -17,6 +17,10 @@ was used to fit the \code{MRF_mod}}
 \item{cutoff}{Single numeric value specifying the linear prediction threshold. Species whose
 linear prediction is below this level for a given observation in \code{data} will be
 considered absent, meaning they cannot participate in community networks. Default is \code{0}}
+
+\item{metric}{The network metric to be calculated for each observation in \code{data}.
+Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
+leave blank to instead return a list of adjacency matrices}
 }
 \value{
 Either a \code{matrix} with \code{nrow = nrow(data)},

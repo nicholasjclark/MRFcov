@@ -19,7 +19,7 @@ test_that("n_folds and n_fold_runs must be positive", {
 })
 
 # Run a cv model with compare_null = TRUE to check output format
-cvMRF <- cv_MRF_diag(data = Bird.parasites, n_nodes = 4, n_cores = 3, family = 'binomial',
+cvMRF <- cv_MRF_diag(data = Bird.parasites, n_nodes = 4, n_cores = 1, family = 'binomial',
             compare_null = TRUE, plot = FALSE)
 
 test_that("binomial models must return columns for model, pos_pred, tot_pred, sens and spec", {
@@ -35,7 +35,8 @@ gauss.dat <- data.frame(sp.1 = rnorm(500, 1),
                         cov = rnorm(500, 1))
 
 # Ignore possible glmnet warnings about wonky sds of variables as this fake data is not realistic
-cvMRF.gauss <- suppressWarnings(cv_MRF_diag(data = gauss.dat, n_nodes = 3, n_cores = 3, family = 'gaussian',
+cvMRF.gauss <- suppressWarnings(cv_MRF_diag(data = gauss.dat, n_nodes = 3, n_cores = 1,
+                                            family = 'gaussian',
                                             compare_null = TRUE, plot = FALSE))
 
 test_that("gaussian/poisson models must return columns for model, Rsquared, and MSE", {
