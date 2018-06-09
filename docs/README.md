@@ -65,10 +65,10 @@ MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 #>             ignoring lambda1
 ```
 
-Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients
+Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients. Note, for binary data such as this, we can also plot the observed occurrences and co-occurrences using `plot_observed_vals = TRUE`
 
 ``` r
-plotMRF_hm(MRF_mod)
+plotMRF_hm(MRF_mod, plot_observed_vals = TRUE, data = Bird.parasites)
 ```
 
 ![](README-Readme.fig1-1.png)
@@ -89,38 +89,39 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.66602159        -2.3579238 -2.3579238
-#> 5 scale.prop.zos_Microfilaria     0.13268851        -1.0524520 -1.0524520
-#> 4              scale.prop.zos     0.09509246        -0.8909609 -0.8909609
-#> 3                Microfilaria     0.09006475         0.8670877  0.8670877
-#> 2                        Plas     0.01273676        -0.3260731 -0.3260731
+#> 1                  Hkillangoi     0.66531864        -2.3064326 -2.3064326
+#> 5 scale.prop.zos_Microfilaria     0.12266333        -0.9903377 -0.9903377
+#> 3                Microfilaria     0.10575006         0.9195307  0.9195307
+#> 4              scale.prop.zos     0.09101689        -0.8530744 -0.8530744
+#> 2                        Plas     0.01244536        -0.3154493 -0.3154493
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
 #>         Variable Rel_importance Standardised_coef   Raw_coef
-#> 1    Hzosteropis     0.81691342        -2.3579238 -2.3579238
-#> 2   Microfilaria     0.09233384        -0.7927244 -0.7927244
-#> 3 scale.prop.zos     0.09072954        -0.7858074 -0.7858074
+#> 1    Hzosteropis     0.76638826        -2.3064326 -2.3064326
+#> 2   Microfilaria     0.13876154        -0.9814109 -0.9814109
+#> 3 scale.prop.zos     0.09482683        -0.8113009 -0.8113009
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.60330245         1.3235098  1.3235098
-#> 3              scale.prop.zos     0.33436818        -0.9853082 -0.9853082
-#> 1                 Hzosteropis     0.03661937        -0.3260731 -0.3260731
-#> 4 scale.prop.zos_Microfilaria     0.01589198         0.2148071  0.2148071
+#> 2                Microfilaria     0.64897980         1.5278142  1.5278142
+#> 3              scale.prop.zos     0.26991953        -0.9853082 -0.9853082
+#> 4 scale.prop.zos_Microfilaria     0.04715223         0.4118187  0.4118187
+#> 1                 Hzosteropis     0.02766618        -0.3154493 -0.3154493
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas      0.3473911         1.3235098  1.3235098
-#> 5 scale.prop.zos_Hzosteropis      0.2196691        -1.0524520 -1.0524520
-#> 4             scale.prop.zos      0.1500585        -0.8698576 -0.8698576
-#> 1                Hzosteropis      0.1491044         0.8670877  0.8670877
-#> 2                 Hkillangoi      0.1246260        -0.7927244 -0.7927244
+#> 3                       Plas     0.35668971         1.5278142  1.5278142
+#> 4             scale.prop.zos     0.19113755        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.14987048        -0.9903377 -0.9903377
+#> 2                 Hkillangoi     0.14718085        -0.9814109 -0.9814109
+#> 1                Hzosteropis     0.12920579         0.9195307  0.9195307
+#> 6        scale.prop.zos_Plas     0.02591562         0.4118187  0.4118187
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method
@@ -138,7 +139,7 @@ Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with cova
 
 Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* DOI: <https://doi.org/10.1002/ecy.2221>
 
-Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
+Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470. [Blogpost](http://nicholasjclark.weebly.com/malariafilaria-coinfections.html)  | [PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2016-journal_of_animal_ecology.pdf)
 
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.
 
