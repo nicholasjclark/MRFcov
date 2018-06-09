@@ -16,6 +16,8 @@
 #'@param metric The network metric to be calculated for each observation in \code{data}.
 #'Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 #'leave blank to instead return a list of adjacency matrices
+#'@param n_cores Positive integer stating the number of processing cores to split the job across.
+#'Default is \code{parallel::detect_cores() - 1}
 #'
 #'@return Either a \code{matrix} with \code{nrow = nrow(data)},
 #'containing each species' predicted network metric at each observation in \code{data}, or
@@ -45,7 +47,11 @@
 #'
 #'@export
 #'
-predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
+predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
+
+  if(missing(n_cores)){
+    n_cores <- parallel::detectCores() - 1
+  }
 
   if(missing(metric)){
     warning('No network metric specified: returning a list of adjecency matrices
@@ -115,11 +121,11 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
   # Predict occurrences / abundances using the supplied data and model equations
   if(MRF_mod$mod_family == "binomial"){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE)$Probability_predictions
+                         prep_covariates = FALSE, n_cores = n_cores)$Probability_predictions
 
   } else {
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE)
+                         prep_covariates = FALSE, n_cores = n_cores)
   }
 
   # Replace values in predictions below cutoff with zero
@@ -134,7 +140,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
       cov.mods <- list()
       for(i in seq_len(ncol(data) - n_nodes)){
         cov.mods[[i]] <- MRF_mod_booted$indirect_coefs[[i]][[1]] *
-          as.numeric(data[x ,(n_nodes + i)])
+          as.numeric(data[x , (n_nodes + i)])
       }
       per.obs.interactions <- Reduce(`+`, cov.mods) + base.interactions
 

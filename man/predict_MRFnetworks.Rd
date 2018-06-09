@@ -4,7 +4,7 @@
 \alias{predict_MRFnetworks}
 \title{Extract predicted network metrics for observations in a given dataset}
 \usage{
-predict_MRFnetworks(data, MRF_mod, cutoff, metric)
+predict_MRFnetworks(data, MRF_mod, cutoff, metric, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
@@ -21,6 +21,9 @@ considered absent, meaning they cannot participate in community networks. Defaul
 \item{metric}{The network metric to be calculated for each observation in \code{data}.
 Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 leave blank to instead return a list of adjacency matrices}
+
+\item{n_cores}{Positive integer stating the number of processing cores to split the job across.
+Default is \code{parallel::detect_cores() - 1}}
 }
 \value{
 Either a \code{matrix} with \code{nrow = nrow(data)},

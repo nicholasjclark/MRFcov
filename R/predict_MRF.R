@@ -3,6 +3,8 @@
 #'This function calculates linear predictors for node observations
 #'using equations from a \code{\link{MRFcov}}.
 #'
+#'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
+#'
 #'@param data Dataframe. The input data to be predicted, where the \code{n_nodes}
 #'left-most variables are binary occurrences to be represented by nodes in the graph.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
@@ -10,6 +12,8 @@
 #'@param MRF_mod A fitted \code{\link{MRFcov}} model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
+#'@param n_cores Positive integer stating the number of processing cores to split the job across.
+#'Default is \code{parallel::detect_cores() - 1}
 #'@return A \code{matrix} containing predictions for each observation in \code{data}. If
 #'\code{family = "binomial"}, a second element containing binary
 #'predictions for nodes is returned.
@@ -37,7 +41,60 @@
 #'
 #'@export
 #'
-predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
+predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
+
+  if(missing(n_cores)){
+    n_cores <- parallel::detectCores() - 1
+  }
+
+  #### If n_cores > 1, check parallel library loading ####
+  if(n_cores > 1){
+    #Initiate the n_cores parallel clusters
+    cl <- makePSOCKcluster(n_cores)
+    setDefaultCluster(cl)
+
+    #### Check for errors when directly loading a library on each cluster ####
+    test_load1 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
+
+    #If errors produced, iterate through other options for library loading
+    if(class(test_load1) == "try-error") {
+
+      #Try finding unique library paths using system.file()
+      pkgLibs <- unique(c(sub("/glmnet$", "", system.file(package = "glmnet"))))
+      clusterExport(NULL, c('pkgLibs'), envir = environment())
+      clusterEvalQ(cl, .libPaths(pkgLibs))
+
+      #Check again for errors loading libraries
+      test_load2 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
+
+      if(class(test_load2) == "try-error"){
+
+        #Try loading the user's .libPath() directly
+        clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
+        test_load3 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
+
+        if(class(test_load3) == "try-error"){
+
+          #Give up and use lapply instead!
+          parallel_compliant <- FALSE
+          stopCluster(cl)
+
+        } else {
+          parallel_compliant <- TRUE
+        }
+
+      } else {
+        parallel_compliant <- TRUE
+      }
+
+    } else {
+      parallel_compliant <- TRUE
+    }
+  } else {
+    #If n_cores = 1, set parallel_compliant to FALSE
+    parallel_compliant <- FALSE
+    warning('Parallel loading failed')
+  }
 
   # If using a bootstrap_MRF model, convert structure to the same as MRFcov models
   if(MRF_mod$mod_type == 'bootstrap_MRF'){
@@ -89,11 +146,26 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
 
   # Calculate linear predictions using the `direct_coefs`` element from the model
   if((MRF_mod$mod_family == 'poisson')){
-    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) sum(j * MRF_mod$direct_coefs[i, -1]) +
-                                                 MRF_mod$intercepts[i])
+
+    if(parallel_compliant){
+      #Export necessary data and variables to each cluster
+      clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+                    envir = environment())
+
+      predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
+        apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+                MRF_mod$intercepts[i])
+      }
+      ))
+      stopCluster(cl)
+
+    } else {
+      predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+        apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+                MRF_mod$intercepts[i])
+      }
+      ))
     }
-    ))
     colnames(predictions) <- node_names
 
   # Back-convert linear predictions using the poisson scale factors
@@ -102,19 +174,49 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE){
     }
 
 } else if((MRF_mod$mod_family == 'binomial')){
-  predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-    apply(data, 1, function(j) inverse_logit(sum(j * MRF_mod$direct_coefs[i, -1]) +
-                                               MRF_mod$intercepts[i]))
+
+  if(parallel_compliant){
+    #Export necessary data and variables to each cluster
+    clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+                  envir = environment())
+
+    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
+      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+                                                 MRF_mod$intercepts[i]))
     }
     ))
+    stopCluster(cl)
+
+  } else {
+    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+                                                 MRF_mod$intercepts[i]))
+    }
+    ))
+  }
   colnames(predictions) <- node_names
 
 } else {
-  predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-    apply(data, 1, function(j) sum(j * MRF_mod$direct_coefs[i, -1]) +
-                                               MRF_mod$intercepts[i])
+
+  if(parallel_compliant){
+    #Export necessary data and variables to each cluster
+    clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+                  envir = environment())
+
+    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
+      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+              MRF_mod$intercepts[i])
+    }
+    ))
+    stopCluster(cl)
+
+  } else {
+    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+              MRF_mod$intercepts[i])
+    }
+    ))
   }
-  ))
   colnames(predictions) <- node_names
 }
 

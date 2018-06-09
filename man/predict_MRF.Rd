@@ -4,7 +4,7 @@
 \alias{predict_MRF}
 \title{Predict training observations from fitted MRFcov models}
 \usage{
-predict_MRF(data, MRF_mod, prep_covariates = TRUE)
+predict_MRF(data, MRF_mod, prep_covariates = TRUE, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The input data to be predicted, where the \code{n_nodes}
@@ -16,6 +16,9 @@ was used to fit the \code{MRF_mod}}
 
 \item{prep_covariates}{Logical flag stating whether to prep the dataset
 by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)}
+
+\item{n_cores}{Positive integer stating the number of processing cores to split the job across.
+Default is \code{parallel::detect_cores() - 1}}
 }
 \value{
 A \code{matrix} containing predictions for each observation in \code{data}. If
