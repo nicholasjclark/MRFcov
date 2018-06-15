@@ -13,6 +13,10 @@
 #'@param cutoff Single numeric value specifying the linear prediction threshold. Species whose
 #'linear prediction is below this level for a given observation in \code{data} will be
 #'considered absent, meaning they cannot participate in community networks. Default is \code{0}
+#'@param omit_zeros Logical. If \code{TRUE}, each species will not be considered to
+#'participate in community networks for observations in which that species was not observed
+#'in \code{data}. If \code{FALSE}, the species is still considered to have possibly occurred, based
+#'on the linear prediction for that observation. Default is \code{FALSE}
 #'@param metric The network metric to be calculated for each observation in \code{data}.
 #'Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 #'leave blank to instead return a list of adjacency matrices
@@ -47,7 +51,7 @@
 #'
 #'@export
 #'
-predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
+predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric, n_cores){
 
   if(missing(n_cores)){
     n_cores <- parallel::detectCores() - 1
@@ -77,6 +81,10 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
             For each observation in data, species whose occurrence probabilities
             are below this level will be considered absent', call. = FALSE)
     cutoff <- 0.5
+  }
+
+  if(missing(omit_zeros)){
+    omit_zeros <- FALSE
   }
 
   if(MRF_mod$mod_type == 'MRFcov'){
@@ -126,6 +134,11 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
   } else {
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
                          prep_covariates = FALSE, n_cores = n_cores)
+  }
+
+  # Omit zeros from predictions, if specified
+  if(omit_zeros){
+    preds[data[ , 1:n_nodes] == 0] <- 0
   }
 
   # Replace values in predictions below cutoff with zero
@@ -182,7 +195,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
           centralities[i] <- 0
         }
       }
-      centralities <- centralities / sum(centralities, na.rm = T)
+      #centralities <- centralities / sum(centralities, na.rm = T)
       centralities[is.na(centralities)] <- 0
       centralities
     })
@@ -191,7 +204,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
 
   if(metric == 'eigencentrality'){
     # For each observation in data, convert the interaction matrix to a
-    # weighted, undirected adjacency matrix and calculate normalized degree centrality
+    # weighted, undirected adjacency matrix and calculate eigencentrality
     obs.centralities <- lapply(seq_len(nrow(data)), function(x){
       adj.matrix <- igraph::graph.adjacency(abs(total.interactions[[x]]),
                                             weighted = T,
@@ -202,7 +215,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric, n_cores){
           centralities[i] <- 0
         }
       }
-      centralities <- centralities / sum(centralities, na.rm = T)
+      #centralities <- centralities / sum(centralities, na.rm = T)
       centralities[is.na(centralities)] <- 0
       centralities
     })
