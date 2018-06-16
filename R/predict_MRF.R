@@ -153,8 +153,8 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
                     envir = environment())
 
       predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-        apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                MRF_mod$intercepts[i])
+        apply(data, 1, function(j) (sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
+                MRF_mod$intercepts[i]))
       }
       ))
       stopCluster(cl)
@@ -167,6 +167,9 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
       ))
     }
     colnames(predictions) <- node_names
+
+  # Convert negative predictions to zeros
+    predictions[predictions < 0] <- 0
 
   # Back-convert linear predictions using the poisson scale factors
     for(i in seq_len(n_nodes)){
