@@ -50,6 +50,12 @@ predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod)
 predictions$Binary_predictions}
 
 }
+\references{
+Clark, NJ, Wells, K and Lindberg, O.
+Unravelling changing interspecific interactions across environmental gradients
+using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221
+\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.
+}
 \seealso{
 \code{\link{MRFcov}}, \code{\link{cv_MRF_diag}}
 }

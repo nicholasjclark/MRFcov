@@ -8,7 +8,7 @@ MRFcov(data, lambda1, symmetrise, prep_covariates, n_nodes, n_cores,
   n_covariates, family, fixed_lambda, bootstrap = FALSE)
 }
 \arguments{
-\item{data}{Dataframe. The input data where the \code{n_nodes}
+\item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
 left-most variables are variables that are to be represented by nodes in the graph}
 
 \item{lambda1}{Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
@@ -70,7 +70,7 @@ A \code{list} containing:
 }
 \description{
 This function is the workhorse of the \code{MRFcov} package, running
-separate penalized logistic regressions for each node to estimate parameters of
+separate penalized regressions for each node to estimate parameters of
 Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
 how interactions between nodes vary across covariate magnitudes.
@@ -119,7 +119,8 @@ Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
 A sparse Ising model with covariates. (2012). Biometrics, 70, 943-953.\cr\cr
 Clark, NJ, Wells, K and Lindberg, O.
 Unravelling changing interspecific interactions across environmental gradients
-using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221.\cr\cr
+using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221
+\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.\cr\cr
 Sutton C, McCallum A. An introduction to conditional random fields.
 Foundations and Trends in Machine Learning 4, 267-373.
 }
