@@ -56,6 +56,17 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     data <- NULL
   }
 
+  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
+  if('beta' %in% names(MRF_mod)){
+    MRF_mod$graph <- MRF_mod$beta
+    MRF_mod$mod_type <- 'MRFcov'
+    MRF_mod$mod_family <- 'binomial'
+
+    if(missing(node_names)){
+      node_names <- names(MRF_mod$alpha)
+    }
+  }
+
   if(plot_observed_vals & is.null(data)){
     warning('data is missing, cannot plot observed occurrences and co-occurrences')
     plot_observed_vals <- FALSE
@@ -64,12 +75,6 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
   if(plot_observed_vals & MRF_mod$mod_family != 'binomial'){
     warning('model family is not binomial, cannot plot observed occurrences and co-occurrences')
     plot_observed_vals <- FALSE
-  }
-
-  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
-  if('beta' %in% names(MRF_mod)){
-    MRF_mod$graph <- MRF_mod$beta
-    MRF_mod$mod_type <- 'MRFcov'
   }
 
   if(MRF_mod$mod_type == 'MRFcov'){

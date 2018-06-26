@@ -35,7 +35,10 @@
 #'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication.
 #'Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
-#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
+#'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
+#'If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
+#'of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
+#'estimate occurrence probabilities, and so the function will return an error message.
 #'@param fixed_lambda Logical. If \code{FALSE}, node-specific regressions are optimized using the
 #'cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
 #'that minimises mean cross-validated error. If \code{TRUE}, each regression is run
@@ -86,7 +89,7 @@
 #'are also estimated for the effect of the covariate on \code{j} and the
 #'effects of the covariate on interactions between \code{j} and all other species
 #'(\code{/j}). Note that coefficients must be estimated on the same scale in order
-#'for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
+#'for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
 #'variables will be therefore standardised using the square root mean transformation
 #'\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
 #'will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
@@ -125,11 +128,12 @@ MRFcov <- function(data, lambda1, symmetrise,
          "gaussian", "poisson", "binomial"')
 
   if(any(is.na(data))){
-    stop('NAs detected. Consider removing, replacing or using the bootstrap_mrf function to impute NAs')
+    stop('NAs detected. Consider removing, replacing or using the bootstrap_mrf function to impute NAs',
+         call. = FALSE)
   }
 
   if(any(!is.finite(as.matrix(data)))){
-    stop('No infinite values permitted')
+    stop('No infinite values permitted', call. = FALSE)
   }
 
   if(missing(symmetrise)){
@@ -141,8 +145,8 @@ MRFcov <- function(data, lambda1, symmetrise,
          "min", "max", "mean"')
 
   if(missing(fixed_lambda)){
-    warning('fixed_lambda not provided. Cross-validated optimisation will commence by default,
-            ignoring lambda1')
+    warning('fixed_lambda missing. Cross-validated optimisation commencing by default',
+            call. = FALSE)
     fixed_lambda <- FALSE
   }
 
@@ -151,7 +155,8 @@ MRFcov <- function(data, lambda1, symmetrise,
   }
 
   if(missing(lambda1)) {
-    warning('lambda1 not provided, using cross-validation to optimise each regression')
+    warning('lambda1 not provided, using cross-validation to optimise each regression',
+            call. = FALSE)
     fixed_lambda <- FALSE
     lambda1 <- 1
   } else {
@@ -180,16 +185,19 @@ MRFcov <- function(data, lambda1, symmetrise,
     n_covariates <- 0
   } else {
     if(sign(n_nodes) != 1){
-      stop('Please provide a positive integer for n_nodes')
+      stop('Please provide a positive integer for n_nodes',
+           call. = FALSE)
     } else {
       if(sfsmisc::is.whole(n_nodes) == FALSE){
-        stop('Please provide a positive integer for n_nodes')
+        stop('Please provide a positive integer for n_nodes',
+             call. = FALSE)
       }
     }
   }
 
   if(n_nodes < 2){
-    stop('Cannot generate a graphical model with less than 2 nodes')
+    stop('Cannot generate a graphical model with less than 2 nodes',
+         call. = FALSE)
   }
 
   if(missing(prep_covariates) & n_nodes < ncol(data)){
@@ -208,19 +216,56 @@ MRFcov <- function(data, lambda1, symmetrise,
     n_covariates <- ncol(data) - n_nodes
   }
 
-  # Specify number of folds for cv.glmnet based on data size
+  #### Specify default number of folds for cv.glmnet based on data size ####
     if(nrow(data) < 150){
-      # If less than 50 observations, use leave one out cv
-      n_folds <- nrow(data)
+      # If less than 150 observations, use leave-one-out cv
+      n_folds <- rep(nrow(data), n_nodes)
     } else {
       # If > 150 but < 250 observations, use 15-fold cv
       if(nrow(data) < 250){
-        n_folds <- 15
+        n_folds <- rep(15, n_nodes)
       } else {
         # else use the default for cv.glmnet (10-fold cv)
-        n_folds <- 10
+        n_folds <- rep(10, n_nodes)
       }
     }
+
+  # For binomial models, change folds for any very rare or very common nodes
+  # to leave-one-out cv
+  if(family == 'binomial'){
+
+    # Issue error if any nodes are too rare or too common for analysis to proceed
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)){
+      stop(paste('The following are too rare (occur in < 5% of observations) to estimate occurrence probability:',
+               colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)])),
+           call. = FALSE)
+    }
+
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)){
+      stop(paste('The following are too common (occur in > 95% of observations) to estimate occurrence probability:',
+                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)])),
+           call. = FALSE)
+    }
+
+    # Identify nodes occurring in fewer than 10% of observations
+    low_occur_nodes <- which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.10)
+    n_folds[low_occur_nodes] <- nrow(data)
+
+    if(length(low_occur_nodes) != 0){
+      cat('Leave-one-out cv used for the following low-occurrence (rare) nodes:',
+          colnames(data[ , 1:n_nodes][low_occur_nodes]))
+    }
+
+    # Repeat for nodes occurring in more than 90% of observations
+    high_occur_nodes <- which((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.90)
+    n_folds[high_occur_nodes] <- nrow(data)
+
+    if(length(high_occur_nodes) != 0){
+      cat('Leave-one-out cv used for the following high-occurrence (common) nodes:',
+          colnames(data[ , 1:n_nodes][high_occur_nodes]))
+    }
+
+  }
 
   #### Use sqrt mean transformation for Poisson variables ####
   if(family == 'poisson'){
@@ -346,14 +391,14 @@ MRFcov <- function(data, lambda1, symmetrise,
       mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
         mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = 1,
-                  nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
+                  nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                   #lambda = rev(seq(0.0001, 1, length.out = 100)),
                   intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
 
         if(inherits(mod, 'try-error')){
           mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                            y = mrf_data[,i], family = family, alpha = 1,
-                           nfolds = 20, weights = rep(1, nrow(mrf_data)),
+                           nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
                            intercept = TRUE, standardize = TRUE, maxit = 25000)
         }
@@ -380,14 +425,14 @@ MRFcov <- function(data, lambda1, symmetrise,
       mrf_mods <- lapply(seq_len(n_nodes), function(i) {
         mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                              y = mrf_data[,i], family = family, alpha = 1,
-                             nfolds = n_folds, weights = rep(1, nrow(mrf_data)),
+                             nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                              #lambda = rev(seq(0.0001, 1, length.out = 100)),
                              intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
 
         if(inherits(mod, 'try-error')){
           mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                            y = mrf_data[,i], family = family, alpha = 1,
-                           nfolds = 20, weights = rep(1, nrow(mrf_data)),
+                           nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
                            intercept = TRUE, standardize = TRUE, maxit = 25000)
         }

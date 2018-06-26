@@ -40,7 +40,10 @@ columns in \code{data}, corresponding to no additional covariates}
 Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
-non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
+If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
+of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
+estimate occurrence probabilities, and so the function will return an error message.}
 
 \item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
@@ -84,7 +87,7 @@ species (\code{/j}) in \code{data}. If covariates are included, beta coefficient
 are also estimated for the effect of the covariate on \code{j} and the
 effects of the covariate on interactions between \code{j} and all other species
 (\code{/j}). Note that coefficients must be estimated on the same scale in order
-for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
+for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
 variables will be therefore standardised using the square root mean transformation
 \code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
 will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
