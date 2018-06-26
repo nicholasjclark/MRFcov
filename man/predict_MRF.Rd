@@ -4,7 +4,7 @@
 \alias{predict_MRF}
 \title{Predict training observations from fitted MRFcov models}
 \usage{
-predict_MRF(data, MRF_mod, prep_covariates = TRUE)
+predict_MRF(data, MRF_mod, prep_covariates = TRUE, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The input data to be predicted, where the \code{n_nodes}
@@ -16,6 +16,9 @@ was used to fit the \code{MRF_mod}}
 
 \item{prep_covariates}{Logical flag stating whether to prep the dataset
 by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)}
+
+\item{n_cores}{Positive integer stating the number of processing cores to split the job across.
+Default is \code{parallel::detect_cores() - 1}}
 }
 \value{
 A \code{matrix} containing predictions for each observation in \code{data}. If
@@ -46,6 +49,12 @@ predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod)
 # Visualise predicted occurrences for nodes in the test set
 predictions$Binary_predictions}
 
+}
+\references{
+Clark, NJ, Wells, K and Lindberg, O.
+Unravelling changing interspecific interactions across environmental gradients
+using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221
+\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.
 }
 \seealso{
 \code{\link{MRFcov}}, \code{\link{cv_MRF_diag}}

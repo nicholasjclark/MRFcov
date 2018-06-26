@@ -8,7 +8,7 @@ MRFcov(data, lambda1, symmetrise, prep_covariates, n_nodes, n_cores,
   n_covariates, family, fixed_lambda, bootstrap = FALSE)
 }
 \arguments{
-\item{data}{Dataframe. The input data where the \code{n_nodes}
+\item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
 left-most variables are variables that are to be represented by nodes in the graph}
 
 \item{lambda1}{Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
@@ -40,7 +40,10 @@ columns in \code{data}, corresponding to no additional covariates}
 Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
-non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
+non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
+If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
+of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
+estimate occurrence probabilities, and so the function will return an error message.}
 
 \item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
 cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
@@ -70,7 +73,7 @@ A \code{list} containing:
 }
 \description{
 This function is the workhorse of the \code{MRFcov} package, running
-separate penalized logistic regressions for each node to estimate parameters of
+separate penalized regressions for each node to estimate parameters of
 Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
 how interactions between nodes vary across covariate magnitudes.
@@ -84,7 +87,7 @@ species (\code{/j}) in \code{data}. If covariates are included, beta coefficient
 are also estimated for the effect of the covariate on \code{j} and the
 effects of the covariate on interactions between \code{j} and all other species
 (\code{/j}). Note that coefficients must be estimated on the same scale in order
-for the resulting models to be unified in a Markov Random Field. Counts for \code{poisson}
+for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
 variables will be therefore standardised using the square root mean transformation
 \code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
 will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
@@ -119,7 +122,8 @@ Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014).
 A sparse Ising model with covariates. (2012). Biometrics, 70, 943-953.\cr\cr
 Clark, NJ, Wells, K and Lindberg, O.
 Unravelling changing interspecific interactions across environmental gradients
-using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221.\cr\cr
+using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221
+\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.\cr\cr
 Sutton C, McCallum A. An introduction to conditional random fields.
 Foundations and Trends in Machine Learning 4, 267-373.
 }

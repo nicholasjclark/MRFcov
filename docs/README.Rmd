@@ -68,9 +68,9 @@ Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Her
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 ```
 
-Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients
+Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients. Note, for binary data such as this, we can also plot the observed occurrences and co-occurrences using `plot_observed_vals = TRUE`
 ```{r Readme.fig1, fig.height=3.5, fig.width=4, message=FALSE}
-plotMRF_hm(MRF_mod)
+plotMRF_hm(MRF_mod, plot_observed_vals = TRUE, data = Bird.parasites)
 ```
 
 For more in-depth visualisation, we can plot how species interactions are predicted to change across covariate magnitudes
@@ -109,7 +109,7 @@ Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with cova
   
 Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific interactions across environmental gradients using Markov random fields. *Ecology* DOI: https://doi.org/10.1002/ecy.2221  
   
-Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.  
+Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470. [Blogpost](http://nicholasjclark.weebly.com/malariafilaria-coinfections.html) &nbsp;|&nbsp;[PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2016-journal_of_animal_ecology.pdf)  
   
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.  
   

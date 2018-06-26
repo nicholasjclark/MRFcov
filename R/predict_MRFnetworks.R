@@ -13,9 +13,15 @@
 #'@param cutoff Single numeric value specifying the linear prediction threshold. Species whose
 #'linear prediction is below this level for a given observation in \code{data} will be
 #'considered absent, meaning they cannot participate in community networks. Default is \code{0}
+#'@param omit_zeros Logical. If \code{TRUE}, each species will not be considered to
+#'participate in community networks for observations in which that species was not observed
+#'in \code{data}. If \code{FALSE}, the species is still considered to have possibly occurred, based
+#'on the linear prediction for that observation. Default is \code{FALSE}
 #'@param metric The network metric to be calculated for each observation in \code{data}.
 #'Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 #'leave blank to instead return a list of adjacency matrices
+#'@param n_cores Positive integer stating the number of processing cores to split the job across.
+#'Default is \code{parallel::detect_cores() - 1}
 #'
 #'@return Either a \code{matrix} with \code{nrow = nrow(data)},
 #'containing each species' predicted network metric at each observation in \code{data}, or
@@ -45,7 +51,11 @@
 #'
 #'@export
 #'
-predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
+predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric, n_cores){
+
+  if(missing(n_cores)){
+    n_cores <- parallel::detectCores() - 1
+  }
 
   if(missing(metric)){
     warning('No network metric specified: returning a list of adjecency matrices
@@ -71,6 +81,10 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
             For each observation in data, species whose occurrence probabilities
             are below this level will be considered absent', call. = FALSE)
     cutoff <- 0.5
+  }
+
+  if(missing(omit_zeros)){
+    omit_zeros <- FALSE
   }
 
   if(MRF_mod$mod_type == 'MRFcov'){
@@ -115,11 +129,16 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
   # Predict occurrences / abundances using the supplied data and model equations
   if(MRF_mod$mod_family == "binomial"){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE)$Probability_predictions
+                         prep_covariates = FALSE, n_cores = n_cores)$Probability_predictions
 
   } else {
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE)
+                         prep_covariates = FALSE, n_cores = n_cores)
+  }
+
+  # Omit zeros from predictions, if specified
+  if(omit_zeros){
+    preds[data[ , 1:n_nodes] == 0] <- 0
   }
 
   # Replace values in predictions below cutoff with zero
@@ -134,7 +153,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
       cov.mods <- list()
       for(i in seq_len(ncol(data) - n_nodes)){
         cov.mods[[i]] <- MRF_mod_booted$indirect_coefs[[i]][[1]] *
-          as.numeric(data[x ,(n_nodes + i)])
+          as.numeric(data[x , (n_nodes + i)])
       }
       per.obs.interactions <- Reduce(`+`, cov.mods) + base.interactions
 
@@ -176,7 +195,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
           centralities[i] <- 0
         }
       }
-      centralities <- centralities / sum(centralities, na.rm = T)
+      #centralities <- centralities / sum(centralities, na.rm = T)
       centralities[is.na(centralities)] <- 0
       centralities
     })
@@ -185,7 +204,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
 
   if(metric == 'eigencentrality'){
     # For each observation in data, convert the interaction matrix to a
-    # weighted, undirected adjacency matrix and calculate normalized degree centrality
+    # weighted, undirected adjacency matrix and calculate eigencentrality
     obs.centralities <- lapply(seq_len(nrow(data)), function(x){
       adj.matrix <- igraph::graph.adjacency(abs(total.interactions[[x]]),
                                             weighted = T,
@@ -196,7 +215,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, metric){
           centralities[i] <- 0
         }
       }
-      centralities <- centralities / sum(centralities, na.rm = T)
+      #centralities <- centralities / sum(centralities, na.rm = T)
       centralities[is.na(centralities)] <- 0
       centralities
     })

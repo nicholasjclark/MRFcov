@@ -4,7 +4,7 @@
 \alias{predict_MRFnetworks}
 \title{Extract predicted network metrics for observations in a given dataset}
 \usage{
-predict_MRFnetworks(data, MRF_mod, cutoff, metric)
+predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
@@ -18,9 +18,17 @@ was used to fit the \code{MRF_mod}}
 linear prediction is below this level for a given observation in \code{data} will be
 considered absent, meaning they cannot participate in community networks. Default is \code{0}}
 
+\item{omit_zeros}{Logical. If \code{TRUE}, each species will not be considered to
+participate in community networks for observations in which that species was not observed
+in \code{data}. If \code{FALSE}, the species is still considered to have possibly occurred, based
+on the linear prediction for that observation. Default is \code{FALSE}}
+
 \item{metric}{The network metric to be calculated for each observation in \code{data}.
 Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 leave blank to instead return a list of adjacency matrices}
+
+\item{n_cores}{Positive integer stating the number of processing cores to split the job across.
+Default is \code{parallel::detect_cores() - 1}}
 }
 \value{
 Either a \code{matrix} with \code{nrow = nrow(data)},
