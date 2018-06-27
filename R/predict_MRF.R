@@ -157,19 +157,19 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
       clusterExport(NULL, c('n_nodes', 'MRF_mod'),
                     envir = environment())
 
-      predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-        apply(data, 1, function(j) (sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                MRF_mod$intercepts[i]))
-      }
-      ))
+      predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+        rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                  NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+          MRF_mod$intercepts[i]
+      }))
       stopCluster(cl)
 
     } else {
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-        apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                MRF_mod$intercepts[i])
-      }
-      ))
+        rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                  NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+          MRF_mod$intercepts[i]
+      }))
     }
     colnames(predictions) <- node_names
 
@@ -188,19 +188,19 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
     clusterExport(NULL, c('n_nodes', 'MRF_mod'),
                   envir = environment())
 
-    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                                                 MRF_mod$intercepts[i]))
-    }
-    ))
+    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      inverse_logit(rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                              NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+                      MRF_mod$intercepts[i])
+    }))
     stopCluster(cl)
 
   } else {
     predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                                                 MRF_mod$intercepts[i]))
-    }
-    ))
+      inverse_logit(rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                              NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+                      MRF_mod$intercepts[i])
+    }))
   }
   colnames(predictions) <- node_names
 
@@ -211,19 +211,19 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
     clusterExport(NULL, c('n_nodes', 'MRF_mod'),
                   envir = environment())
 
-    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-              MRF_mod$intercepts[i])
-    }
-    ))
+    predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+        MRF_mod$intercepts[i]
+    }))
     stopCluster(cl)
 
   } else {
     predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-              MRF_mod$intercepts[i])
-    }
-    ))
+      rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+        MRF_mod$intercepts[i]
+    }))
   }
   colnames(predictions) <- node_names
 }

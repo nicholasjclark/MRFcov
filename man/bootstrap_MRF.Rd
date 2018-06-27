@@ -109,7 +109,7 @@ to perform in order to facilitate optimal parallel computing.
 \code{MRFcov} models are either run across the specified sequence of
 \code{lambda1} values or \code{lambda1} is chosen through cross-validation using
 \code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
-by shuffling row observations and fitting models to only 90% of observations,
+by shuffling row observations and fitting models to only 90 percent of observations,
 using \code{dplyr::sample_n(data, nrow(data) * 0.9, FALSE)},
 to account for uncertainty in parameter estimates.
 Parameter estimates from the set of bootstrapped models are summarised
