@@ -253,7 +253,7 @@ MRFcov <- function(data, lambda1, symmetrise,
 
     if(length(low_occur_nodes) != 0){
       cat('Leave-one-out cv used for the following low-occurrence (rare) nodes:',
-          colnames(data[ , 1:n_nodes][low_occur_nodes]))
+          colnames(data[ , 1:n_nodes][low_occur_nodes]), '\n')
     }
 
     # Repeat for nodes occurring in more than 90% of observations
@@ -262,7 +262,7 @@ MRFcov <- function(data, lambda1, symmetrise,
 
     if(length(high_occur_nodes) != 0){
       cat('Leave-one-out cv used for the following high-occurrence (common) nodes:',
-          colnames(data[ , 1:n_nodes][high_occur_nodes]))
+          colnames(data[ , 1:n_nodes][high_occur_nodes]), '\n')
     }
 
   }

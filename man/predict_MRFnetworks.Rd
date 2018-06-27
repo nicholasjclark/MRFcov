@@ -4,7 +4,8 @@
 \alias{predict_MRFnetworks}
 \title{Extract predicted network metrics for observations in a given dataset}
 \usage{
-predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric, n_cores)
+predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric,
+  cached_predictions = NULL, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
@@ -26,6 +27,10 @@ on the linear prediction for that observation. Default is \code{FALSE}}
 \item{metric}{The network metric to be calculated for each observation in \code{data}.
 Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 leave blank to instead return a list of adjacency matrices}
+
+\item{cached_predictions}{Use if providing stored predictions from \code{\link{predict_MRF}}
+to prevent unneccessary replication. Default is to calculate predictions first and then
+calculate network metrics}
 
 \item{n_cores}{Positive integer stating the number of processing cores to split the job across.
 Default is \code{parallel::detect_cores() - 1}}

@@ -602,9 +602,10 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
       if(nrow(data) < 100){
         n_folds <- 5
         warning('nrow(data) is less than 100, using 5-fold validation by default')
-      }
+      } else{
       n_folds <- 10
       warning('n_folds missing, using 10-fold validation by default')
+      }
     }
   } else {
     if(sign(n_folds) == 1){
