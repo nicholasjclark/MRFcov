@@ -241,6 +241,12 @@ MRFcov <- function(data, lambda1, symmetrise,
            call. = FALSE)
     }
 
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025) & nrow(data) < 1000){
+      stop(paste('The following are too rare (occur in < 2.5% of observations) to estimate occurrence probability:',
+                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)])),
+           call. = FALSE)
+    }
+    
     if(any((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)){
       stop(paste('The following are too common (occur in > 95% of observations) to estimate occurrence probability:',
                  colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)])),
@@ -249,7 +255,7 @@ MRFcov <- function(data, lambda1, symmetrise,
 
     # Identify nodes occurring in fewer than 10% of observations
     low_occur_nodes <- which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.10)
-    n_folds[low_occur_nodes] <- nrow(data)
+    n_folds[low_occur_nodes] <- c(nrow(data), 100)[which.min(c(nrow(data), 100))]
 
     if(length(low_occur_nodes) != 0){
       cat('Leave-one-out cv used for the following low-occurrence (rare) nodes:',
@@ -258,7 +264,7 @@ MRFcov <- function(data, lambda1, symmetrise,
 
     # Repeat for nodes occurring in more than 90% of observations
     high_occur_nodes <- which((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.90)
-    n_folds[high_occur_nodes] <- nrow(data)
+    n_folds[high_occur_nodes] <- c(nrow(data), 100)[which.min(c(nrow(data), 100))]
 
     if(length(high_occur_nodes) != 0){
       cat('Leave-one-out cv used for the following high-occurrence (common) nodes:',
@@ -398,7 +404,7 @@ MRFcov <- function(data, lambda1, symmetrise,
         if(inherits(mod, 'try-error')){
           mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                            y = mrf_data[,i], family = family, alpha = 1,
-                           nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
+                           nfolds = nrow(mrf_data), weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
                            intercept = TRUE, standardize = TRUE, maxit = 25000)
         }
@@ -428,11 +434,11 @@ MRFcov <- function(data, lambda1, symmetrise,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                              #lambda = rev(seq(0.0001, 1, length.out = 100)),
                              intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
-
+        
         if(inherits(mod, 'try-error')){
           mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                            y = mrf_data[,i], family = family, alpha = 1,
-                           nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
+                           nfolds = nrow(mrf_data), weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
                            intercept = TRUE, standardize = TRUE, maxit = 25000)
         }
