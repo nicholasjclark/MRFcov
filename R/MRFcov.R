@@ -235,7 +235,7 @@ MRFcov <- function(data, lambda1, symmetrise,
   if(family == 'binomial'){
 
     # Issue error if any nodes are too rare or too common for analysis to proceed
-    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)){
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05) & nrow(data) < 500){
       stop(paste('The following are too rare (occur in < 5% of observations) to estimate occurrence probability:',
                colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)])),
            call. = FALSE)
