@@ -145,8 +145,7 @@ MRFcov <- function(data, lambda1, symmetrise,
          "min", "max", "mean"')
 
   if(missing(fixed_lambda)){
-    warning('fixed_lambda missing. Cross-validated optimisation commencing by default',
-            call. = FALSE)
+    cat('fixed_lambda missing. Cross-validated optimisation commencing by default ...\n')
     fixed_lambda <- FALSE
   }
 
@@ -258,8 +257,8 @@ MRFcov <- function(data, lambda1, symmetrise,
     n_folds[low_occur_nodes] <- c(nrow(data), 100)[which.min(c(nrow(data), 100))]
 
     if(length(low_occur_nodes) != 0){
-      cat('Leave-one-out cv used for the following low-occurrence (rare) nodes:',
-          colnames(data[ , 1:n_nodes][low_occur_nodes]), '\n')
+      cat('Leave-one-out cv used for the following low-occurrence (rare) nodes:\n',
+          colnames(data[ , 1:n_nodes][low_occur_nodes]), '...\n')
     }
 
     # Repeat for nodes occurring in more than 90% of observations
@@ -267,16 +266,16 @@ MRFcov <- function(data, lambda1, symmetrise,
     n_folds[high_occur_nodes] <- c(nrow(data), 100)[which.min(c(nrow(data), 100))]
 
     if(length(high_occur_nodes) != 0){
-      cat('Leave-one-out cv used for the following high-occurrence (common) nodes:',
-          colnames(data[ , 1:n_nodes][high_occur_nodes]), '\n')
+      cat('Leave-one-out cv used for the following high-occurrence (common) nodes:\n',
+          colnames(data[ , 1:n_nodes][high_occur_nodes]), '...\n')
     }
 
   }
 
   #### Use sqrt mean transformation for Poisson variables ####
   if(family == 'poisson'){
-    warning('Poisson variables will be standardised by their square root means. Please
-            refer to the "poiss_sc_factors" for coefficient interpretations')
+    cat('Poisson variables will be standardised by their square root means. Please
+            refer to the "poiss_sc_factors" for coefficient interpretations ...\n')
     square_root_mean = function(x) {sqrt(mean(x ^ 2))}
     poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
     data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
@@ -367,7 +366,7 @@ MRFcov <- function(data, lambda1, symmetrise,
   }
 
   if(parallel_compliant){
-    cat('Fitting MRF models in parallel using', n_cores, 'cores... \n')
+    cat('Fitting MRF models in parallel using', n_cores, 'cores ...\n')
     clusterExport(NULL, c('mrf_data',
                           'lambda1','n_nodes','family','fixed_lambda',
                           'n_folds'),
@@ -415,7 +414,7 @@ MRFcov <- function(data, lambda1, symmetrise,
     stopCluster(cl)
 
   } else {
-    cat('Fitting MRF models in sequence using 1 core... \n')
+    cat('Fitting MRF models in sequence using 1 core ...\n')
     #If parallel is not supported or n_cores = 1, use lapply instead
     if(fixed_lambda){
       if(family == 'binomial') fam <- 'logistic'
