@@ -13,7 +13,7 @@
 #'@param data A \code{dataframe}. The input data where the \code{n_nodes}
 #'left-most variables are variables that are to be represented by nodes in the graph
 #'@param lambda1 Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
-#'l1−regularization parameter for all node-specific regressions. If \code{fixed_lambda = FALSE},
+#'l1−regularization parameter for all node specific regressions. If \code{fixed_lambda = FALSE},
 #'this value is ignored and penalization parameters are optimized automatially, using
 #'coordinated gradient descent to minimize cross-validated error.
 #'See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation
