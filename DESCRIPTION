@@ -26,7 +26,8 @@ Imports: purrr,
     reshape2,
     sfsmisc,
     igraph,
-    grDevices
+    grDevices,
+    pbapply
 Remotes: davharris/rosalia
 License: GPL-3.0+
 Encoding: UTF-8

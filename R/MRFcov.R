@@ -246,7 +246,7 @@ MRFcov <- function(data, lambda1, symmetrise,
                  colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)])),
            call. = FALSE)
     }
-    
+
     if(any((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)){
       stop(paste('The following are too common (occur in > 95% of observations) to estimate occurrence probability:',
                  colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)])),
@@ -367,6 +367,7 @@ MRFcov <- function(data, lambda1, symmetrise,
   }
 
   if(parallel_compliant){
+    cat('Fitting MRF models in parallel using', n_cores, 'cores... \n')
     clusterExport(NULL, c('mrf_data',
                           'lambda1','n_nodes','family','fixed_lambda',
                           'n_folds'),
@@ -383,18 +384,18 @@ MRFcov <- function(data, lambda1, symmetrise,
       clusterEvalQ(cl, library(penalized))
 
       #Fit the node-wise penalized regressions
-      mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
+      mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, steps = 1,
                   model = fam, standardize = TRUE, trace = F, maxiter = 25000)
-      })
+      }, cl = cl)
 
     } else {
       #Use function 'cv.glmnet' from package glmnet if cross-validation is specified
       #Each node-wise regression will be optimised separately using cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
-      mrf_mods <- parLapply(NULL, seq_len(n_nodes), function(i) {
+      mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   y = mrf_data[,i], family = family, alpha = 1,
                   nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
@@ -409,18 +410,18 @@ MRFcov <- function(data, lambda1, symmetrise,
                            intercept = TRUE, standardize = TRUE, maxit = 25000)
         }
         mod
-      })
+      }, cl = cl)
     }
     stopCluster(cl)
 
   } else {
-
+    cat('Fitting MRF models in sequence using 1 core... \n')
     #If parallel is not supported or n_cores = 1, use lapply instead
     if(fixed_lambda){
       if(family == 'binomial') fam <- 'logistic'
       if(family == 'gaussian') fam <- 'linear'
 
-      mrf_mods <- lapply(seq_len(n_nodes), function(i) {
+      mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         penalized(response = mrf_data[,i],
                   penalized = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                   lambda1 = lambda1, steps = 1,
@@ -428,13 +429,13 @@ MRFcov <- function(data, lambda1, symmetrise,
       })
 
     } else {
-      mrf_mods <- lapply(seq_len(n_nodes), function(i) {
+      mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         mod <- try(cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                              y = mrf_data[,i], family = family, alpha = 1,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                              #lambda = rev(seq(0.0001, 1, length.out = 100)),
                              intercept = TRUE, standardize = TRUE, maxit = 25000), silent = TRUE)
-        
+
         if(inherits(mod, 'try-error')){
           mod <- cv.glmnet(x = mrf_data[, -which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)],
                            y = mrf_data[,i], family = family, alpha = 1,

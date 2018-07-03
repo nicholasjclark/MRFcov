@@ -349,7 +349,7 @@ bootstrap_MRF <- function(data, n_bootstraps, n_its, sample_seed, min_lambda1,
 
  #### If parallel support confirmed and n_cores > 1, proceed with parLapply ####
   if(parallel_compliant){
-
+    cat('Fitting bootstrap_MRF models in parallel using', n_cores, 'cores... \n')
     #Export necessary data and variables to each cluster
     clusterExport(NULL, c('lambda1_seq', 'booted_datas',
                           'symmetrise', 'n_nodes', 'n_bootstraps',
@@ -372,7 +372,7 @@ bootstrap_MRF <- function(data, n_bootstraps, n_its, sample_seed, min_lambda1,
     clusterExport(NULL, c('prepped_datas'),
                   envir = environment())
 
-    lambda_results <- parLapply(NULL, lambda1_seq, function(l) {
+    lambda_results <- pbapply::pblapply(lambda1_seq, function(l) {
       booted_mrfs <- lapply(seq_len(n_bootstraps), function(x) {
         sample_data <- sample(seq_len(100), 1)
         mod <- suppressWarnings(MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
@@ -443,17 +443,18 @@ bootstrap_MRF <- function(data, n_bootstraps, n_its, sample_seed, min_lambda1,
     list(key_covariates = key_covariates,
          raw_coefs = direct_coef_list,
          indirect_coefs = indirect_coef_means)
-  })
+  }, cl = cl)
   stopCluster(cl)
 
     } else {
 
  #### If parallel loading fails, or if n_cores = 1, use lapply instead ####
-      prepped_datas <-lapply(booted_datas, prep_MRF_covariates,
+      cat('Fitting bootstrap_MRF models in sequence using 1 core... \n')
+      prepped_datas <- lapply(booted_datas, prep_MRF_covariates,
                            n_nodes = n_nodes)
       rm(booted_datas)
 
-      lambda_results <- lapply(lambda1_seq, function(l) {
+      lambda_results <- pbapply::pblapply(lambda1_seq, function(l) {
         booted_mrfs <- lapply(seq_len(n_bootstraps), function(x) {
           sample_data <- sample(seq_len(100), 1)
           mod <- suppressWarnings(MRFcov(data = prepped_datas[[sample_data]], lambda1 = l,
