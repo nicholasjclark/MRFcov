@@ -1,7 +1,7 @@
 #'Predict training observations from fitted MRFcov models
 #'
 #'This function calculates linear predictors for node observations
-#'using equations from a \code{\link{MRFcov}}.
+#'using coefficients from an \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} object.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
 #'
@@ -9,7 +9,7 @@
 #'left-most variables are binary occurrences to be represented by nodes in the graph.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
 #'was used to fit the \code{MRF_mod}
-#'@param MRF_mod A fitted \code{\link{MRFcov}} model object
+#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}}model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
@@ -22,7 +22,8 @@
 #'
 #'@details Observations for nodes in \code{data} are predicted using linear predictions
 #'from \code{MRF_mod}. If \code{family = "binomial"}, a second element containing binary
-#'predictions for nodes is returned.
+#'predictions for nodes is returned. Note that predicting values for unobserved locations using a
+#'spatial MRF is not currently supported
 #'
 #'@references Clark, NJ, Wells, K and Lindberg, O.
 #'Unravelling changing interspecific interactions across environmental gradients
@@ -42,7 +43,18 @@
 #'predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod)
 #'
 #'# Visualise predicted occurrences for nodes in the test set
-#'predictions$Binary_predictions}
+#'predictions$Binary_predictions
+#'
+#'# Predicting spatial MRFs requires the user to supply the spatially augmented dataset
+#'data("Bird.parasites")
+#'Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
+#'Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
+#'coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
+#'CRFmod_spatial <- MRFcov_spatial(data = Bird.parasites, n_nodes = 4,
+#'                                 family = 'binomial', coords = coords)
+#'predictions <- predict_MRF(data = CRFmod_spatial$mrf_data,
+#'                           prep_covariates  = FALSE,
+#'                           MRF_mod = CRFmod_spatial)}
 #'
 #'@export
 #'
@@ -154,22 +166,22 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
     if(parallel_compliant){
       #Export necessary data and variables to each cluster
-      clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+      clusterExport(NULL, c('n_nodes', 'MRF_mod', 'data'),
                     envir = environment())
 
-      predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-        apply(data, 1, function(j) (sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                MRF_mod$intercepts[i]))
-      }
-      ))
+      predictions <- do.call(cbind, pbapply::pblapply(seq_len(n_nodes), function(i){
+        rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                  NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+          MRF_mod$intercepts[i]
+      }, cl = cl))
       stopCluster(cl)
 
     } else {
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-        apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                MRF_mod$intercepts[i])
-      }
-      ))
+        rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                  NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+          MRF_mod$intercepts[i]
+      }))
     }
     colnames(predictions) <- node_names
 
@@ -185,22 +197,22 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
   if(parallel_compliant){
     #Export necessary data and variables to each cluster
-    clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+    clusterExport(NULL, c('n_nodes', 'MRF_mod', 'data'),
                   envir = environment())
 
-    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                                                 MRF_mod$intercepts[i]))
-    }
-    ))
+    predictions <- do.call(cbind, pbapply::pblapply(seq_len(n_nodes), function(i){
+      inverse_logit(rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                              NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+                      MRF_mod$intercepts[i])
+    }, cl = cl))
     stopCluster(cl)
 
   } else {
     predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) inverse_logit(sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-                                                 MRF_mod$intercepts[i]))
-    }
-    ))
+      inverse_logit(rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                              NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+                      MRF_mod$intercepts[i])
+    }))
   }
   colnames(predictions) <- node_names
 
@@ -208,22 +220,22 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
   if(parallel_compliant){
     #Export necessary data and variables to each cluster
-    clusterExport(NULL, c('n_nodes', 'MRF_mod'),
+    clusterExport(NULL, c('n_nodes', 'MRF_mod', 'data'),
                   envir = environment())
 
-    predictions <- do.call(cbind, parallel::parLapply(NULL, seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-              MRF_mod$intercepts[i])
-    }
-    ))
+    predictions <- do.call(cbind, pbapply::pblapply(seq_len(n_nodes), function(i){
+      rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+        MRF_mod$intercepts[i]
+    }, cl = cl))
     stopCluster(cl)
 
   } else {
     predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
-      apply(data, 1, function(j) sum(j %*% t(MRF_mod$direct_coefs[i, -1])) +
-              MRF_mod$intercepts[i])
-    }
-    ))
+      rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
+                                NROW(data)), nrow = NROW(data), byrow = TRUE)) +
+        MRF_mod$intercepts[i]
+    }))
   }
   colnames(predictions) <- node_names
 }

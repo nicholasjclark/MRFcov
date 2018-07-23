@@ -20,6 +20,9 @@
 #'@param metric The network metric to be calculated for each observation in \code{data}.
 #'Recognised values are : \code{"degree"}, \code{"eigencentrality"}, or \code{"betweenness"}, or
 #'leave blank to instead return a list of adjacency matrices
+#'@param cached_predictions Use if providing stored predictions from \code{\link{predict_MRF}}
+#'to prevent unneccessary replication. Default is to calculate predictions first and then
+#'calculate network metrics
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
 #'Default is \code{parallel::detect_cores() - 1}
 #'
@@ -51,7 +54,9 @@
 #'
 #'@export
 #'
-predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric, n_cores){
+predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
+                               cached_predictions = NULL,
+                               n_cores){
 
   if(missing(n_cores)){
     n_cores <- parallel::detectCores() - 1
@@ -128,12 +133,20 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric, n_core
 
   # Predict occurrences / abundances using the supplied data and model equations
   if(MRF_mod$mod_family == "binomial"){
+    if(is.null(cached_predictions)){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
                          prep_covariates = FALSE, n_cores = n_cores)$Probability_predictions
+    } else {
+      preds <- cached_predictions$Probability_predictions
+    }
 
   } else {
+    if(is.null(cached_predictions)){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
                          prep_covariates = FALSE, n_cores = n_cores)
+    } else {
+      preds <- cached_predictions
+      }
   }
 
   # Omit zeros from predictions, if specified

@@ -32,7 +32,7 @@ In principle, `MRFcov` models that use species' occurrences or abundances as out
 (3) Estimate how interactions are predicted to change across environmental gradients
   
   
-MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) and [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) packages.  
+MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the  [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package.  
 
 ## Installation
 
