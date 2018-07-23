@@ -746,8 +746,8 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
                                    family = 'binomial'))
 
     if(compare_null){
-      cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      cat("\nGenerating non-spatial model", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data,
                                           symmetrise =  symmetrise,
                                           n_nodes = n_nodes,
                                           n_cores = n_cores,
@@ -757,14 +757,14 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
 
   if(family == 'poisson'){
     mrf <- suppressWarnings(MRFcov_spatial(data = data, coords = coords,
-                                   symmetrise =  symmetrise,
+                                   symmetrise = symmetrise,
                                    n_nodes = n_nodes,
                                    n_cores = n_cores,
                                    family = 'poisson'))
 
     if(compare_null){
-      cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      cat("\nGenerating non-spatial model", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data,
                                           symmetrise =  symmetrise,
                                           n_nodes = n_nodes,
                                           n_cores = n_cores,
@@ -780,8 +780,8 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
                                    family = 'gaussian'))
 
     if(compare_null){
-      cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      cat("\nGenerating non-spatial model", "\n", sep = "")
+      mrf_null <- suppressWarnings(MRFcov(data = data,
                                           symmetrise =  symmetrise,
                                           n_nodes = n_nodes,
                                           n_cores = n_cores,
@@ -803,7 +803,7 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
                                                        cached_model$mrf))
   if(compare_null){
     cat("Generating null MRF predictions ...", "\n", sep = "")
-    cached_predictions$null_predictions <- predict_MRF(data[, 1:n_nodes], cached_model$mrf_null)
+    cached_predictions$null_predictions <- predict_MRF(data, cached_model$mrf_null)
   }
 
   #### Replicate cv_MRF_diag n_fold_runs times, using the cached models in each run ####

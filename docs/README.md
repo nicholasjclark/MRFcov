@@ -20,7 +20,7 @@ In principle, `MRFcov` models that use species' occurrences or abundances as out
 
 3.  Estimate how interactions are predicted to change across environmental gradients
 
-MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [penalized](https://cran.r-project.org/web/packages/penalized/index.html) and [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) packages.
+MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package.
 
 Installation
 ------------
@@ -61,8 +61,9 @@ Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Her
 
 ``` r
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
-#> Warning in MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial"): fixed_lambda not provided. Cross-validated optimisation will commence by default,
-#>             ignoring lambda1
+#> Leave-one-out cv used for the following low-occurrence (rare) nodes:
+#>  Microfilaria ...
+#> Fitting MRF models in sequence using 1 core ...
 ```
 
 Visualise the estimated species interaction coefficients as a heatmap. These represent mean interactions and are very useful for identifying co-occurrence patterns, but they do not indicate how interactions change across gradients. Note, for binary data such as this, we can also plot the observed occurrences and co-occurrences using `plot_observed_vals = TRUE`
@@ -89,39 +90,41 @@ Finally, we can explore regression coefficients to get a better understanding of
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.66531864        -2.3064326 -2.3064326
-#> 5 scale.prop.zos_Microfilaria     0.12266333        -0.9903377 -0.9903377
-#> 3                Microfilaria     0.10575006         0.9195307  0.9195307
-#> 4              scale.prop.zos     0.09101689        -0.8530744 -0.8530744
-#> 2                        Plas     0.01244536        -0.3154493 -0.3154493
+#> 1                  Hkillangoi     0.62504984        -3.2263721 -3.2263721
+#> 4   scale.prop.zos_Hkillangoi     0.18657618         1.7627277  1.7627277
+#> 5 scale.prop.zos_Microfilaria     0.07442143        -1.1132844 -1.1132844
+#> 3              scale.prop.zos     0.05546258        -0.9610748 -0.9610748
+#> 2                Microfilaria     0.04907460         0.9040355  0.9040355
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
-#>         Variable Rel_importance Standardised_coef   Raw_coef
-#> 1    Hzosteropis     0.76638826        -2.3064326 -2.3064326
-#> 2   Microfilaria     0.13876154        -0.9814109 -0.9814109
-#> 3 scale.prop.zos     0.09482683        -0.8113009 -0.8113009
+#>                     Variable Rel_importance Standardised_coef   Raw_coef
+#> 1                Hzosteropis     0.68999235        -3.2263721 -3.2263721
+#> 4 scale.prop.zos_Hzosteropis     0.20596139         1.7627277  1.7627277
+#> 2               Microfilaria     0.06171491        -0.9649112 -0.9649112
+#> 3             scale.prop.zos     0.04233025        -0.7991306 -0.7991306
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.64897980         1.5278142  1.5278142
-#> 3              scale.prop.zos     0.26991953        -0.9853082 -0.9853082
-#> 4 scale.prop.zos_Microfilaria     0.04715223         0.4118187  0.4118187
-#> 1                 Hzosteropis     0.02766618        -0.3154493 -0.3154493
+#> 2                Microfilaria     0.64497947         1.5148566  1.5148566
+#> 3              scale.prop.zos     0.26327804        -0.9678452 -0.9678452
+#> 5 scale.prop.zos_Microfilaria     0.04766668         0.4118187  0.4118187
+#> 1                 Hzosteropis     0.03267334        -0.3409536 -0.3409536
+#> 4  scale.prop.zos_Hzosteropis     0.01139782        -0.2013768 -0.2013768
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas     0.35668971         1.5278142  1.5278142
-#> 4             scale.prop.zos     0.19113755        -1.1184028 -1.1184028
-#> 5 scale.prop.zos_Hzosteropis     0.14987048        -0.9903377 -0.9903377
-#> 2                 Hkillangoi     0.14718085        -0.9814109 -0.9814109
-#> 1                Hzosteropis     0.12920579         0.9195307  0.9195307
-#> 6        scale.prop.zos_Plas     0.02591562         0.4118187  0.4118187
+#> 3                       Plas     0.34235551         1.5148566  1.5148566
+#> 4             scale.prop.zos     0.18660822        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.18490410        -1.1132844 -1.1132844
+#> 2                 Hkillangoi     0.13890216        -0.9649112 -0.9649112
+#> 1                Hzosteropis     0.12192851         0.9040355  0.9040355
+#> 6        scale.prop.zos_Plas     0.02530151         0.4118187  0.4118187
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method

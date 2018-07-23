@@ -52,23 +52,6 @@ data("Bird.parasites")
 #  MRF_mod$key_coefs$Hzosteropis
 
 ## ----eval = FALSE--------------------------------------------------------
-#  cv.preds <- cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
-#                              n_cores = 3, family = 'binomial',
-#                              compare_null = TRUE,
-#                              plot = FALSE, n_fold_runs = 10)
-
-## ----eval = FALSE--------------------------------------------------------
-#  library(ggplot2)
-#  gridExtra::grid.arrange(
-#    ggplot(data = cv.preds, aes(y = mean_sensitivity, x = model)) +
-#      geom_boxplot() + theme(axis.text.x = ggplot2::element_blank()) +
-#      labs(x = ''),
-#    ggplot(data = cv.preds, aes(y = mean_tot_pred, x = model)) +
-#      geom_boxplot(),
-#    ncol = 1,
-#    heights = c(1, 1))
-
-## ----eval = FALSE--------------------------------------------------------
 #  fake.dat <- Bird.parasites
 #  fake.dat$Microfilaria <- rbinom(nrow(Bird.parasites), 1, 0.8)
 #  fake.preds <- predict_MRF(data = fake.dat, MRF_mod = MRF_mod)
@@ -78,14 +61,12 @@ data("Bird.parasites")
 #  Plas.pred.prev <- sum(fake.preds$Binary_predictions[, 'Plas']) / nrow(fake.preds$Binary_predictions)
 #  Plas.pred.prev
 
-## ----eval=FALSE----------------------------------------------------------
-#  cv_MRF_diag(data = Bird.parasites, fixed_lambda = TRUE, min_lambda1 = 0.5, max_lambda1 = 2, by_lambda1 = 0.1, n_nodes = 4, family = 'binomial', n_cores = 3)
+## ----eval = FALSE--------------------------------------------------------
+#  cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
+#              n_cores = 3, family = 'binomial', plot = T, compare_null = T)
 
 ## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 50, fixed_lambda = TRUE, min_lambda1 = 0.5, max_lambda1 = 1.5, by_lambda1 = 0.1, n_cores = 3)
-
-## ----eval=FALSE----------------------------------------------------------
-#  plotMRF_hm(MRF_mod = booted_MRF)
+#  booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 25, n_cores = 3)
 
 ## ----eval=FALSE----------------------------------------------------------
 #  booted_MRF$mean_key_coefs$Hzosteropis
@@ -98,4 +79,21 @@ data("Bird.parasites")
 
 ## ----eval=FALSE----------------------------------------------------------
 #  booted_MRF$mean_key_coefs$Microfilaria
+
+## ----eval = FALSE--------------------------------------------------------
+#  Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
+#  Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
+#  coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
+
+## ----eval = FALSE--------------------------------------------------------
+#  CRFmod_spatial <- MRFcov_spatial(data = Bird.parasites, n_nodes = 4,
+#                                   family = 'binomial', coords = coords)
+
+## ----eval = FALSE--------------------------------------------------------
+#  CRFmod_spatial$key_coefs$Hzosteropis
+
+## ----eval = FALSE--------------------------------------------------------
+#  cv_MRF_diag_rep_spatial(data = Bird.parasites, n_nodes = 4,
+#                          n_cores = 3, family = 'binomial', plot = T, compare_null = T,
+#                          coords = coords)
 
