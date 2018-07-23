@@ -4,18 +4,12 @@
 \alias{MRFcov}
 \title{Markov Random Fields with covariates}
 \usage{
-MRFcov(data, lambda1, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, fixed_lambda, bootstrap = FALSE)
+MRFcov(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
+  family, fixed_lambda, bootstrap = FALSE)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
 left-most variables are variables that are to be represented by nodes in the graph}
-
-\item{lambda1}{Positve numeric. If \code{fixed_lambda = TRUE}, this value is used as the
-l1−regularization parameter for all node specific regressions. If \code{fixed_lambda = FALSE},
-this value is ignored and penalization parameters are optimized automatially, using
-coordinated gradient descent to minimize cross-validated error.
-See \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1} optimisation}
 
 \item{symmetrise}{The method to use for symmetrising corresponding parameter estimates
 (which are taken from separate regressions). Options are \code{min} (take the coefficient with the
@@ -44,12 +38,6 @@ non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{fam
 If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
 of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
 estimate occurrence probabilities, and so the function will return an error message.}
-
-\item{fixed_lambda}{Logical. If \code{FALSE}, node-specific regressions are optimized using the
-cross-validation procedure in \code{\link[glmnet]{cv.glmnet}} to find the \code{lambda1} value
-that minimises mean cross-validated error. If \code{TRUE}, each regression is run
-at a single \code{lambda1} value (the same \code{lambda1} value is used for each separate
-regression). Default is \code{FALSE}}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
 }

@@ -1,7 +1,7 @@
 #'Predict training observations from fitted MRFcov models
 #'
 #'This function calculates linear predictors for node observations
-#'using equations from a \code{\link{MRFcov}}.
+#'using coefficients from an \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} object.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
 #'
@@ -9,7 +9,7 @@
 #'left-most variables are binary occurrences to be represented by nodes in the graph.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
 #'was used to fit the \code{MRF_mod}
-#'@param MRF_mod A fitted \code{\link{MRFcov}} model object
+#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}}model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
@@ -22,7 +22,8 @@
 #'
 #'@details Observations for nodes in \code{data} are predicted using linear predictions
 #'from \code{MRF_mod}. If \code{family = "binomial"}, a second element containing binary
-#'predictions for nodes is returned.
+#'predictions for nodes is returned. Note that predicting values for unobserved locations using a
+#'spatial MRF is not currently supported
 #'
 #'@references Clark, NJ, Wells, K and Lindberg, O.
 #'Unravelling changing interspecific interactions across environmental gradients
@@ -42,7 +43,18 @@
 #'predictions <- predict_MRF(data = prepped_pred, MRF_mod = CRFmod)
 #'
 #'# Visualise predicted occurrences for nodes in the test set
-#'predictions$Binary_predictions}
+#'predictions$Binary_predictions
+#'
+#'# Predicting spatial MRFs requires the user to supply the spatially augmented dataset
+#'data("Bird.parasites")
+#'Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
+#'Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
+#'coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
+#'CRFmod_spatial <- MRFcov_spatial(data = Bird.parasites, n_nodes = 4,
+#'                                 family = 'binomial', coords = coords)
+#'predictions <- predict_MRF(data = CRFmod_spatial$mrf_data,
+#'                           prep_covariates  = FALSE,
+#'                           MRF_mod = CRFmod_spatial)}
 #'
 #'@export
 #'

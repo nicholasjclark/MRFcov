@@ -1,8 +1,8 @@
 Package: MRFcov
 Type: Package
 Title: Markov Random Fields with additional covariates 
-Version: 1.0.32
-Date/Publication: 2018-27-06
+Version: 1.0.33
+Date/Publication: 2018-23-07
 URL: https://github.com/nicholasjclark/MRFcov
 Authors@R: c(
     person("Nicholas J", "Clark", email = "nicholas.j.clark1214@gmail.com", role = c("aut", "cre")),
@@ -13,7 +13,7 @@ Description: Approximate node interaction parameters of undirected Markov Random
     graphs. Models can incorporate additional covariates, allowing users to estimate
     how interactions between nodes in the graph are predicted to change across
     covariate gradients.
-Depends: R (>= 3.3.3), penalized, glmnet
+Depends: R (>= 3.3.3), glmnet
 Imports: purrr,
     parallel,
     plyr,
@@ -27,7 +27,8 @@ Imports: purrr,
     sfsmisc,
     igraph,
     grDevices,
-    pbapply
+    pbapply,
+    mgcv
 Remotes: davharris/rosalia
 License: GPL-3.0+
 Encoding: UTF-8
