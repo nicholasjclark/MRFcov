@@ -5,7 +5,7 @@
 \title{Bootstrap observations to estimate MRF parameter coefficients}
 \usage{
 bootstrap_MRF(data, n_bootstraps, sample_seed, symmetrise, n_nodes, n_cores,
-  n_covariates, family, spatial = FALSE, coords = NULL)
+  n_covariates, family, sample_prop, spatial = FALSE, coords = NULL)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}
@@ -39,6 +39,9 @@ before cross-multiplication. Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}
+
+\item{sample_prop}{Positive probability value indicating the proportion of rows to sample from
+\code{data} in each bootstrap iteration. Default is no subsampling (\code{sample_prop == 1})}
 
 \item{spatial}{Logical. If \code{TRUE}, spatial MRF / CRF models are bootstrapped using
 \code{\link{MRFcov_spatial}}. Note, GPS coordinates must be supplied as \code{coords} for spatial
@@ -88,8 +91,8 @@ to perform in order to facilitate optimal parallel computing.
 \details{
 \code{MRFcov} models are fit via cross-validation using
 \code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
-by shuffling row observations and fitting models to only 90 percent of observations,
-using \code{dplyr::sample_n(data, nrow(data) * 0.9, FALSE)},
+by shuffling row observations and fitting models to a subset of observations,
+using \code{dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)},
 to account for uncertainty in parameter estimates.
 Parameter estimates from the set of bootstrapped models are summarised
 to present means and confidence intervals.
@@ -104,7 +107,6 @@ bootedCRF <- bootstrap_MRF(data = Bird.parasites,
                           family = 'binomial',
                           n_cores = 3)
 
-                          data("Bird.parasites")
 
 # Using spatial coordinates for a spatial CRF
 Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
