@@ -12,7 +12,8 @@
 #'@param MRF_mod A fitted \code{MRFcov} or \code{bootstrap_MRF} object
 #'@param cutoff Single numeric value specifying the linear prediction threshold. Species whose
 #'linear prediction is below this level for a given observation in \code{data} will be
-#'considered absent, meaning they cannot participate in community networks. Default is \code{0}
+#'considered absent, meaning they cannot participate in community networks.
+#'Default is \code{0.5} for \code{family == 'binomial'} or \code{0} for other families
 #'@param omit_zeros Logical. If \code{TRUE}, each species will not be considered to
 #'participate in community networks for observations in which that species was not observed
 #'in \code{data}. If \code{FALSE}, the species is still considered to have possibly occurred, based
@@ -23,6 +24,9 @@
 #'@param cached_predictions Use if providing stored predictions from \code{\link{predict_MRF}}
 #'to prevent unneccessary replication. Default is to calculate predictions first and then
 #'calculate network metrics
+#'@param prep_covariates Logical flag stating whether to prep the dataset
+#'by cross-multiplication (\code{TRUE} by default; use \code{FALSE} for predicting
+#'networks from \code{\link{MRFcov_spatial}} objects)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
 #'Default is \code{parallel::detect_cores() - 1}
 #'
@@ -55,7 +59,7 @@
 #'@export
 #'
 predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
-                               cached_predictions = NULL,
+                               cached_predictions = NULL, prep_covariates,
                                n_cores){
 
   if(missing(n_cores)){
@@ -98,6 +102,10 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
     plot_booted_coefs <- TRUE
   }
 
+  if(missing(prep_covariates)){
+    prep_MRF_covariates <- TRUE
+  }
+
   if(plot_booted_coefs){
     n_nodes <- nrow(MRF_mod$direct_coef_means)
 
@@ -108,10 +116,14 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
     MRF_mod_booted$direct_coefs <- MRF_mod$direct_coef_means
     MRF_mod_booted$mod_family <- MRF_mod$mod_family
     MRF_mod_booted$mod_type <- 'MRFcov'
-    for(i in seq_along(MRF_mod$indirect_coef_mean)){
-      MRF_mod_booted$indirect_coefs[[i]] <- list(MRF_mod$indirect_coef_mean[[i]],"")[1]
+    if(length(MRF_mod$indirect_coefs) > 0){
+      for(i in seq_along(MRF_mod$indirect_coef_mean)){
+        MRF_mod_booted$indirect_coefs[[i]] <- list(MRF_mod$indirect_coef_mean[[i]],"")[1]
+        }
+      names(MRF_mod_booted$indirect_coefs) <- names(MRF_mod$indirect_coef_mean)
+    } else {
+      MRF_mod_booted$indirect_coefs <- NULL
     }
-    names(MRF_mod_booted$indirect_coefs) <- names(MRF_mod$indirect_coef_mean)
 
   } else {
     # If not using a bootstrapMRF object, use the suppled MRFcov object instead
@@ -120,10 +132,14 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   }
 
   #### Calculate linear predictions for each species in the supplied data ####
-  pred.dat <- data
-
   # Prep the data for MRF prediction
-  pred.prepped.dat <- prep_MRF_covariates(pred.dat, n_nodes)
+  if(prep_covariates){
+    pred.dat <- data
+    pred.prepped.dat <- prep_MRF_covariates(pred.dat, n_nodes)
+
+  } else {
+    pred.prepped.dat <- data
+  }
 
   # Check that names of supplied data and names from the fitted MRF object match
   if(!isTRUE(all.equal(colnames(MRF_mod_booted$direct_coefs)[-1], colnames(pred.prepped.dat)))){
@@ -161,7 +177,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   base.interactions <- MRF_mod_booted$graph
 
   # If covariates exist, incorporate their modifications to species' interactions
-  if(n_nodes < ncol(data)){
+  if(length(MRF_mod$indirect_coefs) > 0){
     total.interactions <- lapply(seq_len(nrow(data)), function(x){
       cov.mods <- list()
       for(i in seq_len(ncol(data) - n_nodes)){

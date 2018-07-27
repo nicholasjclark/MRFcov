@@ -48,7 +48,8 @@
 #'
 #'@return A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
 #'the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains the spatial regression
-#'splines, and should be used when generating predictions via \code{\link{predict_MRF}}
+#'splines, and should be used as \code{data} when generating predictions
+#'via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
 #'
 #'@seealso See \code{\link[mgcv]{smooth.construct2}} and \code{\link[mgcv]{smooth.construct.gp.smooth.spec}}
 #'for details of Gaussian process spatial regression splines

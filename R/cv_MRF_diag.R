@@ -22,8 +22,10 @@
 #'@param n_cores Positive integer. The number of cores to spread the job across using
 #'\code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)
 #'@param n_folds Integer. The number of folds for cross-validation. Default is 10
-#'@param n_fold_runs Integer. The number of total training runs to perform at each
-#'l1 regularization parameter. Defaults to \code{n_folds}
+#'@param n_fold_runs Integer. The number of total training runs to perform. During
+#'each run, the data will be splie into \code{n_folds} folds and the
+#'observed data in each fold will be compared to thei respective predictions.
+#'Defaults to \code{n_folds}
 #'@param sample_seed Numeric. This seed will be used as the basis
 #'for dividing data into folds. Default is a random seed
 #'between 1 and 100000
