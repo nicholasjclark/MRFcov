@@ -37,9 +37,15 @@
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-#'are used to create spatial regression splines via the call
-#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = 5), data = coords, knots = NULL)}.
-#'These regression splines will be included in each node-wise regression as unpenalized covariates.
+#'are used to create smoothed spatial regression splines via the call
+#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = max_k), data = coords, knots = NULL)}.
+#'Here, \code{max_k} controls the basis dimension of the smoothed term and
+#'is chosen based on the number of unique GPS coordinates in \code{coords}.
+#'If this number is less than \code{100}, it is used as \code{max_k}, while if it is more than
+#'\code{100}, a \code{max_k} of \code{100} is used (this parameter needs to be large in order
+#'to ensure enough degrees of freedom for estimating 'wiggliness' of the smooth term; see
+#'\code{\link[mgcv]{choose.k}} for details).
+#'These regression splines will be included in each node-wise regression as additional penalized covariates.
 #'This ensures that resulting node interaction parameters are estimated after accounting for
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -247,21 +253,32 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     colnames(coords) <- c('Latitude', 'Longitude')
   }
 
+  # Determine dimension basis for the spatial smooth term
+  # (needs to be sufficiently large for appropriate effective degrees of freedom)
+  if(length(unique(coords$Latitude,
+                   coords$Longitude)) < 100){
+    max_k <- length(unique(coords$Latitude,
+                           coords$Longitude))
+  } else {
+    max_k <- 100
+  }
+
   spat <- mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude,
-                                             bs = "gp", k = 5),
+                                             bs = "gp",
+                                             k = max_k),
                                   data = coords, knots = NULL)
   spat.splines <- as.data.frame(spat$X)
-  colnames(spat.splines) <- paste0('Spatial', seq(1:5))
+  colnames(spat.splines) <- paste0('Spatial', seq(1:max_k))
 
   # Scale spatial splines and remove any with sd == 0
   spat.splines %>%
     dplyr::mutate_all(dplyr::funs(as.vector(scale(.)))) %>%
     dplyr::select_if( ~ sum(!is.na(.)) > 0) -> spat.splines
 
-  # Add spatial splines to predictors but set their penalties to zero
+  # Add spatial splines to predictors; add penalty values
   mrf_data <- cbind(mrf_data, spat.splines)
   mrf_data <- as.matrix(mrf_data)
-  penalties <- c(penalties, rep(0, ncol(spat.splines)))
+  penalties <- c(penalties, rep(1, ncol(spat.splines)))
 
   #### Extract sds of variables for later back-conversion of coefficients ####
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
