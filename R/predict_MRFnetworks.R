@@ -180,7 +180,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   if(length(MRF_mod$indirect_coefs) > 0){
     total.interactions <- lapply(seq_len(nrow(data)), function(x){
       cov.mods <- list()
-      for(i in seq_len(ncol(data) - n_nodes)){
+      for(i in seq_along(MRF_mod_booted$indirect_coefs)){
         cov.mods[[i]] <- MRF_mod_booted$indirect_coefs[[i]][[1]] *
           as.numeric(data[x , (n_nodes + i)])
       }
