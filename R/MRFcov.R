@@ -205,17 +205,11 @@ MRFcov <- function(data, symmetrise,
   # to leave-one-out cv
   if(family == 'binomial'){
 
-    # Issue error if any nodes are too rare or too common for analysis to proceed
-    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05) & nrow(data) < 500){
-      stop(paste('The following are too rare (occur in < 5% of observations) to estimate occurrence probability:',
-                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)])),
-           call. = FALSE)
-    }
-
-    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025) & nrow(data) < 1000){
-      stop(paste('The following are too rare (occur in < 2.5% of observations) to estimate occurrence probability:',
-                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)])),
-           call. = FALSE)
+    # Issue warnings if any nodes are too rare, errors if too common for analysis to proceed
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)){
+      cat('The following are very rare (occur in < 2.5% of observations); interpret with caution:',
+                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)]),
+          '...\n')
     }
 
     if(any((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)){
@@ -373,13 +367,33 @@ MRFcov <- function(data, symmetrise,
 
       # If errors still persist, may need to feed in the lambda sequence manually
       if(inherits(mod, 'try-error')){
-        mod <- cv.glmnet(x = mrf_data[, -y.vars],
+        mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
                          y = mrf_data[,i], family = family, alpha = 1,
                          nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                          lambda = rev(seq(0.0001, 1, length.out = 100)),
-                         intercept = TRUE, standardize = TRUE, maxit = 55000)
+                         intercept = TRUE, standardize = TRUE, maxit = 55000),
+                   silent = TRUE)
+      }
+
+      # If still getting errors, this is likely a very sparse node. Return
+      # an intercept-only cv.glmnet model instead
+      if(inherits(mod, 'try-error')){
+        zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+        names(zero_coefs) <- colnames(mrf_data[, -y.vars])
+        zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
+        zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
+        glmnet_fit = list(a0 = coef(glm(mrf_data[,i] ~ 1,
+                                      family = family)),
+                          beta = zero_coef_matrix,
+                          lambda = 1)
+        attr(glmnet_fit, 'class') <- c('lognet','glmnet')
+        mod <- list(lambda = 1, glmnet.fit = glmnet_fit,
+                       lambda.min = 1)
+        attr(mod, 'class') <- 'cv.glmnet'
+
       }
       mod
+
     }, cl = cl)
     stopCluster(cl)
 
@@ -403,11 +417,28 @@ MRFcov <- function(data, symmetrise,
       }
 
       if(inherits(mod, 'try-error')){
-        mod <- cv.glmnet(x = mrf_data[, -y.vars],
+        mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
                          y = mrf_data[,i], family = family, alpha = 1,
                          nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                          lambda = rev(seq(0.0001, 1, length.out = 100)),
-                         intercept = TRUE, standardize = TRUE, maxit = 55000)
+                         intercept = TRUE, standardize = TRUE, maxit = 55000),
+                   silent = TRUE)
+      }
+
+      if(inherits(mod, 'try-error')){
+        zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+        names(zero_coefs) <- colnames(mrf_data[, -y.vars])
+        zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
+        zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
+        glmnet_fit = list(a0 = coef(glm(mrf_data[,i] ~ 1,
+                                        family = family)),
+                          beta = zero_coef_matrix,
+                          lambda = 1)
+        attr(glmnet_fit, 'class') <- c('lognet','glmnet')
+        mod <- list(lambda = 1, glmnet.fit = glmnet_fit,
+                    lambda.min = 1)
+        attr(mod, 'class') <- 'cv.glmnet'
+
       }
       mod
     })
