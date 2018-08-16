@@ -4,7 +4,7 @@
 #'This function calls the \code{\link{MRFcov}} function to fit
 #'separate penalized regressions for each node and approximate parameters of
 #'Markov Random Fields (MRF) graphs. Supplied GPS coordinates are used to
-#'account for spatial autocorrelation via unpenalized Gaussian Process spatial regression
+#'account for spatial autocorrelation via Gaussian Process spatial regression
 #'splines.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
@@ -31,15 +31,24 @@
 #'Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
-#'If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
-#'of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
-#'estimate occurrence probabilities, and so the function will return an error message.
+#'If using (\code{family = "binomial"}), please note that if nodes occur in less than 5 percent
+#'of observations this can make it generally difficult to
+#'estimate occurrence probabilities (on the extreme end, this can result in intercept-only
+#'models being fitted for the nodes in question). The function will issue a warning in this case.
+#'If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
+#'step will generally be unable to proceed.
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-#'are used to create spatial regression splines via the call
-#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = 5), data = coords, knots = NULL)}.
-#'These regression splines will be included in each node-wise regression as unpenalized covariates.
+#'are used to create smoothed spatial regression splines via the call
+#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = max_k), data = coords, knots = NULL)}.
+#'Here, \code{max_k} controls the basis dimension of the smoothed term and
+#'is chosen based on the number of unique GPS coordinates in \code{coords}.
+#'If this number is less than \code{100}, it is used as \code{max_k}, while if it is more than
+#'\code{100}, a \code{max_k} of \code{100} is used (this parameter needs to be large in order
+#'to ensure enough degrees of freedom for estimating 'wiggliness' of the smooth term; see
+#'\code{\link[mgcv]{choose.k}} for details).
+#'These regression splines will be included in each node-wise regression as additional penalized covariates.
 #'This ensures that resulting node interaction parameters are estimated after accounting for
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -47,8 +56,10 @@
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
-#'the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains the spatial regression
-#'splines, and should be used when generating predictions via \code{\link{predict_MRF}}
+#'the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains all prepped covariates
+#'including the added spatial regression
+#'splines, and should be used as \code{data} when generating predictions
+#'via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
 #'
 #'@seealso See \code{\link[mgcv]{smooth.construct2}} and \code{\link[mgcv]{smooth.construct.gp.smooth.spec}}
 #'for details of Gaussian process spatial regression splines
@@ -169,17 +180,11 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   # to leave-one-out cv
   if(family == 'binomial'){
 
-    # Issue error if any nodes are too rare or too common for analysis to proceed
-    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05) & nrow(data) < 500){
-      stop(paste('The following are too rare (occur in < 5% of observations) to estimate occurrence probability:',
-                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)])),
-           call. = FALSE)
-    }
-
-    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025) & nrow(data) < 1000){
-      stop(paste('The following are too rare (occur in < 2.5% of observations) to estimate occurrence probability:',
-                 colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)])),
-           call. = FALSE)
+    # Issue warnings if any nodes are too rare, errors if too common for analysis to proceed
+    if(any((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.025)){
+      cat('The following are very rare (occur in < 2.5% of observations); interpret with caution:',
+          colnames(data[ , 1:n_nodes][which((colSums(data[, 1:n_nodes]) / nrow(data)) < 0.05)]),
+          '...\n')
     }
 
     if(any((colSums(data[, 1:n_nodes]) / nrow(data)) > 0.95)){
@@ -246,21 +251,32 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     colnames(coords) <- c('Latitude', 'Longitude')
   }
 
+  # Determine dimension basis for the spatial smooth term
+  # (needs to be sufficiently large for appropriate effective degrees of freedom)
+  if(length(unique(coords$Latitude,
+                   coords$Longitude)) < 100){
+    max_k <- length(unique(coords$Latitude,
+                           coords$Longitude))
+  } else {
+    max_k <- 100
+  }
+
   spat <- mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude,
-                                             bs = "gp", k = 5),
+                                             bs = "gp",
+                                             k = max_k),
                                   data = coords, knots = NULL)
   spat.splines <- as.data.frame(spat$X)
-  colnames(spat.splines) <- paste0('Spatial', seq(1:5))
+  colnames(spat.splines) <- paste0('Spatial', seq(1:max_k))
 
   # Scale spatial splines and remove any with sd == 0
   spat.splines %>%
     dplyr::mutate_all(dplyr::funs(as.vector(scale(.)))) %>%
     dplyr::select_if( ~ sum(!is.na(.)) > 0) -> spat.splines
 
-  # Add spatial splines to predictors but set their penalties to zero
+  # Add spatial splines to predictors; add penalty values
   mrf_data <- cbind(mrf_data, spat.splines)
   mrf_data <- as.matrix(mrf_data)
-  penalties <- c(penalties, rep(0, ncol(spat.splines)))
+  penalties <- c(penalties, rep(1, ncol(spat.splines)))
 
   #### Extract sds of variables for later back-conversion of coefficients ####
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
@@ -358,11 +374,30 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
         }
 
         if(inherits(mod, 'try-error')){
-          mod <- cv.glmnet(x = mrf_data[, -y.vars],
+          mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
                            y = mrf_data[,i], family = family, alpha = 1,
                            nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
-                           intercept = TRUE, standardize = TRUE, maxit = 55000)
+                           intercept = TRUE, standardize = TRUE, maxit = 55000),
+                     silent = TRUE)
+        }
+
+        # If still getting errors, this is likely a very sparse node. Return
+        # an intercept-only cv.glmnet model instead
+        if(inherits(mod, 'try-error')){
+          zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+          names(zero_coefs) <- colnames(mrf_data[, -y.vars])
+          zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
+          zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
+          glmnet_fit = list(a0 = coef(glm(mrf_data[,i] ~ 1,
+                                          family = family)),
+                            beta = zero_coef_matrix,
+                            lambda = 1)
+          attr(glmnet_fit, 'class') <- c('lognet','glmnet')
+          mod <- list(lambda = 1, glmnet.fit = glmnet_fit,
+                      lambda.min = 1)
+          attr(mod, 'class') <- 'cv.glmnet'
+
         }
         mod
       }, cl = cl)
@@ -391,11 +426,28 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
         }
 
         if(inherits(mod, 'try-error')){
-          mod <- cv.glmnet(x = mrf_data[, -y.vars],
+          try(mod <- cv.glmnet(x = mrf_data[, -y.vars],
                            y = mrf_data[,i], family = family, alpha = 1,
                            nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
-                           intercept = TRUE, standardize = TRUE, maxit = 55000)
+                           intercept = TRUE, standardize = TRUE, maxit = 55000),
+              silent = TRUE)
+        }
+
+        if(inherits(mod, 'try-error')){
+          zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+          names(zero_coefs) <- colnames(mrf_data[, -y.vars])
+          zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
+          zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
+          glmnet_fit = list(a0 = coef(glm(mrf_data[,i] ~ 1,
+                                          family = family)),
+                            beta = zero_coef_matrix,
+                            lambda = 1)
+          attr(glmnet_fit, 'class') <- c('lognet','glmnet')
+          mod <- list(lambda = 1, glmnet.fit = glmnet_fit,
+                      lambda.min = 1)
+          attr(mod, 'class') <- 'cv.glmnet'
+
         }
         mod
       })

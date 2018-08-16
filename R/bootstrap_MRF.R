@@ -33,6 +33,8 @@
 #'before cross-multiplication. Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
+#'@param sample_prop Positive probability value indicating the proportion of rows to sample from
+#'\code{data} in each bootstrap iteration. Default is no subsampling (\code{sample_prop == 1})
 #'@param spatial Logical. If \code{TRUE}, spatial MRF / CRF models are bootstrapped using
 #'\code{\link{MRFcov_spatial}}. Note, GPS coordinates must be supplied as \code{coords} for spatial
 #'models to be run
@@ -74,8 +76,8 @@
 #'
 #'@details \code{MRFcov} models are fit via cross-validation using
 #'\code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
-#'by shuffling row observations and fitting models to only 90 percent of observations,
-#'using \code{dplyr::sample_n(data, nrow(data) * 0.9, FALSE)},
+#'by shuffling row observations and fitting models to a subset of observations,
+#'using \code{dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)},
 #'to account for uncertainty in parameter estimates.
 #'Parameter estimates from the set of bootstrapped models are summarised
 #'to present means and confidence intervals.
@@ -90,7 +92,6 @@
 #'                           family = 'binomial',
 #'                           n_cores = 3)
 #'
-#'                           data("Bird.parasites")
 #'
 #'# Using spatial coordinates for a spatial CRF
 #'Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
@@ -105,6 +106,7 @@
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
                           n_nodes, n_cores, n_covariates, family,
+                          sample_prop,
                           spatial = FALSE,
                           coords = NULL){
 
@@ -199,16 +201,20 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     }
   }
 
+  if(n_covariates > 0){
   if(any(is.na(data[,(n_nodes + 1):ncol(data)]))){
     warning('NAs detected in covariate columns. These will be imputed from rnorm(mean=0,sd=1)',
             call. = FALSE)
-    nas_present = TRUE
+    nas_present <- TRUE
   } else {
-    nas_present = FALSE
-    }
+    nas_present <- FALSE
+  }
+  } else {
+    nas_present <- FALSE
+  }
 
   if(nrow(data) < 2){
-    ('The data must have at least 2 rows')
+    stop('The data must have at least 2 rows')
   }
 
   if(any(!(apply(data, 2, class) %in% c('numeric', 'integer')))){
@@ -235,8 +241,16 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   }
 
   #### Function to randomly sample rows for each bootstrap replicate ####
+  if(missing(sample_prop)){
+    sample_prop <- 1
+  }
+
+  if(sample_prop < 0.1 || sample_prop > 1){
+    stop('sample_prop must be a proportion ranging from 0.1 to 1')
+  }
+
   shuffle_rows <- function(empty){
-    dplyr::sample_n(data, nrow(data) * 0.9, FALSE)
+    dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)
   }
 
   #### Function to impute covariate NAs from normal distribution (mean = 0; sd = 1) ####
@@ -253,7 +267,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   if(spatial){
 
     shuffle_rows <- function(empty){
-      row_indices <- sample(seq_len(nrow(coords)), nrow(coords) * .9, FALSE)
+      row_indices <- sample(seq_len(nrow(coords)), nrow(coords) * sample_prop, FALSE)
       data <- data[row_indices, ]
       coords <- coords[row_indices, ]
       list(data = data, coords = coords)

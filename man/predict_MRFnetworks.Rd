@@ -5,7 +5,7 @@
 \title{Extract predicted network metrics for observations in a given dataset}
 \usage{
 predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric,
-  cached_predictions = NULL, n_cores)
+  cached_predictions = NULL, prep_covariates, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
@@ -17,7 +17,8 @@ was used to fit the \code{MRF_mod}}
 
 \item{cutoff}{Single numeric value specifying the linear prediction threshold. Species whose
 linear prediction is below this level for a given observation in \code{data} will be
-considered absent, meaning they cannot participate in community networks. Default is \code{0}}
+considered absent, meaning they cannot participate in community networks.
+Default is \code{0.5} for \code{family == 'binomial'} or \code{0} for other families}
 
 \item{omit_zeros}{Logical. If \code{TRUE}, each species will not be considered to
 participate in community networks for observations in which that species was not observed
@@ -31,6 +32,10 @@ leave blank to instead return a list of adjacency matrices}
 \item{cached_predictions}{Use if providing stored predictions from \code{\link{predict_MRF}}
 to prevent unneccessary replication. Default is to calculate predictions first and then
 calculate network metrics}
+
+\item{prep_covariates}{Logical flag stating whether to prep the dataset
+by cross-multiplication (\code{TRUE} by default; use \code{FALSE} for predicting
+networks from \code{\link{MRFcov_spatial}} objects)}
 
 \item{n_cores}{Positive integer stating the number of processing cores to split the job across.
 Default is \code{parallel::detect_cores() - 1}}

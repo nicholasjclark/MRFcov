@@ -132,8 +132,8 @@ Plas.pred.prev</code></pre></div>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">cv_MRF_diag_rep</span>(<span class="dt">data =</span> Bird.parasites, <span class="dt">n_nodes =</span> <span class="dv">4</span>,
             <span class="dt">n_cores =</span> <span class="dv">3</span>, <span class="dt">family =</span> <span class="st">'binomial'</span>, <span class="dt">plot =</span> T, <span class="dt">compare_null =</span> T)</code></pre></div>
 </div>
-<div id="bootstrapping-the-data-and-running-models-across-a-range-of-penalization-values" class="section level3">
-<h3>Bootstrapping the data and running models across a range of penalization values</h3>
+<div id="bootstrapping-the-data-and-running-models" class="section level3">
+<h3>Bootstrapping the data and running models</h3>
 <p>We now may want to fit models to bootstrapped subsets of the data to account for parameter uncertainty</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">booted_MRF &lt;-<span class="st"> </span><span class="kw">bootstrap_MRF</span>(<span class="dt">data =</span> Bird.parasites, <span class="dt">n_nodes =</span> <span class="dv">4</span>, <span class="dt">family =</span> <span class="st">'binomial'</span>, <span class="dt">n_bootstraps =</span> <span class="dv">25</span>, <span class="dt">n_cores =</span> <span class="dv">3</span>)</code></pre></div>
 </div>
@@ -147,7 +147,7 @@ Plas.pred.prev</code></pre></div>
 </div>
 <div id="accounting-for-possible-spatial-autocorrelation" class="section level3">
 <h3>Accounting for possible spatial autocorrelation</h3>
-<p>Lastly, <code>MRFcov</code> has the capability to account for possible spatial autocorrelation when estimating interaction parameters. To do this, we incorporate functions from the <code>mgcv</code> package to include unpenalized Gaussian process spatial regression splines as fixed covariates in each node-wise regression. The user must supply a two-column <code>data.frame</code> called <code>coords</code>, which will ideally contain Latitude and Longitude values for each row in <code>data</code>. We don’t have these coordinates for the <code>Bird.parasites</code> dataset, so we will instead create some fake coordinates to showcase the model</p>
+<p>Lastly, <code>MRFcov</code> has the capability to account for possible spatial autocorrelation when estimating interaction parameters. To do this, we incorporate functions from the <code>mgcv</code> package to include smoothed Gaussian process spatial regression splines in each node-wise regression. The user must supply a two-column <code>data.frame</code> called <code>coords</code>, which will ideally contain Latitude and Longitude values for each row in <code>data</code>. We don’t have these coordinates for the <code>Bird.parasites</code> dataset, so we will instead create some fake coordinates to showcase the model</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">Latitude &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">seq</span>(<span class="dv">120</span>, <span class="dv">140</span>, <span class="dt">length.out =</span> <span class="dv">100</span>), <span class="kw">nrow</span>(Bird.parasites), <span class="ot">TRUE</span>)
 Longitude &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">seq</span>(-<span class="dv">19</span>, -<span class="dv">22</span>, <span class="dt">length.out =</span> <span class="dv">100</span>), <span class="kw">nrow</span>(Bird.parasites), <span class="ot">TRUE</span>)
 coords &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Latitude =</span> Latitude, <span class="dt">Longitude =</span> Longitude)</code></pre></div>
