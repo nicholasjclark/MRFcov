@@ -10,28 +10,19 @@ test_that("family must be correctly specified", {
 })
 
 test_that("n_nodes must be a positive integer", {
-expect_success(expect_error(MRFcov(data = Bird.parasites, n_nodes = -1, lambda1 = 0.5,
-                                   fixed_lambda = TRUE,
+expect_success(expect_error(MRFcov(data = Bird.parasites, n_nodes = -1,
                                    family = 'binomial'),
              'Please provide a positive integer for n_nodes'))
 })
 
-test_that("lambdas must be non-negative numeric values", {
-  expect_success(expect_error(MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = -0.5,
-                                     fixed_lambda = TRUE,
-                                     family = 'binomial'),
-                              'Please provide a non-negative numeric value for lambda1'))
-})
 
 test_that("no n_nodes argument should produce a warning", {
-expect_success(expect_warning(MRFcov(data = Bird.parasites[, c(1:4)], lambda1 = 0.5,
-                                     fixed_lambda = TRUE,
+expect_success(expect_warning(MRFcov(data = Bird.parasites[, c(1:4)],
                                      family = 'binomial')))
 })
 
 #### Run a model using the sample data ####
 CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
-                 fixed_lambda = FALSE,
                  family = 'binomial')
 
 test_that("node coefficient graph must be symmetric", {

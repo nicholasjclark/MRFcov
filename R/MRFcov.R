@@ -113,7 +113,7 @@
 #'
 MRFcov <- function(data, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, fixed_lambda, bootstrap = FALSE) {
+                   family, bootstrap = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
