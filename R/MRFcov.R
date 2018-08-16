@@ -31,9 +31,12 @@
 #'Default is \code{ncol(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
-#'If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
-#'of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
-#'estimate occurrence probabilities, and so the function will return an error message.
+#'If using (\code{family = "binomial"}), please note that if nodes occur in less than 5 percent
+#'of observations this can make it generally difficult to
+#'estimate occurrence probabilities (on the extreme end, this can result in intercept-only
+#'models being fitted for the nodes in question). The function will issue a warning in this case.
+#'If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
+#'step will generally be unable to proceed.
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} containing:
@@ -72,10 +75,10 @@
 #'details of cross-validated lambda optimization
 #'
 #'@details Separate penalized regressions are used to approximate
-#'MRF parameters, where the regression for species \code{j} includes an
+#'MRF parameters, where the regression for node \code{j} includes an
 #'intercept and beta coefficients for the abundance (families \code{gaussian} or \code{poisson})
 #'or presence-absence (family \code{binomial}) of all other
-#'species (\code{/j}) in \code{data}. If covariates are included, beta coefficients
+#'nodes (\code{/j}) in \code{data}. If covariates are included, beta coefficients
 #'are also estimated for the effect of the covariate on \code{j} and the
 #'effects of the covariate on interactions between \code{j} and all other species
 #'(\code{/j}). Note that coefficients must be estimated on the same scale in order
