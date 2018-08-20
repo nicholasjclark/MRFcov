@@ -61,7 +61,7 @@
 predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
   if(missing(n_cores)){
-    n_cores <- parallel::detectCores() - 1
+    n_cores <- 1
   }
 
   #### If n_cores > 1, check parallel library loading ####
@@ -110,7 +110,6 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
   } else {
     #If n_cores = 1, set parallel_compliant to FALSE
     parallel_compliant <- FALSE
-    warning('Parallel loading failed')
   }
 
   # If using a bootstrap_MRF model, convert structure to the same as MRFcov models

@@ -133,7 +133,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
 
   #### Calculate linear predictions for each species in the supplied data ####
   # Prep the data for MRF prediction
-  if(prep_covariates){
+  if(prep_MRF_covariates){
     pred.dat <- data
     pred.prepped.dat <- prep_MRF_covariates(pred.dat, n_nodes)
 

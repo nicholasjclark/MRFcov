@@ -30,7 +30,7 @@
 #'
 #'@examples
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, lambda1 = 0.5, family = 'binomial')
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 #'plotMRF_net_cont(data = Bird.parasites, MRF_mod = CRFmod, covariate = 'scale.prop.zos')
 #'
 #'@export
