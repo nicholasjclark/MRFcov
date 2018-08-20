@@ -19,7 +19,7 @@ test_that("n_nodes must be a positive integer", {
 
 #### Run a model using the sample data ####
 booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
-                            n_bootstraps = 5,
+                            n_bootstraps = 3,
                             family = 'binomial')
 
 test_that("all mean indirect coefficient graphs must be symmetric", {

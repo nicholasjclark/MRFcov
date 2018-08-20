@@ -23,8 +23,8 @@
 #'\code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)
 #'@param n_folds Integer. The number of folds for cross-validation. Default is 10
 #'@param n_fold_runs Integer. The number of total training runs to perform. During
-#'each run, the data will be splie into \code{n_folds} folds and the
-#'observed data in each fold will be compared to thei respective predictions.
+#'each run, the data will be split into \code{n_folds} folds and the
+#'observed data in each fold will be compared to their respective predictions.
 #'Defaults to \code{n_folds}
 #'@param sample_seed Numeric. This seed will be used as the basis
 #'for dividing data into folds. Default is a random seed
@@ -41,10 +41,6 @@
 #'unneccessary replication of node-optimised model fitting
 #'@param cached_predictions Used by function \code{\link{cv_MRF_diag_rep}} to store predictions from
 #'optimised models and prevent unneccessary replication
-#'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
-#'a plot containing boxplots of predictive metrics across test sets using the
-#'optimised model (see \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1}
-#'optimisation). If \code{plot = FALSE}, a matrix of prediction metrics is returned.
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation.
@@ -53,6 +49,11 @@
 #'@seealso \code{\link{MRFcov}},
 #'\code{\link{predict_MRF}},
 #'\code{\link[glmnet]{cv.glmnet}}
+#'
+#'@return If \code{plot = TRUE}, a \code{ggplot2} object is returned. This will be
+#'a plot containing boxplots of predictive metrics across test sets using the
+#'optimised model (see \code{\link[glmnet]{cv.glmnet}} for further details of \code{lambda1}
+#'optimisation). If \code{plot = FALSE}, a matrix of prediction metrics is returned.
 #'
 #'@details Node-optimised models are fitted using \code{\link[glmnet]{cv.glmnet}},
 #'and these models is used to predict \code{data} test subsets.
@@ -101,6 +102,23 @@
 #'        geom_boxplot(),
 #'        ncol = 1,
 #'  heights = c(1, 1))
+#'
+#'# Create some sample Poisson data with strong correlations
+#'cov <- rnorm(500, 0.2)
+#'cov2 <- rnorm(500, 4)
+#'sp.2 <- ceiling(rnorm(500, 1)) + (cov * 2)
+#'sp.2[sp.2 < 0] <- 0
+#'poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 1) + cov2 * 1.5),
+#'                        sp.2 = sp.2, sp.3 = (sp.2 * 2) + ceiling(rnorm(500, 0.1)))
+#'poiss.dat[poiss.dat < 0] <- 0
+#'poiss.dat$cov <- cov
+#'poiss.dat$cov2 <- cov2
+#'
+#'# A CRF should produce a better fit (lower deviance, lower MSE)
+#'cvMRF.poiss <- cv_MRF_diag(data = poiss.dat, n_nodes = 3,
+#'                           n_folds = 10,
+#'                           family = 'poisson',
+#'                           compare_null = TRUE, plot = TRUE))
 #'}
 #'
 #'@export
@@ -355,7 +373,7 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
     }
   }
 
-  if(family == 'gaussian' || family == 'poisson'){
+  if(family == 'gaussian'){
     folds <- caret::createFolds(rownames(data), n_folds)
     cv_predictions <- lapply(seq_len(n_folds), function(k){
       test_data <- data[folds[[k]], ]
@@ -411,6 +429,77 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
     }
   }
 
+  if(family == 'poisson'){
+    folds <- caret::createFolds(rownames(data), n_folds)
+    cv_predictions <- lapply(seq_len(n_folds), function(k){
+      test_data <- data[folds[[k]], ]
+      predictions <- predict_MRF(test_data, mrf)
+      Deviance <- vector()
+      MSE <- vector()
+      for(i in seq_len(ncol(predictions))){
+
+         # Deviance for predictions of zero should be zero
+        preds_log <- log(test_data[, i] / predictions[, i])
+        preds_log[is.infinite(preds_log)] <- 0
+        test_data_wzeros <- test_data
+        test_data_wzeros[predictions[, i] == 0, i] <- 0
+        Deviance[i] <- mean(2 * sum(test_data_wzeros[, i] *
+                                      preds_log -
+                                      (test_data_wzeros[, i] - predictions[, i])))
+        MSE[i] <- mean((test_data[, i] - predictions[, i]) ^ 2)
+      }
+      list(Deviance = mean(Deviance, na.rm = T), MSE = mean(MSE, na.rm = T))
+    })
+    plot_dat <- purrr::map_df(cv_predictions, magrittr::extract,
+                              c('Deviance', 'MSE'))
+
+    if(compare_null){
+      cv_predictions_null <- lapply(seq_len(n_folds), function(k){
+        test_data <- data[folds[[k]], 1:n_nodes]
+        predictions <- predict_MRF(test_data, mrf_null)
+        Deviance <- vector()
+        MSE <- vector()
+        for(i in seq_len(ncol(predictions))){
+
+          # Deviance for predictions of zero should be zero
+          preds_log <- log(test_data[, i] / predictions[, i])
+          preds_log[is.infinite(preds_log)] <- 0
+          test_data_wzeros <- test_data
+          test_data_wzeros[predictions[, i] == 0, i] <- 0
+          Deviance[i] <- mean(2 * sum(test_data_wzeros[, i] *
+                                        preds_log -
+                                        (test_data_wzeros[, i] - predictions[, i])))
+          MSE[i] <- mean((test_data[, i] - predictions[, i]) ^ 2)
+        }
+        list(Deviance = mean(Deviance, na.rm = T), MSE = mean(MSE, na.rm = T))
+      })
+      plot_dat_null <- purrr::map_df(cv_predictions_null, magrittr::extract,
+                                     c('Deviance', 'MSE'))
+
+      if(is.null(mod_labels)){
+        plot_dat$model <- 'CRF'
+        plot_dat_null$model <- 'MRF (no covariates)'
+      } else {
+        plot_dat$model <- mod_labels[1]
+        plot_dat_null$model <- mod_labels[2]
+      }
+
+      plot_dat <- rbind(plot_dat, plot_dat_null)
+
+      if(plot){
+        output <- plot_poiss_cv_diag_optim(plot_dat, compare_null = TRUE)
+      } else {
+        output <- plot_dat
+      }
+
+    } else {
+      if(plot){
+        output <- plot_poiss_cv_diag_optim(plot_dat, compare_null = FALSE)
+      } else {
+        output <- plot_dat
+      }
+    }
+  }
   return(output)
 }
 

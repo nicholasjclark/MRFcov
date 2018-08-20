@@ -44,8 +44,8 @@ between 1 and 100000}
 \item{n_folds}{Integer. The number of folds for cross-validation. Default is 10}
 
 \item{n_fold_runs}{Integer. The number of total training runs to perform. During
-each run, the data will be splie into \code{n_folds} folds and the
-observed data in each fold will be compared to thei respective predictions.
+each run, the data will be split into \code{n_folds} folds and the
+observed data in each fold will be compared to their respective predictions.
 Defaults to \code{n_folds}}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data}, before cross-multiplication}
@@ -135,6 +135,23 @@ gridExtra::grid.arrange(
        geom_boxplot(),
        ncol = 1,
  heights = c(1, 1))
+
+# Create some sample Poisson data with strong correlations
+cov <- rnorm(500, 0.2)
+cov2 <- rnorm(500, 4)
+sp.2 <- ceiling(rnorm(500, 1)) + (cov * 2)
+sp.2[sp.2 < 0] <- 0
+poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 1) + cov2 * 1.5),
+                       sp.2 = sp.2, sp.3 = (sp.2 * 2) + ceiling(rnorm(500, 0.1)))
+poiss.dat[poiss.dat < 0] <- 0
+poiss.dat$cov <- cov
+poiss.dat$cov2 <- cov2
+
+# A CRF should produce a better fit (lower deviance, lower MSE)
+cvMRF.poiss <- cv_MRF_diag(data = poiss.dat, n_nodes = 3,
+                          n_folds = 10,
+                          family = 'poisson',
+                          compare_null = TRUE, plot = TRUE))
 }
 
 }

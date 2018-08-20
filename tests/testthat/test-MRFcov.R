@@ -15,6 +15,14 @@ expect_success(expect_error(MRFcov(data = Bird.parasites, n_nodes = -1,
              'Please provide a positive integer for n_nodes'))
 })
 
+inf.dat <- Bird.parasites
+inf.dat[1,1] <- 'Inf'
+
+test_that("n_nodes must be a positive integer", {
+  expect_success(expect_error(MRFcov(data = inf.dat, n_nodes = 4,
+                                     family = 'binomial'),
+                              'No infinite values permitted'))
+})
 
 test_that("no n_nodes argument should produce a warning", {
 expect_success(expect_warning(MRFcov(data = Bird.parasites[, c(1:4)],

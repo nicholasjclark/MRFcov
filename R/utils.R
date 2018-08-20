@@ -1,4 +1,4 @@
-#### Plot poisson or gaussian cv models with node-optimised lambda1 ####
+#### Plot gaussian cv models ####
 plot_gauss_cv_diag_optim <- function(plot_dat, compare_null){
 scaleFUN <- function(x) sprintf("%.3f", x)
 
@@ -64,7 +64,73 @@ return(gridExtra::grid.arrange(plot1, plot2, ncol = 1,
                                   heights = c(1, 1)))
 }
 
-#### Plot binomial cv models with node-optimised lambda1 ####
+#### Plot poisson cv models ####
+plot_poiss_cv_diag_optim <- function(plot_dat, compare_null){
+  scaleFUN <- function(x) sprintf("%.3f", x)
+
+  if(compare_null){
+
+    Deviances <- data.frame(Estimate = plot_dat$Deviance,
+                            Stat = 'Deviance', Mod = plot_dat$model)
+    MSEs <- data.frame(Estimate = plot_dat$MSE,
+                       Stat = 'MSE', Mod = plot_dat$model)
+
+    plot1 <- ggplot2::ggplot(Deviances, ggplot2::aes(x = Mod,y = Estimate)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Deviance',
+                    x = '')
+
+    plot2 <- ggplot2::ggplot(MSEs, ggplot2::aes(x = Mod,y = Estimate)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_text(size = 8),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Mean squared error',
+                    x = 'Model')
+
+  } else {
+
+    Deviances <- data.frame(Estimate = plot_dat$Deviance,
+                            Stat = 'Deviance')
+    MSEs <- data.frame(Estimate = plot_dat$MSE,
+                       Stat = 'MSE')
+    cv_stats <- rbind(Deviances, MSEs)
+
+    plot1 <- ggplot2::ggplot(Deviances, ggplot2::aes(x = Stat,y = Estimate)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Deviance',
+                    x = '')
+    plot2 <- ggplot2::ggplot(MSEs, ggplot2::aes(x = Stat,y = Estimate)) +
+      ggplot2::geom_boxplot() +
+      ggplot2::theme_bw() +
+      ggplot2::theme(axis.text.x = ggplot2::element_blank(),
+                     axis.text.y = ggplot2::element_text(size = 8)) +
+      ggplot2::theme(panel.grid.major = ggplot2::element_blank(),
+                     panel.grid.minor = ggplot2::element_blank()) +
+      ggplot2::scale_y_continuous(labels = scaleFUN) +
+      ggplot2::labs(y = 'Mean squared error',
+                    x = '')
+  }
+  return(gridExtra::grid.arrange(plot1, plot2, ncol = 1,
+                                 heights = c(1, 1)))
+}
+
+#### Plot binomial cv models ####
 plot_binom_cv_diag_optim <- function(plot_dat, compare_null){
   scaleFUN <- function(x) sprintf("%.3f", x)
 
