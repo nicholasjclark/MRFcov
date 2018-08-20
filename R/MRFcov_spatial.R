@@ -503,7 +503,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
     #Gather estimated intercepts and interaction coefficients for node parameters ####
     mrf_coefs <- lapply(mrf_coefs, function(i){
-      head(i, n_nodes)
+      utils::head(i, n_nodes)
     })
 
     #Store all direct coefficients in a single dataframe for cleaner results
