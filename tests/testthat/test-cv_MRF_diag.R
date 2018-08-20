@@ -52,10 +52,10 @@ test_that("gaussian models must return columns for model, Rsquared, and MSE", {
 # Test output of a poisson cv model
 cov <- rnorm(500, 0.2)
 cov2 <- rnorm(500, 4)
-sp.2 <- ceiling(rnorm(500, 1)) + (cov * 2)
+sp.2 <- ceiling(rnorm(500, 1) + (cov * 2))
 sp.2[sp.2 < 0] <- 0
 poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 1) + cov2 * 1.5),
-                        sp.2 = sp.2, sp.3 = (sp.2 * 2) + ceiling(rnorm(500, 0.1)))
+                        sp.2 = sp.2, sp.3 = ceiling((sp.2 * 2) + rnorm(500, 0.1)))
 poiss.dat[poiss.dat < 0] <- 0
 poiss.dat$cov <- cov
 poiss.dat$cov2 <- cov2

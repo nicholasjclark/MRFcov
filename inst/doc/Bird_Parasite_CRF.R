@@ -18,67 +18,63 @@ data("Bird.parasites")
 #  help("Bird.parasites")
 #  View(Bird.parasites)
 
-## ----eval=FALSE----------------------------------------------------------
-#  MRF_fit <- MRFcov(data = Bird.parasites[, c(1:4)], n_nodes = 4, family = 'binomial')
+## ------------------------------------------------------------------------
+MRF_fit <- MRFcov(data = Bird.parasites[, c(1:4)], n_nodes = 4, family = 'binomial')
 
-## ----eval=FALSE----------------------------------------------------------
-#  plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)',
-#                               node_names = c('H. zosteropis', 'H. killangoi',
-#                                              'Plasmodium', 'Microfilaria'))
+## ------------------------------------------------------------------------
+plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)', 
+                             node_names = c('H. zosteropis', 'H. killangoi',
+                                            'Plasmodium', 'Microfilaria'))
 
-## ----eval=FALSE----------------------------------------------------------
-#  library(rosalia)
-#  rosalia_fit <- rosalia(Bird.parasites[,1:4],
-#                        prior = make_logistic_prior(scale = 2),
-#                        trace = FALSE)
-#  plotMRF_hm(MRF_mod = rosalia_fit, node_names = c('H. zosteropis', 'H. killangoi',
-#                                             'Plasmodium', 'Microfilaria'),
-#             main = 'rosalia interactions')
+## ------------------------------------------------------------------------
+MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 
-## ----eval=FALSE----------------------------------------------------------
-#  comp_rosalia_MRF(MRF_mod = MRF_fit, rosalia_mod = rosalia_fit)
+## ------------------------------------------------------------------------
+plotMRF_hm(MRF_mod = MRF_mod)
 
-## ----eval=FALSE----------------------------------------------------------
-#  MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
+## ------------------------------------------------------------------------
+MRF_mod$key_coefs$Hzosteropis
 
-## ----eval=FALSE----------------------------------------------------------
-#  plotMRF_hm(MRF_mod = MRF_mod)
+## ------------------------------------------------------------------------
+fake.dat <- Bird.parasites
+fake.dat$Microfilaria <- rbinom(nrow(Bird.parasites), 1, 0.8)
+fake.preds <- predict_MRF(data = fake.dat, MRF_mod = MRF_mod)
 
-## ----eval=FALSE----------------------------------------------------------
-#  plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites,
-#                  main = 'Estimated interactions across host relative densities')
+## ------------------------------------------------------------------------
+H.zos.pred.prev <- sum(fake.preds$Binary_predictions[, 'Hzosteropis']) / nrow(fake.preds$Binary_predictions)
+Plas.pred.prev <- sum(fake.preds$Binary_predictions[, 'Plas']) / nrow(fake.preds$Binary_predictions)
+Plas.pred.prev
 
-## ----eval = FALSE--------------------------------------------------------
-#  MRF_mod$key_coefs$Hzosteropis
+## ------------------------------------------------------------------------
+mod_fits <- cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
+                            n_cores = 1, family = 'binomial', plot = F, 
+                            compare_null = T,
+                            n_folds = 10)
 
-## ----eval = FALSE--------------------------------------------------------
-#  fake.dat <- Bird.parasites
-#  fake.dat$Microfilaria <- rbinom(nrow(Bird.parasites), 1, 0.8)
-#  fake.preds <- predict_MRF(data = fake.dat, MRF_mod = MRF_mod)
+# CRF (with covariates) model sensitivity
+quantile(mod_fits$mean_sensitivity[mod_fits$model == 'CRF'], probs = c(0.05, 0.95))
 
-## ----eval = FALSE--------------------------------------------------------
-#  H.zos.pred.prev <- sum(fake.preds$Binary_predictions[, 'Hzosteropis']) / nrow(fake.preds$Binary_predictions)
-#  Plas.pred.prev <- sum(fake.preds$Binary_predictions[, 'Plas']) / nrow(fake.preds$Binary_predictions)
-#  Plas.pred.prev
+# MRF (no covariates) model sensitivity
+quantile(mod_fits$mean_sensitivity[mod_fits$model != 'CRF'], probs = c(0.05, 0.95))
 
-## ----eval = FALSE--------------------------------------------------------
-#  cv_MRF_diag_rep(data = Bird.parasites, n_nodes = 4,
-#              n_cores = 3, family = 'binomial', plot = T, compare_null = T)
+## ------------------------------------------------------------------------
+booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 10, n_cores = 1)
 
-## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 25, n_cores = 3)
+## ------------------------------------------------------------------------
+booted_MRF$mean_key_coefs$Hzosteropis
 
-## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF$mean_key_coefs$Hzosteropis
+## ------------------------------------------------------------------------
+booted_MRF$mean_key_coefs$Hkillangoi
 
-## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF$mean_key_coefs$Hkillangoi
+## ------------------------------------------------------------------------
+booted_MRF$mean_key_coefs$Plas
 
-## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF$mean_key_coefs$Plas
+## ------------------------------------------------------------------------
+booted_MRF$mean_key_coefs$Microfilaria
 
-## ----eval=FALSE----------------------------------------------------------
-#  booted_MRF$mean_key_coefs$Microfilaria
+## ------------------------------------------------------------------------
+adj_mats <- predict_MRFnetworks(data = Bird.parasites,
+                                MRF_mod = booted_MRF)
 
 ## ----eval = FALSE--------------------------------------------------------
 #  Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)

@@ -1,10 +1,8 @@
 #'Bootstrap observations to estimate MRF parameter coefficients
 #'
-#'This function runs \code{\link{MRFcov}} models multiple times using cross-validation.
-#'To capture uncertainty in paramter esimates, the dataset is shuffled and missing
-#'values are imputed
-#'in each bootstrap iteration. Two parameters control the number of bootstrap iterations
-#'to perform in order to facilitate optimal parallel computing.
+#'This function runs \code{\link{MRFcov}} models multiple times to capture uncertainty
+#'in parameter esimates. The dataset is shuffled and missing
+#'values (if found) are imputed in each bootstrap iteration.
 #'
 #'@importFrom magrittr %>%
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
@@ -38,8 +36,8 @@
 #'@param spatial Logical. If \code{TRUE}, spatial MRF / CRF models are bootstrapped using
 #'\code{\link{MRFcov_spatial}}. Note, GPS coordinates must be supplied as \code{coords} for spatial
 #'models to be run
-#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = 5), data = coords, knots = NULL)}.
-#'These regression splines will be included in each node-wise regression as unpenalized covariates.
+#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp"), data = coords, knots = NULL)}.
+#'These regression splines will be included in each node-wise regression as covariates.
 #'This ensures that resulting node interaction parameters are estimated after accounting for
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -71,7 +69,7 @@
 #'    }
 #'
 #'
-#'@seealso \code{\link{MRFcov}},
+#'@seealso \code{\link{MRFcov}}, \code{\link{MRFcov_spatial}},
 #'\code{\link[glmnet]{cv.glmnet}}
 #'
 #'@details \code{MRFcov} models are fit via cross-validation using
@@ -80,7 +78,7 @@
 #'using \code{dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)},
 #'to account for uncertainty in parameter estimates.
 #'Parameter estimates from the set of bootstrapped models are summarised
-#'to present means and confidence intervals.
+#'to present means and confidence intervals (as 95 percent quantiles).
 #'
 #'@examples
 #'\dontrun{
@@ -261,6 +259,16 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     data <- data
   }
 
+  #### Function to count proportions of non-zero coefficients ####
+  countzero <- function(data, x, y){
+    bs.unlist <- data %>% purrr::map('direct_coefs')
+    estimatesinxy <- unlist(lapply(bs.unlist, '[', x, y))
+    zeron <- length(which(estimatesinxy == 0))
+
+    #correct for finite sampling
+    ((.0001 * length(data)) + zeron) / ((.0001 * length(data)) + length(data))
+  }
+
   #### Create list of bootstrapped datasets; impute NAs if needed ####
   booted_list <- vector('list', 100)
 
@@ -370,8 +378,10 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
     }
 
+
     #Export necessary functions to each cluster
-    clusterExport(NULL, c('MRFcov', 'countzero', 'prep_MRF_covariates'))
+    clusterExport(NULL, c('MRFcov', 'prep_MRF_covariates'))
+    clusterExport(NULL, 'countzero', envir = environment())
 
     #Export necessary libraries
     clusterEvalQ(cl, library(purrr))

@@ -4,6 +4,8 @@
 #'\code{cv_MRF_diag} runs cross validation of \code{\link{MRFcov}} models and tests predictive
 #'performance.
 #'
+#'@importFrom stats coef cor.test glm na.omit quantile rnorm runif sd
+#'
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
 #'left-most variables are variables that are to be represented by nodes in the graph.
@@ -864,7 +866,7 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
   }
 
   if(family == 'gaussian'){
-    mrf <- suppressWarnings(MRFcov(data = data, coords = coords,
+    mrf <- suppressWarnings(MRFcov_spatial(data = data, coords = coords,
                                    symmetrise =  symmetrise,
                                    n_nodes = n_nodes,
                                    n_cores = n_cores,

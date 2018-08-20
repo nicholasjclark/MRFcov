@@ -46,5 +46,5 @@ analysis.data = dataset %>%
 Finally, we need to convert species abundances to binary presence-absence format (as we are only estimating co-occurrences, not co-abundances). It is also highly advisable to scale any continuous variables so they all have `mean = 0` and `sd = 1`
 ```{r eval=FALSE}
 analysis.data[, 1:16] <- ifelse(analysis.data[, 1:16] > 0, 1, 0)
-analysis.data[, 17:20] <- scale(analysis.data[, 17:20],center = T, scale = T)
+analysis.data[, 17:20] <- scale(analysis.data[, 17:20], center = T, scale = T)
 ```

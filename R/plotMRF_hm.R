@@ -5,7 +5,7 @@
 #'
 #'@importFrom magrittr %>%
 #'
-#'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
+#'@param MRF_mod A fitted \code{MRFcov} or \code{bootstrap_MRF}
 #'object
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
@@ -22,7 +22,7 @@
 #'
 #'@return A \code{ggplot2} object
 #'
-#'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
+#'@seealso \code{\link{MRFcov}} \code{\link{bootstrap_MRF}}
 #'
 #'@details Interaction parameters from \code{MRF_mod} are plotted as a heatmap, where
 #'red colours indicate positive interactions and blue indicate negative interactions. If
@@ -56,7 +56,8 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     data <- NULL
   }
 
-  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
+  # If MRF_mod is a rosalia object (from package 'rosalia'),
+  # extract interaction coefficients from 'beta' slot
   if('beta' %in% names(MRF_mod)){
     MRF_mod$graph <- MRF_mod$beta
     MRF_mod$mod_type <- 'MRFcov'
@@ -150,6 +151,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     text.dat$value <- NULL
 
     #### Create a tiled heatmap plot and overlay text for observed infection data ####
+    Var1 <- Var2 <- value <- NULL
     plot = ggplot2::ggplot(data = melted_cormat, ggplot2::aes(Var2, Var1, fill = value))+
       ggplot2::geom_tile(color = border, width = 0.95, height = 0.95, size = 1) +
       ggplot2::geom_text(ggplot2::aes(y = text.dat$Var1,

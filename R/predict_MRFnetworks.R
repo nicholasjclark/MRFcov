@@ -52,8 +52,11 @@
 #'
 #'@examples
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial")
-#'predict_MRFnetworks(data = Bird.parasites[1:200, ], MRF_mod = CRFmod, metric = "degree", cutoff = 0.25)
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
+#'                 family = "binomial")
+#'predict_MRFnetworks(data = Bird.parasites[1:200, ],
+#'                    MRF_mod = CRFmod, metric = "degree",
+#'                    cutoff = 0.25)
 #'
 #'
 #'@export
@@ -63,7 +66,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
                                n_cores){
 
   if(missing(n_cores)){
-    n_cores <- parallel::detectCores() - 1
+    n_cores <- 1
   }
 
   if(missing(metric)){

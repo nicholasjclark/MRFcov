@@ -15,10 +15,20 @@ expect_success(expect_error(MRFcov(data = Bird.parasites, n_nodes = -1,
              'Please provide a positive integer for n_nodes'))
 })
 
+
+non.bin.dat <- Bird.parasites
+non.bin.dat[1,1] <- 6
+
+test_that("binary data should only have two possible values", {
+  expect_success(expect_error(MRFcov(data = non.bin.dat, n_nodes = 4,
+                                     family = 'binomial'),
+                              'Non-binary variables detected'))
+})
+
 inf.dat <- Bird.parasites
 inf.dat[1,1] <- 'Inf'
 
-test_that("n_nodes must be a positive integer", {
+test_that("infinite values are not allowed", {
   expect_success(expect_error(MRFcov(data = inf.dat, n_nodes = 4,
                                      family = 'binomial'),
                               'No infinite values permitted'))
@@ -27,6 +37,19 @@ test_that("n_nodes must be a positive integer", {
 test_that("no n_nodes argument should produce a warning", {
 expect_success(expect_warning(MRFcov(data = Bird.parasites[, c(1:4)],
                                      family = 'binomial')))
+})
+
+# Run tests for poisson model
+cov <- rnorm(500, 0.2)
+cov2 <- rnorm(500, 4)
+sp.2 <- rnorm(500, 1)
+non.poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 1) + cov2 * 1.5),
+                        sp.2 = sp.2, sp.3 = ceiling((sp.2 * 2) + rnorm(500, 0.1)))
+
+test_that("poisson variables must be integers", {
+  expect_success(expect_error(MRFcov(data = non.poiss.dat, n_nodes = 3,
+                                     family = 'poisson'),
+                              'Non-integer variables detected'))
 })
 
 #### Run a model using the sample data ####

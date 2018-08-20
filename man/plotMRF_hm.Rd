@@ -7,7 +7,7 @@
 plotMRF_hm(MRF_mod, node_names, main, plot_observed_vals, data)
 }
 \arguments{
-\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
+\item{MRF_mod}{A fitted \code{MRFcov} or \code{bootstrap_MRF}
 object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
@@ -49,5 +49,5 @@ plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)}
 
 }
 \seealso{
-\code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
+\code{\link{MRFcov}} \code{\link{bootstrap_MRF}}
 }

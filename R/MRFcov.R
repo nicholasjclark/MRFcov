@@ -8,6 +8,8 @@
 #'how interactions between nodes vary across covariate magnitudes.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
+#'@importFrom stats coef cor.test glm na.omit quantile rnorm runif sd
+#'@importFrom utils head
 #'@import glmnet
 #'
 #'@param data A \code{dataframe}. The input data where the \code{n_nodes}
@@ -68,11 +70,9 @@
 #'Sutton C, McCallum A. An introduction to conditional random fields.
 #'Foundations and Trends in Machine Learning 4, 267-373.
 #'
-#'@seealso \href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
-#'and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
-#'for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
-#'details of penalized regressions at a fixed lambda, and \code{\link[glmnet]{cv.glmnet}} for
-#'details of cross-validated lambda optimization
+#'@seealso Cheng et al. (2014), Sutton & McCallum (2012) and Clark et al. (2018)
+#'for overviews of Conditional Random Fields. See \code{\link[glmnet]{cv.glmnet}} for
+#'details of cross-validated optimization using LASSO penalty
 #'
 #'@details Separate penalized regressions are used to approximate
 #'MRF parameters, where the regression for node \code{j} includes an
@@ -174,6 +174,30 @@ MRFcov <- function(data, symmetrise,
          call. = FALSE)
   }
 
+  if(family == 'binomial'){
+    not_binary <- function(v) {
+      x <- unique(v)
+      length(x) - sum(is.na(x)) != 2L
+    }
+
+    if(any(vapply(data[, 1:n_nodes], not_binary, logical(1)))){
+      stop('Non-binary variables detected',
+           call. = FALSE)
+    }
+  }
+
+  if(family == 'poisson'){
+
+    not_integer <- function(v) {
+      sfsmisc::is.whole(v) == FALSE
+    }
+
+    if(any(apply(data[, 1:n_nodes], 2, not_integer))){
+      stop('Non-integer variables detected',
+           call. = FALSE)
+    }
+  }
+
   if(missing(prep_covariates) & n_nodes < ncol(data)){
     prep_covariates <- TRUE
   }
@@ -205,7 +229,7 @@ MRFcov <- function(data, symmetrise,
     }
 
   # For binomial models, change folds for any very rare or very common nodes
-  # to leave-one-out cv
+  # to leave-one-out or 50-fold cv
   if(family == 'binomial'){
 
     # Issue warnings if any nodes are too rare, errors if too common for analysis to proceed
@@ -273,6 +297,7 @@ MRFcov <- function(data, symmetrise,
   }
 
   #### Extract sds of variables for later back-conversion of coefficients ####
+  . <- NULL
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                             dplyr::summarise_all(dplyr::funs(sd(.)))))
 
@@ -348,7 +373,7 @@ MRFcov <- function(data, symmetrise,
                           'n_folds'),
                   envir = environment())
 
-   #### Use function 'cv.glmnet' from package glmnet if cross-validation is specified
+   #### Use function 'cv.glmnet' from package glmnet for cross-validation
    # Each node-wise regression will be optimised separately using cv, reducing user-bias ####
       clusterEvalQ(cl, library(glmnet))
     mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {

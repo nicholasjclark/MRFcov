@@ -96,7 +96,7 @@ analysis.data =<span class="st"> </span>dataset %&gt;%<span class="st"> </span>
 <span class="st">  </span>dplyr::<span class="kw">rename_all</span>(<span class="kw">funs</span>(<span class="kw">gsub</span>(<span class="st">&quot;</span><span class="ch">\\</span><span class="st">.|model.matrix&quot;</span>, <span class="st">&quot;&quot;</span>, .)))</code></pre></div>
 <p>Finally, we need to convert species abundances to binary presence-absence format (as we are only estimating co-occurrences, not co-abundances). It is also highly advisable to scale any continuous variables so they all have <code>mean = 0</code> and <code>sd = 1</code></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">analysis.data[, <span class="dv">1</span>:<span class="dv">16</span>] &lt;-<span class="st"> </span><span class="kw">ifelse</span>(analysis.data[, <span class="dv">1</span>:<span class="dv">16</span>] &gt;<span class="st"> </span><span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>)
-analysis.data[, <span class="dv">17</span>:<span class="dv">20</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(analysis.data[, <span class="dv">17</span>:<span class="dv">20</span>],<span class="dt">center =</span> T, <span class="dt">scale =</span> T)</code></pre></div>
+analysis.data[, <span class="dv">17</span>:<span class="dv">20</span>] &lt;-<span class="st"> </span><span class="kw">scale</span>(analysis.data[, <span class="dv">17</span>:<span class="dv">20</span>], <span class="dt">center =</span> T, <span class="dt">scale =</span> T)</code></pre></div>
 </div>
 
 

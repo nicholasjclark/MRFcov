@@ -8,6 +8,8 @@
 #'splines.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
+#'@importFrom stats coef cor.test glm na.omit quantile rnorm runif sd
+#'@importFrom utils head
 #'@import glmnet
 #'
 #'@param data A \code{dataframe}. The input data where the \code{n_nodes}
@@ -146,6 +148,30 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
          call. = FALSE)
   }
 
+  if(family == 'binomial'){
+    not_binary <- function(v) {
+      x <- unique(v)
+      length(x) - sum(is.na(x)) != 2L
+    }
+
+    if(any(vapply(data[, 1:n_nodes], not_binary, logical(1)))){
+      stop('Non-binary variables detected',
+           call. = FALSE)
+    }
+  }
+
+  if(family == 'poisson'){
+
+    not_integer <- function(v) {
+      sfsmisc::is.whole(v) == FALSE
+    }
+
+    if(any(apply(data[, 1:n_nodes], 2, not_integer))){
+      stop('Non-integer variables detected',
+           call. = FALSE)
+    }
+  }
+
   if(missing(prep_covariates) & n_nodes < ncol(data)){
     prep_covariates <- TRUE
   }
@@ -253,6 +279,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
   # Determine dimension basis for the spatial smooth term
   # (needs to be sufficiently large for appropriate effective degrees of freedom)
+  Latitude <- Longitude <- NULL
   if(length(unique(coords$Latitude,
                    coords$Longitude)) < 100){
     max_k <- length(unique(coords$Latitude,
@@ -269,6 +296,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   colnames(spat.splines) <- paste0('Spatial', seq(1:max_k))
 
   # Scale spatial splines and remove any with sd == 0
+  . <- NULL
   spat.splines %>%
     dplyr::mutate_all(dplyr::funs(as.vector(scale(.)))) %>%
     dplyr::select_if( ~ sum(!is.na(.)) > 0) -> spat.splines

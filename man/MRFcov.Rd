@@ -119,9 +119,7 @@ Sutton C, McCallum A. An introduction to conditional random fields.
 Foundations and Trends in Machine Learning 4, 267-373.
 }
 \seealso{
-\href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
-and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
-for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
-details of penalized regressions at a fixed lambda, and \code{\link[glmnet]{cv.glmnet}} for
-details of cross-validated lambda optimization
+Cheng et al. (2014), Sutton & McCallum (2012) and Clark et al. (2018)
+for overviews of Conditional Random Fields. See \code{\link[glmnet]{cv.glmnet}} for
+details of cross-validated optimization using LASSO penalty
 }
