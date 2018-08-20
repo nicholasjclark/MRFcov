@@ -76,7 +76,7 @@ account for spatial autocorrelation via Gaussian Process spatial regression
 splines.
 }
 \examples{
-\dontrun{
+\donttest{
 data("Bird.parasites")
 Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
 Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)

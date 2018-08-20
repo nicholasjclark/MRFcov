@@ -13,7 +13,7 @@ Description: Approximate node interaction parameters of Markov Random Fields
     graphical networks. Models can incorporate additional covariates, allowing users to estimate
     how interactions between nodes in the graph are predicted to change across
     covariate gradients. The general methods implemented in this package are described 
-    in Clark et al. (2018) <doi:10.1002/ecy.2221>
+    in Clark et al. (2018) <doi:10.1002/ecy.2221>.
 Depends: R (>= 3.3.3), glmnet
 Imports: purrr,
     parallel,

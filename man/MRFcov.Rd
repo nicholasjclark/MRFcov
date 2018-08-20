@@ -101,9 +101,8 @@ separately before unifying the nodes into a graph. See \code{\link[penalized]{pe
 and \code{\link[glmnet]{cv.glmnet}} for further details.
 }
 \examples{
-\dontrun{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')}
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 
 }
 \references{
