@@ -81,7 +81,7 @@
 #'to present means and confidence intervals (as 95 percent quantiles).
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'data("Bird.parasites")
 #'
 #'# Perform 100 bootstrap replicates in total

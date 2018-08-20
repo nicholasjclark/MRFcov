@@ -77,7 +77,7 @@
 #'
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'data("Bird.parasites")
 #'# Generate boxplots of model predictive metrics
 #'cv_MRF_diag(data = Bird.parasites, n_nodes = 4,
@@ -120,7 +120,7 @@
 #'cvMRF.poiss <- cv_MRF_diag(data = poiss.dat, n_nodes = 3,
 #'                           n_folds = 10,
 #'                           family = 'poisson',
-#'                           compare_null = TRUE, plot = TRUE))
+#'                           compare_null = TRUE, plot = TRUE)
 #'}
 #'
 #'@export

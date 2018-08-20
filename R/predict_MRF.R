@@ -31,7 +31,7 @@
 #'\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'data("Bird.parasites")
 #'# Fit a model to a subset of the data (training set)
 #'CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")

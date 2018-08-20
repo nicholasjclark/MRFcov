@@ -6,7 +6,7 @@
 #'
 #'
 #'@param data Dataframe. The input data where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph
+#'left-most variables are outcome variables to be represented by nodes in the graph
 #'@param n_nodes Integer. The index of the last column in data
 #'which is represented by a node in the final graph. Columns with index
 #'greater than n_nodes are taken as covariates. Default is the number of
@@ -15,9 +15,10 @@
 #'@return Dataframe of the prepped response and covariate variables necessary for
 #'input in \code{\link{MRFcov}} models
 #'
-#'@details Binary occurrences of nodes (species) in \code{data} are prepped for
+#'@details Observations of nodes (species) in \code{data} are prepped for
 #'\code{MRFcov} analysis by multiplication. This function is not designed to be called directly,
 #'but is used by other functions in the package (namely \code{\link{MRFcov}},
+#'\code{\link{MRFcov_spatial}},
 #'\code{\link{cv_MRF_diag}}, and
 #'\code{\link{bootstrap_MRF}})
 #'

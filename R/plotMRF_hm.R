@@ -32,11 +32,11 @@
 #'available for \code{bootstrap_MRF} models
 #'
 #'@examples
-#'\dontrun{
+#'
 #'data("Bird.parasites")
 #'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 #'plotMRF_hm(MRF_mod = CRFmod)
-#'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)}
+#'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)
 #'
 #'@export
 #'
