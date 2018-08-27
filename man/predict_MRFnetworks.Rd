@@ -67,8 +67,11 @@ supplied, the weighted, undirected adjacency matrices are returned in a \code{li
 }
 \examples{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = "binomial")
-predict_MRFnetworks(data = Bird.parasites[1:200, ], MRF_mod = CRFmod, metric = "degree", cutoff = 0.25)
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4,
+                family = "binomial")
+predict_MRFnetworks(data = Bird.parasites[1:200, ],
+                   MRF_mod = CRFmod, metric = "degree",
+                   cutoff = 0.25)
 
 
 }

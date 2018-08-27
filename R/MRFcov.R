@@ -8,6 +8,8 @@
 #'how interactions between nodes vary across covariate magnitudes.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
+#'@importFrom stats coef cor.test glm na.omit quantile rnorm runif sd
+#'@importFrom utils head
 #'@import glmnet
 #'
 #'@param data A \code{dataframe}. The input data where the \code{n_nodes}
@@ -41,18 +43,22 @@
 #'
 #'@return A \code{list} containing:
 #'\itemize{
-#'    \item \code{graph}: Estimated parameter matrix of interaction effects
-#'    \item \code{intercepts}: Estimated parameter vector of node intercepts
-#'    \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
-#'    each covariate on node interactions
-#'    \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
-#'    node occurrence probabilities
+#'    \item \code{graph}: Estimated parameter \code{matrix} of pairwise interaction effects
+#'    \item \code{intercepts}: Estimated parameter \code{vector} of node intercepts
+#'    \item \code{indirect_coefs}: \code{list} containing matrices representing
+#'     indirect effects of each covariate on pairwise node interactions
+#'    \item \code{direct_coefs}: \code{matrix} of direct effects of each parameter on
+#'    each outcome node. For \code{family = 'binomial'} models, all coefficients are
+#'    estimated on the logit scale. For \code{family = 'poisson'} models, coefficients
+#'    are estimated on the identity scale AFTER standardising variables using the
+#'    root mean square transformation. See \code{vignette("Gaussian_Poisson_CRFs")} for
+#'    details of interpretation
 #'    \item \code{param_names}: Character string of covariate parameter names
 #'    \item \code{mod_type}: A character stating the type of model that was fit
 #'    (used in other functions)
 #'    \item \code{mod_family}: A character stating the family of model that was fit
 #'    (used in other functions)
-#'    \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+#'    \item \code{poiss_sc_factors}: A vector of the root mean square scaling factors
 #'    used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
 #'    }
 #'
@@ -68,52 +74,52 @@
 #'Sutton C, McCallum A. An introduction to conditional random fields.
 #'Foundations and Trends in Machine Learning 4, 267-373.
 #'
-#'@seealso \href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
-#'and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
-#'for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
-#'details of penalized regressions at a fixed lambda, and \code{\link[glmnet]{cv.glmnet}} for
-#'details of cross-validated lambda optimization
+#'@seealso Cheng et al. (2014), Sutton & McCallum (2012) and Clark et al. (2018)
+#'for overviews of Conditional Random Fields. See \code{\link[glmnet]{cv.glmnet}} for
+#'details of cross-validated optimization using LASSO penalty. Worked examples to showcase
+#'this function can be found using \code{vignette("Bird_Parasite_CRF")} and
+#'\code{vignette("Gaussian_Poisson_CRFs")}
 #'
 #'@details Separate penalized regressions are used to approximate
 #'MRF parameters, where the regression for node \code{j} includes an
-#'intercept and beta coefficients for the abundance (families \code{gaussian} or \code{poisson})
+#'intercept and coefficients for the abundance (families \code{gaussian} or \code{poisson})
 #'or presence-absence (family \code{binomial}) of all other
-#'nodes (\code{/j}) in \code{data}. If covariates are included, beta coefficients
-#'are also estimated for the effect of the covariate on \code{j} and the
-#'effects of the covariate on interactions between \code{j} and all other species
-#'(\code{/j}). Note that coefficients must be estimated on the same scale in order
-#'for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
-#'variables will be therefore standardised using the square root mean transformation
-#'\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
-#'will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
-#'will be returned so that coefficients can be unscaled before interpretation (this unscaling is
+#'nodes (\code{/j}) in \code{data}. If covariates are included, coefficients
+#'are also estimated for the effect of the covariate on \code{j}, and for the
+#'effects of the covariate on interactions between \code{j} and all other nodes
+#'(\code{/j}). Note that interaction coefficients must be estimated between variables that
+#'are on roughly the same scale, as the resulting parameter estimates are
+#'unified into a Markov Random Field using the specified \code{symmetrise} function.
+#'Counts for \code{poisson} variables, which are often not on the same scale,
+#'will therefore be standardised using a root mean square transformation
+#'\code{x = x / sqrt(mean(x ^ 2))}. These transformed counts
+#'will be used in a \code{(family = "gaussian")}
+#'model and their respective scaling factors returned so that coefficients
+#'can be unscaled for interpretation (this unscaling is
 #'performed automatatically by other functions including \code{\link{predict_MRF}}
 #'and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
 #'if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
-#'models.
+#'models. For more information on this process, use
+#'\code{vignette("Gaussian_Poisson_CRFs")}
 #'\cr
 #'\cr
-#'Note that since the number of parameters quickly increases with increasing
-#'numbers of species and covariates, LASSO penalization is used to regularize
-#'regressions based on values of the regularization parameter \code{lambda1}.
-#'This can be done either by minimising the cross-validated
-#'mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
-#'running all regressions at a single \code{lambda1} value. The latter approach may be
-#'useful for optimising all nodes as part of a joint graphical model, while the former
-#'is likely to be more appropriate for maximising the log-likelihood of each node
-#'separately before unifying the nodes into a graph. See \code{\link[penalized]{penalized}}
-#'and \code{\link[glmnet]{cv.glmnet}} for further details.
+#'Note that since the number of parameters to estimate in each node-wise regression
+#'quickly increases with increasing numbers of nodes and covariates,
+#'LASSO penalization is used to regularize
+#'regressions. This is done by minimising the cross-validated
+#'mean error for each node separately using \code{\link[glmnet]{cv.glmnet}}. In this way,
+#'we maximise the log-likelihood of each node
+#'separately before unifying the nodes into a graph.
 #'
 #'@examples
-#'\dontrun{
 #'data("Bird.parasites")
-#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')}
+#'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 #'
 #'@export
 #'
 MRFcov <- function(data, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, fixed_lambda, bootstrap = FALSE) {
+                   family, bootstrap = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -174,6 +180,30 @@ MRFcov <- function(data, symmetrise,
          call. = FALSE)
   }
 
+  if(family == 'binomial'){
+    not_binary <- function(v) {
+      x <- unique(v)
+      length(x) - sum(is.na(x)) != 2L
+    }
+
+    if(any(vapply(data[, 1:n_nodes], not_binary, logical(1)))){
+      stop('Non-binary variables detected',
+           call. = FALSE)
+    }
+  }
+
+  if(family == 'poisson'){
+
+    not_integer <- function(v) {
+      sfsmisc::is.whole(v) == FALSE
+    }
+
+    if(any(apply(data[, 1:n_nodes], 2, not_integer))){
+      stop('Non-integer variables detected',
+           call. = FALSE)
+    }
+  }
+
   if(missing(prep_covariates) & n_nodes < ncol(data)){
     prep_covariates <- TRUE
   }
@@ -205,7 +235,7 @@ MRFcov <- function(data, symmetrise,
     }
 
   # For binomial models, change folds for any very rare or very common nodes
-  # to leave-one-out cv
+  # to leave-one-out or 50-fold cv
   if(family == 'binomial'){
 
     # Issue warnings if any nodes are too rare, errors if too common for analysis to proceed
@@ -273,6 +303,7 @@ MRFcov <- function(data, symmetrise,
   }
 
   #### Extract sds of variables for later back-conversion of coefficients ####
+  . <- NULL
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                             dplyr::summarise_all(dplyr::funs(sd(.)))))
 
@@ -348,7 +379,7 @@ MRFcov <- function(data, symmetrise,
                           'n_folds'),
                   envir = environment())
 
-   #### Use function 'cv.glmnet' from package glmnet if cross-validation is specified
+   #### Use function 'cv.glmnet' from package glmnet for cross-validation
    # Each node-wise regression will be optimised separately using cv, reducing user-bias ####
       clusterEvalQ(cl, library(glmnet))
     mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
@@ -473,7 +504,7 @@ MRFcov <- function(data, symmetrise,
 
     #Gather estimated intercepts and interaction coefficients for node parameters ####
     mrf_coefs <- lapply(mrf_coefs, function(i){
-      head(i, n_nodes)
+      utils::head(i, n_nodes)
     })
 
     #Store all direct coefficients in a single dataframe for cleaner results

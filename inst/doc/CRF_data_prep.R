@@ -27,5 +27,5 @@
 
 ## ----eval=FALSE----------------------------------------------------------
 #  analysis.data[, 1:16] <- ifelse(analysis.data[, 1:16] > 0, 1, 0)
-#  analysis.data[, 17:20] <- scale(analysis.data[, 17:20],center = T, scale = T)
+#  analysis.data[, 17:20] <- scale(analysis.data[, 17:20], center = T, scale = T)
 

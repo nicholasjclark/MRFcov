@@ -7,7 +7,7 @@
 plotMRF_hm(MRF_mod, node_names, main, plot_observed_vals, data)
 }
 \arguments{
-\item{MRF_mod}{A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
+\item{MRF_mod}{A fitted \code{MRFcov} or \code{bootstrap_MRF}
 object}
 
 \item{node_names}{A character vector of species names for axis labels. Default
@@ -41,13 +41,13 @@ and co-occurrences for each species in \code{data} are overlaid on the plot
 available for \code{bootstrap_MRF} models
 }
 \examples{
-\dontrun{
+
 data("Bird.parasites")
 CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 plotMRF_hm(MRF_mod = CRFmod)
-plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)}
+plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)
 
 }
 \seealso{
-\code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
+\code{\link{MRFcov}} \code{\link{bootstrap_MRF}}
 }

@@ -36,7 +36,7 @@ predictions for nodes is returned. Note that predicting values for unobserved lo
 spatial MRF is not currently supported
 }
 \examples{
-\dontrun{
+\donttest{
 data("Bird.parasites")
 # Fit a model to a subset of the data (training set)
 CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")

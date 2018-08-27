@@ -8,6 +8,8 @@
 #'splines.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ parLapply
+#'@importFrom stats coef cor.test glm na.omit quantile rnorm runif sd
+#'@importFrom utils head
 #'@import glmnet
 #'
 #'@param data A \code{dataframe}. The input data where the \code{n_nodes}
@@ -40,15 +42,16 @@
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-#'are used to create smoothed spatial regression splines via the call
-#'\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = max_k), data = coords, knots = NULL)}.
-#'Here, \code{max_k} controls the basis dimension of the smoothed term and
+#'are used to create smoothed spatial regression splines via
+#'\code{\link[mgcv]{smooth.construct2}}.
+#'Here, the basis dimension of the smoothed term
 #'is chosen based on the number of unique GPS coordinates in \code{coords}.
-#'If this number is less than \code{100}, it is used as \code{max_k}, while if it is more than
-#'\code{100}, a \code{max_k} of \code{100} is used (this parameter needs to be large in order
-#'to ensure enough degrees of freedom for estimating 'wiggliness' of the smooth term; see
+#'If this number is less than \code{100}, then this number is used. If the number of
+#'unique coordiantes is more than \code{100}, a value of \code{100} is used
+#'(this parameter needs to be large in order to ensure enough degrees of freedom
+#'for estimating 'wiggliness' of the smooth term; see
 #'\code{\link[mgcv]{choose.k}} for details).
-#'These regression splines will be included in each node-wise regression as additional penalized covariates.
+#'These splines will be included in each node-wise regression as additional penalized covariates.
 #'This ensures that resulting node interaction parameters are estimated after accounting for
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -56,18 +59,19 @@
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
-#'the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains all prepped covariates
+#'the inclusion of a \code{dataframe} called \code{mrf_data}. This contains all prepped covariates
 #'including the added spatial regression
 #'splines, and should be used as \code{data} when generating predictions
 #'via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
 #'
 #'@seealso See \code{\link[mgcv]{smooth.construct2}} and \code{\link[mgcv]{smooth.construct.gp.smooth.spec}}
-#'for details of Gaussian process spatial regression splines
+#'for details of Gaussian process spatial regression splines. Worked examples to showcase
+#'this function can be found using \code{vignette("Bird_Parasite_CRF")}
 #'@references Kammann, E. E. and M.P. Wand (2003) Geoadditive Models.
 #'Applied Statistics 52(1):1-18.
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'data("Bird.parasites")
 #'Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
 #'Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
@@ -144,6 +148,30 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   if(n_nodes < 2){
     stop('Cannot generate a graphical model with less than 2 nodes',
          call. = FALSE)
+  }
+
+  if(family == 'binomial'){
+    not_binary <- function(v) {
+      x <- unique(v)
+      length(x) - sum(is.na(x)) != 2L
+    }
+
+    if(any(vapply(data[, 1:n_nodes], not_binary, logical(1)))){
+      stop('Non-binary variables detected',
+           call. = FALSE)
+    }
+  }
+
+  if(family == 'poisson'){
+
+    not_integer <- function(v) {
+      sfsmisc::is.whole(v) == FALSE
+    }
+
+    if(any(apply(data[, 1:n_nodes], 2, not_integer))){
+      stop('Non-integer variables detected',
+           call. = FALSE)
+    }
   }
 
   if(missing(prep_covariates) & n_nodes < ncol(data)){
@@ -253,6 +281,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
   # Determine dimension basis for the spatial smooth term
   # (needs to be sufficiently large for appropriate effective degrees of freedom)
+  Latitude <- Longitude <- NULL
   if(length(unique(coords$Latitude,
                    coords$Longitude)) < 100){
     max_k <- length(unique(coords$Latitude,
@@ -269,6 +298,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   colnames(spat.splines) <- paste0('Spatial', seq(1:max_k))
 
   # Scale spatial splines and remove any with sd == 0
+  . <- NULL
   spat.splines %>%
     dplyr::mutate_all(dplyr::funs(as.vector(scale(.)))) %>%
     dplyr::select_if( ~ sum(!is.na(.)) > 0) -> spat.splines
@@ -475,7 +505,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
     #Gather estimated intercepts and interaction coefficients for node parameters ####
     mrf_coefs <- lapply(mrf_coefs, function(i){
-      head(i, n_nodes)
+      utils::head(i, n_nodes)
     })
 
     #Store all direct coefficients in a single dataframe for cleaner results

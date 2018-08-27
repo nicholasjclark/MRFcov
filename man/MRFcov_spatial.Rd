@@ -35,9 +35,12 @@ Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
-If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
-of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
-estimate occurrence probabilities, and so the function will return an error message.}
+If using (\code{family = "binomial"}), please note that if nodes occur in less than 5 percent
+of observations this can make it generally difficult to
+estimate occurrence probabilities (on the extreme end, this can result in intercept-only
+models being fitted for the nodes in question). The function will issue a warning in this case.
+If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
+step will generally be unable to proceed.}
 
 \item{coords}{A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 representing the spatial coordinates of each observation in \code{data}. Ideally, these
@@ -60,7 +63,8 @@ the \code{\link{predict_MRF}} function}
 }
 \value{
 A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
-the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains the spatial regression
+the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains all prepped covariates
+including the added spatial regression
 splines, and should be used as \code{data} when generating predictions
 via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
 }
@@ -68,11 +72,11 @@ via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
 This function calls the \code{\link{MRFcov}} function to fit
 separate penalized regressions for each node and approximate parameters of
 Markov Random Fields (MRF) graphs. Supplied GPS coordinates are used to
-account for spatial autocorrelation via unpenalized Gaussian Process spatial regression
+account for spatial autocorrelation via Gaussian Process spatial regression
 splines.
 }
 \examples{
-\dontrun{
+\donttest{
 data("Bird.parasites")
 Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
 Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)

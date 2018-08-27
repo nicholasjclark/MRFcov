@@ -45,9 +45,8 @@ non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{fam
 
 \item{spatial}{Logical. If \code{TRUE}, spatial MRF / CRF models are bootstrapped using
 \code{\link{MRFcov_spatial}}. Note, GPS coordinates must be supplied as \code{coords} for spatial
-models to be run
-\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = 5), data = coords, knots = NULL)}.
-These regression splines will be included in each node-wise regression as unpenalized covariates.
+models to be run.
+These regression splines will be included in each node-wise regression as covariates.
 This ensures that resulting node interaction parameters are estimated after accounting for
 possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -65,8 +64,9 @@ A \code{list} containing:
   \item \code{direct_coef_upper90} and \code{direct_coef_lower90}: \code{dataframe}s
   containing coefficient 95 percent and 5 percent quantiles taken from all
   bootstrapped models across the iterations
-  \item \code{indirect_coef_mean}: \code{list} of matrices containing mean higher order coefficient values
-  taken from all bootstrapped models across the iterations
+  \item \code{indirect_coef_mean}: \code{list} of symmetric matrices
+  (one matrix for each covariate) containing mean effects of covariates
+  on pairwise interactions
   \item \code{mean_key_coefs}: \code{list} of matrices of length \code{n_nodes}
   containing mean covariate coefficient values and their relative importances
   (using the formula \code{x^2 / sum (x^2)}
@@ -82,23 +82,21 @@ A \code{list} containing:
    }
 }
 \description{
-This function runs \code{\link{MRFcov}} models multiple times using cross-validation.
-To capture uncertainty in paramter esimates, the dataset is shuffled and missing
-values are imputed
-in each bootstrap iteration. Two parameters control the number of bootstrap iterations
-to perform in order to facilitate optimal parallel computing.
+This function runs \code{\link{MRFcov}} models multiple times to capture uncertainty
+in parameter esimates. The dataset is shuffled and missing
+values (if found) are imputed in each bootstrap iteration.
 }
 \details{
 \code{MRFcov} models are fit via cross-validation using
 \code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
 by shuffling row observations and fitting models to a subset of observations,
-using \code{dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)},
+using \code{\link[dplyr]{sample_n}},
 to account for uncertainty in parameter estimates.
 Parameter estimates from the set of bootstrapped models are summarised
-to present means and confidence intervals.
+to present means and confidence intervals (as 95 percent quantiles).
 }
 \examples{
-\dontrun{
+\donttest{
 data("Bird.parasites")
 
 # Perform 100 bootstrap replicates in total
@@ -119,6 +117,6 @@ bootedSpatial <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
                              n_cores = 3)}
 }
 \seealso{
-\code{\link{MRFcov}},
+\code{\link{MRFcov}}, \code{\link{MRFcov_spatial}},
 \code{\link[glmnet]{cv.glmnet}}
 }

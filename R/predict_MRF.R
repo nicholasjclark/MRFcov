@@ -6,14 +6,15 @@
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
 #'
 #'@param data Dataframe. The input data to be predicted, where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph.
+#'left-most variables are are variables that are represented by nodes in the graph from
+#'the \code{MRF_mod} model.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
 #'was used to fit the \code{MRF_mod}
-#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}}model object
+#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
-#'Default is \code{parallel::detect_cores() - 1}
+#'Default is \code{1} (no parallelisation)
 #'@return A \code{matrix} containing predictions for each observation in \code{data}. If
 #'\code{family = "binomial"}, a second element containing binary
 #'predictions for nodes is returned.
@@ -31,7 +32,7 @@
 #'\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.
 #'
 #'@examples
-#'\dontrun{
+#'\donttest{
 #'data("Bird.parasites")
 #'# Fit a model to a subset of the data (training set)
 #'CRFmod <- MRFcov(data = Bird.parasites[1:300, ], n_nodes = 4, family = "binomial")
@@ -61,7 +62,7 @@
 predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
   if(missing(n_cores)){
-    n_cores <- parallel::detectCores() - 1
+    n_cores <- 1
   }
 
   #### If n_cores > 1, check parallel library loading ####
@@ -110,7 +111,6 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
   } else {
     #If n_cores = 1, set parallel_compliant to FALSE
     parallel_compliant <- FALSE
-    warning('Parallel loading failed')
   }
 
   # If using a bootstrap_MRF model, convert structure to the same as MRFcov models

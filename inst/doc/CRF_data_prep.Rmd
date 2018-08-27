@@ -8,7 +8,7 @@ vignette: >
 ---
 
 ## Running CRFs with categorical covariates requires expansion to model matrix format
-The mosquito occurrence data from Golding et al 2015 (published in *Parasites & Vectors*) [available from figshare here](https://doi.org/10.6084/m9.figshare.1420528.v1) is useful for exploring how datasets need to be prepped for running Conditional Random Fields (CRF) models. Here, we will download the raw data from `figshare` (note, an internet connection will be needed for this step) change 'dipping_round' to a factor variable and remove un-needed columns
+The mosquito occurrence data from Golding et al 2015 (published in *Parasites & Vectors*) [available from figshare here](https://doi.org/10.6084/m9.figshare.1420528.v1) is useful for exploring how datasets need to be prepped for running Conditional Random Fields (CRF) models. Here, we will download the raw data from figshare (note, an internet connection will be needed for this step) change 'dipping_round' to a factor variable and remove un-needed columns
 ```{r eval=FALSE}
 temp <- tempfile()
 download.file('https://ndownloader.figshare.com/files/2075362',
@@ -24,7 +24,7 @@ dataset$field_site <- as.factor(dataset$field_site)
 dataset[,c(1,2,5,6)] <- NULL
 ```
 
-It is important here to examine the level names of factor variables, as the 1st level (i.e. the dummy level) will be dropped from the dataset during conversion to model matrix format (i.e. 'one-hot encoding', as in standard `lme4` analysis of factor covariates)
+It is important here to examine the level names of factor variables, as the 1st level (i.e. the dummy level) will be dropped from the dataset during conversion to model matrix format (as in standard `lme4` analysis of factor covariates)
 ```{r eval=FALSE}
 levels(dataset$dipping_round)[1]
 levels(dataset$field_site)[1]
@@ -46,5 +46,5 @@ analysis.data = dataset %>%
 Finally, we need to convert species abundances to binary presence-absence format (as we are only estimating co-occurrences, not co-abundances). It is also highly advisable to scale any continuous variables so they all have `mean = 0` and `sd = 1`
 ```{r eval=FALSE}
 analysis.data[, 1:16] <- ifelse(analysis.data[, 1:16] > 0, 1, 0)
-analysis.data[, 17:20] <- scale(analysis.data[, 17:20],center = T, scale = T)
+analysis.data[, 17:20] <- scale(analysis.data[, 17:20], center = T, scale = T)
 ```

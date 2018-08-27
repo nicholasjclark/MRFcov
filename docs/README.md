@@ -7,25 +7,27 @@
 
 [Releases](https://github.com/nicholasjclark/MRFcov/releases)   |   [Reporting Issues](https://github.com/nicholasjclark/MRFcov/issues)   |   [Blogpost](http://nicholasjclark.weebly.com/biotic-interactions.html) <img align="right" src=http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/nclark-network-changes_orig.gif alt="animated gif" width="360" height="235"/>
 
-`MRFcov` (described by Clark *et al*, published in [*Ecology Statistical Reports*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)) provides `R` functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes in the graph are predicted to change across covariate gradients. *Please note, functions have been streamlined considerably since the original paper was published, and so code used in the appendices for the paper won't work properly. Instead, it is better to follow the vignettes supplied here*
+`MRFcov` (described by Clark *et al*, published in [*Ecology Statistical Reports*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)) provides `R` functions for approximating interaction parameters of nodes in undirected Markov Random Fields (MRF) graphical networks. Models can incorporate covariates (a class of models known as [Conditional Random Fields; CRFs](http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf); following methods developed by Cheng *et al* 2014 and Lindberg 2016), allowing users to estimate how interactions between nodes are predicted to change across covariate gradients. *Note, this is a development version. For the stable version, please download from CRAN*
 
 Why Use Conditional Random Fields?
 ----------------------------------
 
-In principle, `MRFcov` models that use species' occurrences or abundances as outcome variables are similar to [Joint Species Distribution models](https://methodsblog.wordpress.com/2015/12/22/warton_ovaskainen/) in that variance can be partitioned among abiotic and biotic drivers. However, key differences are that `MRFcov` models can:
+In principle, `MRFcov` models that use species' occurrences or abundances as outcome variables are similar to [Joint Species Distribution models](https://methodsblog.wordpress.com/2015/12/22/warton_ovaskainen/) in that variance can be partitioned among abiotic and biotic effects. However, key differences are that `MRFcov` models can:
 
-1.  Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of species' interactions and environmental covariates in driving abundanecs or occurrence probabilities
+1.  Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of biotic associationas and environmental covariates in driving abundanecs or occurrence probabilities
 
-2.  Identify interaction strengths, rather than simply determining whether they are "significantly different from zero"
+2.  Identify associations strengths, rather than simply determining whether they are "significantly different from zero"
 
-3.  Estimate how interactions are predicted to change across environmental gradients
+3.  Estimate how associations are predicted to change across environmental gradients
+
+Models such as these are also better at isolating true species 'interactions' using presence-absence occurrence data than are traditional co-occurrence methods (such as the all-too-common null model randomisation approaches). See [this blogpost](https://rpubs.com/NickClark47/411878) for a more detailed explanation and proof of this statement.
 
 MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package.
 
 Installation
 ------------
 
-You can install the `MRFcov` package into `R` directly from `GitHub` using:
+You can install the stable version of the `MRFcov` package into `R` from [CRAN](https://cran.r-project.org/web/packages/MRFcov/index.html). Alternatively, install the development version (updated features but no gurantees of good functionality) from `GitHub` using:
 
 ``` r
 # install.packages("devtools")
@@ -57,7 +59,7 @@ vignette("CRF_data_prep")
 
 ### Running MRFs and visualising interaction coefficients
 
-Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Here we allow the species-specific regressions to be individually optimised through cross-validated LASSO regressions (the default option when no `lambda1` regularization value is specified). This will produce a warning for reassurance
+Run an MRF model using the provided continuous covariate (`scale.prop.zos`). Here, each species-specific regression will be individually optimised through cross-validated LASSO variable selection. Corresponding coefficients (e.g. the coefficient for effect of species A on species B and the coefficient for effect of species B on species A) will be symmetrised to form an undirected MRF graph
 
 ``` r
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
@@ -74,61 +76,55 @@ plotMRF_hm(MRF_mod, plot_observed_vals = TRUE, data = Bird.parasites)
 
 ![](README-Readme.fig1-1.png)
 
-For more in-depth visualisation, we can plot how species interactions are predicted to change across covariate magnitudes
-
-``` r
-plotMRF_hm_cont(MRF_mod = MRF_mod, covariate = 'scale.prop.zos', data = Bird.parasites, 
-                main = 'Estimated interactions across host relative densities')
-```
-
-![](README-Readme.fig2-1.png)
-
 ### Exploring regression coefficients and interpreting results
 
-Finally, we can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of conditional MRFs, as competing methods (such as Joint Species Distribution Models) do not provide interpretable mechanisms for comparing the relative importances of interactions and fixed covariates. MRF functions conveniently return a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
+We can explore regression coefficients to get a better understanding of just how important interactions are for predicting species' occurrence probabilities (in comparison to other covariates). This is perhaps the strongest property of conditional MRFs, as competing methods (such as Joint Species Distribution Models) do not provide interpretable mechanisms for comparing the relative importances of interactions and fixed covariates. MRF functions conveniently return a matrix of important coefficients for each node in the graph, as well as their relative importances (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
 
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.66627526        -2.3966878 -2.3966878
-#> 5 scale.prop.zos_Microfilaria     0.12309374        -1.0301551 -1.0301551
-#> 3                Microfilaria     0.09602660         0.9098722  0.9098722
-#> 4              scale.prop.zos     0.09207635        -0.8909609 -0.8909609
-#> 2                        Plas     0.01651526        -0.3773352 -0.3773352
+#> 1                  Hkillangoi     0.62155469        -3.2651934 -3.2651934
+#> 4   scale.prop.zos_Hkillangoi     0.19544415         1.8309672  1.8309672
+#> 5 scale.prop.zos_Microfilaria     0.07232675        -1.1138295 -1.1138295
+#> 3              scale.prop.zos     0.05388258        -0.9613764 -0.9613764
+#> 2                Microfilaria     0.04764041         0.9039761  0.9039761
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
-#>         Variable Rel_importance Standardised_coef   Raw_coef
-#> 1    Hzosteropis     0.78228114        -2.3966878 -2.3966878
-#> 2   Microfilaria     0.12725430        -0.9666434 -0.9666434
-#> 3 scale.prop.zos     0.08964041        -0.8113009 -0.8113009
+#>                     Variable Rel_importance Standardised_coef   Raw_coef
+#> 1                Hzosteropis     0.68188476        -3.2651934 -3.2651934
+#> 4 scale.prop.zos_Hzosteropis     0.21441458         1.8309672  1.8309672
+#> 2               Microfilaria     0.06160202        -0.9814109 -0.9814109
+#> 3             scale.prop.zos     0.04209757        -0.8113009 -0.8113009
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.63490182         1.8198199  1.8198199
-#> 3              scale.prop.zos     0.25281952        -1.1483662 -1.1483662
-#> 4 scale.prop.zos_Microfilaria     0.07388426         0.6207991  0.6207991
-#> 1                 Hzosteropis     0.02729634        -0.3773352 -0.3773352
+#> 2                Microfilaria     0.64494833         1.5148566  1.5148566
+#> 3              scale.prop.zos     0.26326532        -0.9678452 -0.9678452
+#> 5 scale.prop.zos_Microfilaria     0.04766438         0.4118187  0.4118187
+#> 1                 Hzosteropis     0.03269272        -0.3410630 -0.3410630
+#> 4  scale.prop.zos_Hzosteropis     0.01142454        -0.2016176 -0.2016176
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas     0.42918841         1.8198199  1.8198199
-#> 4             scale.prop.zos     0.15495426        -1.0934682 -1.0934682
-#> 5 scale.prop.zos_Hzosteropis     0.13752967        -1.0301551 -1.0301551
-#> 2                 Hkillangoi     0.12109431        -0.9666434 -0.9666434
-#> 1                Hzosteropis     0.10728820         0.9098722  0.9098722
-#> 6        scale.prop.zos_Plas     0.04994515         0.6207991  0.6207991
+#> 3                       Plas     0.34066713         1.5148566  1.5148566
+#> 4             scale.prop.zos     0.18568793        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.18417243        -1.1138295 -1.1138295
+#> 2                 Hkillangoi     0.14298451        -0.9814109 -0.9814109
+#> 1                Hzosteropis     0.12131126         0.9039761  0.9039761
+#> 6        scale.prop.zos_Plas     0.02517673         0.4118187  0.4118187
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method
 
 ``` r
 vignette("Bird_Parasite_CRF")
+vignette("Gaussian_Poisson_CRFs")
 ```
 
 Clark *et al* 2018 [*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221) | [PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf)

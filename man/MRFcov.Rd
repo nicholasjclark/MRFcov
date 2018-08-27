@@ -5,7 +5,7 @@
 \title{Markov Random Fields with covariates}
 \usage{
 MRFcov(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
-  family, fixed_lambda, bootstrap = FALSE)
+  family, bootstrap = FALSE)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
@@ -35,9 +35,12 @@ Default is \code{ncol(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
-If using (\code{family = "binomial"}), please ensure that each node occurs in at least 5 percent
-of observations and no more than 95 percent of observations. If these conditions aren't met, it is generally difficult to
-estimate occurrence probabilities, and so the function will return an error message.}
+If using (\code{family = "binomial"}), please note that if nodes occur in less than 5 percent
+of observations this can make it generally difficult to
+estimate occurrence probabilities (on the extreme end, this can result in intercept-only
+models being fitted for the nodes in question). The function will issue a warning in this case.
+If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
+step will generally be unable to proceed.}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
 }
@@ -66,41 +69,9 @@ Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
 how interactions between nodes vary across covariate magnitudes.
 }
-\details{
-Separate penalized regressions are used to approximate
-MRF parameters, where the regression for species \code{j} includes an
-intercept and beta coefficients for the abundance (families \code{gaussian} or \code{poisson})
-or presence-absence (family \code{binomial}) of all other
-species (\code{/j}) in \code{data}. If covariates are included, beta coefficients
-are also estimated for the effect of the covariate on \code{j} and the
-effects of the covariate on interactions between \code{j} and all other species
-(\code{/j}). Note that coefficients must be estimated on the same scale in order
-for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
-variables will be therefore standardised using the square root mean transformation
-\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
-will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
-will be returned so that coefficients can be unscaled before interpretation (this unscaling is
-performed automatatically by other functions including \code{\link{predict_MRF}}
-and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
-if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
-models.
-\cr
-\cr
-Note that since the number of parameters quickly increases with increasing
-numbers of species and covariates, LASSO penalization is used to regularize
-regressions based on values of the regularization parameter \code{lambda1}.
-This can be done either by minimising the cross-validated
-mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
-running all regressions at a single \code{lambda1} value. The latter approach may be
-useful for optimising all nodes as part of a joint graphical model, while the former
-is likely to be more appropriate for maximising the log-likelihood of each node
-separately before unifying the nodes into a graph. See \code{\link[penalized]{penalized}}
-and \code{\link[glmnet]{cv.glmnet}} for further details.
-}
 \examples{
-\dontrun{
 data("Bird.parasites")
-CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')}
+CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 
 }
 \references{
@@ -116,9 +87,7 @@ Sutton C, McCallum A. An introduction to conditional random fields.
 Foundations and Trends in Machine Learning 4, 267-373.
 }
 \seealso{
-\href{https://www.doria.fi/bitstream/handle/10024/124199/ThesisOscarLindberg.pdf?sequence=2}{Lindberg (2016)}
-and \href{http://homepages.inf.ed.ac.uk/csutton/publications/crftut-fnt.pdf}{Sutton & McCallum (2012)}
-for overviews of Conditional Random Fields, \code{\link[penalized]{penalized}} for
-details of penalized regressions at a fixed lambda, and \code{\link[glmnet]{cv.glmnet}} for
-details of cross-validated lambda optimization
+Cheng et al. (2014), Sutton & McCallum (2012) and Clark et al. (2018)
+for overviews of Conditional Random Fields. See \code{\link[glmnet]{cv.glmnet}} for
+details of cross-validated optimization using LASSO penalty
 }

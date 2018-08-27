@@ -5,14 +5,14 @@
 #'
 #'@importFrom magrittr %>%
 #'
-#'@param MRF_mod A fitted \code{MRFcov}, \code{\link[rosalia]{rosalia}} or \code{bootstrap_MRF}
+#'@param MRF_mod A fitted \code{MRFcov} or \code{bootstrap_MRF}
 #'object
 #'@param node_names A character vector of species names for axis labels. Default
 #'is to use rownames from the \code{MRFcov$graph} slot
 #'@param main An optional character title for the plot
 
 #'@param plot_observed_vals Logical. If \code{TRUE} and the family of the fitted \code{MRFcov}
-#'model is \code{'binomial'} (or if the model is a \code{rosalia} model),
+#'model is \code{'binomial'},
 #'then raw observed occurrence and co-occurrence values will be extracted from \code{data} and overlaid on
 #'the resulting heatmap. Note, this option is not available for \code{bootstrap_MRF} models
 #'@param data Optional \code{dataframe} containing the input data where the left-most columns represent
@@ -22,7 +22,7 @@
 #'
 #'@return A \code{ggplot2} object
 #'
-#'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[rosalia]{rosalia}}
+#'@seealso \code{\link{MRFcov}} \code{\link{bootstrap_MRF}}
 #'
 #'@details Interaction parameters from \code{MRF_mod} are plotted as a heatmap, where
 #'red colours indicate positive interactions and blue indicate negative interactions. If
@@ -32,11 +32,11 @@
 #'available for \code{bootstrap_MRF} models
 #'
 #'@examples
-#'\dontrun{
+#'
 #'data("Bird.parasites")
 #'CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 #'plotMRF_hm(MRF_mod = CRFmod)
-#'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)}
+#'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)
 #'
 #'@export
 #'
@@ -56,7 +56,8 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     data <- NULL
   }
 
-  #If MRF_mod is a rosalia object, extract interaction coefficients from 'beta' slot
+  # If MRF_mod is a rosalia object (from package 'rosalia'),
+  # extract interaction coefficients from 'beta' slot
   if('beta' %in% names(MRF_mod)){
     MRF_mod$graph <- MRF_mod$beta
     MRF_mod$mod_type <- 'MRFcov'
@@ -150,6 +151,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     text.dat$value <- NULL
 
     #### Create a tiled heatmap plot and overlay text for observed infection data ####
+    Var1 <- Var2 <- value <- NULL
     plot = ggplot2::ggplot(data = melted_cormat, ggplot2::aes(Var2, Var1, fill = value))+
       ggplot2::geom_tile(color = border, width = 0.95, height = 0.95, size = 1) +
       ggplot2::geom_text(ggplot2::aes(y = text.dat$Var1,
