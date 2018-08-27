@@ -6,14 +6,15 @@
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
 #'
 #'@param data Dataframe. The input data to be predicted, where the \code{n_nodes}
-#'left-most variables are binary occurrences to be represented by nodes in the graph.
+#'left-most variables are are variables that are represented by nodes in the graph from
+#'the \code{MRF_mod} model.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
 #'was used to fit the \code{MRF_mod}
-#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}}model object
+#'@param MRF_mod A fitted \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} model object
 #'@param prep_covariates Logical flag stating whether to prep the dataset
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
-#'Default is \code{parallel::detect_cores() - 1}
+#'Default is \code{1} (no parallelisation)
 #'@return A \code{matrix} containing predictions for each observation in \code{data}. If
 #'\code{family = "binomial"}, a second element containing binary
 #'predictions for nodes is returned.

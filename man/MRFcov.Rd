@@ -69,37 +69,6 @@ Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
 how interactions between nodes vary across covariate magnitudes.
 }
-\details{
-Separate penalized regressions are used to approximate
-MRF parameters, where the regression for node \code{j} includes an
-intercept and beta coefficients for the abundance (families \code{gaussian} or \code{poisson})
-or presence-absence (family \code{binomial}) of all other
-nodes (\code{/j}) in \code{data}. If covariates are included, beta coefficients
-are also estimated for the effect of the covariate on \code{j} and the
-effects of the covariate on interactions between \code{j} and all other species
-(\code{/j}). Note that coefficients must be estimated on the same scale in order
-for the resulting models to be unified into a Markov Random Field. Counts for \code{poisson}
-variables will be therefore standardised using the square root mean transformation
-\code{x = x / sqrt(mean(x ^ 2))} so that they are on similar ranges. These transformed counts
-will then be used in a \code{(family = "gaussian")} model and their respective scaling factors
-will be returned so that coefficients can be unscaled before interpretation (this unscaling is
-performed automatatically by other functions including \code{\link{predict_MRF}}
-and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
-if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
-models.
-\cr
-\cr
-Note that since the number of parameters quickly increases with increasing
-numbers of species and covariates, LASSO penalization is used to regularize
-regressions based on values of the regularization parameter \code{lambda1}.
-This can be done either by minimising the cross-validated
-mean error for each node separately (using \code{\link[glmnet]{cv.glmnet}}) or by
-running all regressions at a single \code{lambda1} value. The latter approach may be
-useful for optimising all nodes as part of a joint graphical model, while the former
-is likely to be more appropriate for maximising the log-likelihood of each node
-separately before unifying the nodes into a graph. See \code{\link[penalized]{penalized}}
-and \code{\link[glmnet]{cv.glmnet}} for further details.
-}
 \examples{
 data("Bird.parasites")
 CRFmod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')

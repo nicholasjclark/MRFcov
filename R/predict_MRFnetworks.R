@@ -1,12 +1,13 @@
-#'Extract predicted network metrics for observations in a given dataset
+#'Extract predicted network metrics for observations in a given dataset using
+#'equations from a fitted \code{MRFcov} object
 #'
 #'This function uses outputs from fitted \code{\link{MRFcov}}
 #'and \code{\link{bootstrap_MRF}} models to
-#'generate species' linear predictions for each observation in \code{data} and
+#'generate linear predictions for each observation in \code{data} and
 #'calculate probabilistic network metrics from weighted adjacency matrices.
 #'
 #'@param data Dataframe. The sample data where the
-#'left-most variables are variables that are represented by nodes (i.e. species) in the graph.
+#'left-most variables are variables that are represented by nodes in the graph.
 #'Colnames from this sample dataset must exactly match the colnames in the dataset that
 #'was used to fit the \code{MRF_mod}
 #'@param MRF_mod A fitted \code{MRFcov} or \code{bootstrap_MRF} object
@@ -28,7 +29,7 @@
 #'by cross-multiplication (\code{TRUE} by default; use \code{FALSE} for predicting
 #'networks from \code{\link{MRFcov_spatial}} objects)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
-#'Default is \code{parallel::detect_cores() - 1}
+#'Default is \code{1} (no parallelisation)
 #'
 #'@return Either a \code{matrix} with \code{nrow = nrow(data)},
 #'containing each species' predicted network metric at each observation in \code{data}, or
@@ -38,14 +39,14 @@
 #'@seealso \code{\link{MRFcov}}, \code{\link{bootstrap_MRF}}, \code{\link[igraph]{degree}},
 #'\code{\link[igraph]{eigen_centrality}}, \code{\link[igraph]{betweenness}}
 #'
-#'@details Species interaction parameters are predicted for each observation in \code{data}
+#'@details Interaction parameters are predicted for each observation in \code{data}
 #'and then converted into a weighted, undirected adjacency matrix
 #'using \code{\link[igraph]{graph.adjacency}}. Note that the network is probabilistic,
-#'as species' occurrences/abundances are predicted using fitted model equations from
-#'\code{MRF_mod}. If a species' linear prediction for a given observation falls below the
-#'user-specified \code{cutoff}, the species is considered absent from the community and cannot
+#'as node occurrences/abundances are predicted using fitted model equations from
+#'\code{MRF_mod}. If a linear prediction for a given observation falls below the
+#'user-specified \code{cutoff}, the node is considered absent from the community and cannot
 #'participate in the network. After correcting for the linear predictions,
-#'The specified network metric (degree centrality,
+#'the specified network metric (degree centrality,
 #'eigencentrality, or betweenness) for each observation in \code{data}
 #'is then calculated and returned in a \code{matrix}. If \code{metric} is not
 #'supplied, the weighted, undirected adjacency matrices are returned in a \code{list}
@@ -107,6 +108,8 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
 
   if(missing(prep_covariates)){
     prep_MRF_covariates <- TRUE
+  } else {
+    prep_MRF_covariates <- prep_covariates
   }
 
   if(plot_booted_coefs){
@@ -256,7 +259,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
 
   if(metric == 'betweenness'){
     # For each observation in data, convert the interaction matrix to a
-    # weighted, undirected adjacency matrix and calculate normalized degree centrality
+    # weighted, undirected adjacency matrix and calculate betweenness
     obs.betweenness <- lapply(seq_len(nrow(data)), function(x){
       adj.matrix <- igraph::graph.adjacency(abs(total.interactions[[x]]),
                                             weighted = T,
@@ -276,9 +279,9 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
 
   if(metric == 'adjacency'){
     # For each observation in data, convert the interaction matrix to a
-    # weighted, undirected adjacency matrix and calculate normalized degree centrality
+    # weighted, undirected adjacency matrix
     obs.adjacency <- lapply(seq_len(nrow(data)), function(x){
-      adj.matrix <- igraph::graph.adjacency(abs(total.interactions[[x]]),
+      adj.matrix <- igraph::graph.adjacency(total.interactions[[x]],
                                             weighted = T,
                                             mode = "undirected")
     })
