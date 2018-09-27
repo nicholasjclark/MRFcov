@@ -16,7 +16,7 @@ is to use rownames from the \code{MRFcov$graph} slot}
 \item{main}{An optional character title for the plot}
 
 \item{plot_observed_vals}{Logical. If \code{TRUE} and the family of the fitted \code{MRFcov}
-model is \code{'binomial'} (or if the model is a \code{rosalia} model),
+model is \code{'binomial'},
 then raw observed occurrence and co-occurrence values will be extracted from \code{data} and overlaid on
 the resulting heatmap. Note, this option is not available for \code{bootstrap_MRF} models}
 
