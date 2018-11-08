@@ -275,6 +275,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
 
   #### Specify number of bootstrap replicates for each processing core to run ####
+  #Set the total number of repititions
+  total_reps <- n_bootstraps
   n_bootstraps <- suppressWarnings(lapply(split(seq_len(n_bootstraps),
                                                 lambda1_seq),
                                           length))
@@ -395,8 +397,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
                                          bootstrap = TRUE))
         }
 
-        list(direct_coefs = mod$direct_coefs,
-             indirect_coefs = mod$indirect_coefs)
+        list(direct_coefs = as.matrix(mod$direct_coefs),
+             indirect_coefs = as.matrix(mod$indirect_coefs))
   })
 
     #Gather direct effect estimates from all bootstrap samples
@@ -589,7 +591,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   all_direct_coef_means <- apply(array(unlist(all_direct_coef_list),
                             c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
                               ncol(lambda_results[[1]]$raw_coefs[[1]]),
-                              n_bootstraps)), c(1, 2), mean)
+                              total_reps)), c(1, 2), mean)
   rownames(all_direct_coef_means) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
   colnames(all_direct_coef_means) <- colnames(lambda_results[[1]]$raw_coefs[[1]])
 
@@ -603,7 +605,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   all_direct_coef_upper90 <- apply(array(unlist(all_direct_coef_list),
                                 c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
                                   ncol(lambda_results[[1]]$raw_coefs[[1]]),
-                                  n_bootstraps)), c(1, 2),
+                                  total_reps)), c(1, 2),
                            function(x){quantile(x, probs = 0.95)})
   rownames(all_direct_coef_upper90) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
   colnames(all_direct_coef_upper90) <- colnames(lambda_results[[1]]$raw_coefs[[1]])
@@ -611,7 +613,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   all_direct_coef_lower90 <- apply(array(unlist(all_direct_coef_list),
                                  c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
                                    ncol(lambda_results[[1]]$raw_coefs[[1]]),
-                                   n_bootstraps)), c(1, 2),
+                                   total_reps)), c(1, 2),
                            function(x){quantile(x, probs = 0.05)})
   rownames(all_direct_coef_lower90) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
   colnames(all_direct_coef_lower90) <- colnames(lambda_results[[1]]$raw_coefs[[1]])
