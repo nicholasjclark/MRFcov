@@ -47,18 +47,22 @@ step will generally be unable to proceed.}
 \value{
 A \code{list} containing:
 \itemize{
-   \item \code{graph}: Estimated parameter matrix of interaction effects
-   \item \code{intercepts}: Estimated parameter vector of node intercepts
-   \item \code{indirect_coefs}: \code{list} containing matrices of indirect effects of
-   each covariate on node interactions
-   \item \code{direct_coefs}: \code{matrix} of direct covariate effects on
-   node occurrence probabilities
+   \item \code{graph}: Estimated parameter \code{matrix} of pairwise interaction effects
+   \item \code{intercepts}: Estimated parameter \code{vector} of node intercepts
+   \item \code{indirect_coefs}: \code{list} containing matrices representing
+    indirect effects of each covariate on pairwise node interactions
+   \item \code{direct_coefs}: \code{matrix} of direct effects of each parameter on
+   each outcome node. For \code{family = 'binomial'} models, all coefficients are
+   estimated on the logit scale. For \code{family = 'poisson'} models, coefficients
+   are estimated on the identity scale AFTER standardising variables using the
+   root mean square transformation. See \code{vignette("Gaussian_Poisson_CRFs")} for
+   details of interpretation
    \item \code{param_names}: Character string of covariate parameter names
    \item \code{mod_type}: A character stating the type of model that was fit
    (used in other functions)
    \item \code{mod_family}: A character stating the family of model that was fit
    (used in other functions)
-   \item \code{poiss_sc_factors}: A vector of the square-root mean scaling factors
+   \item \code{poiss_sc_factors}: A vector of the root mean square scaling factors
    used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
    }
 }
@@ -68,6 +72,38 @@ separate penalized regressions for each node to estimate parameters of
 Markov Random Fields (MRF) graphs. Covariates can be included
 (a class of models known as Conditional Random Fields; CRF), to estimate
 how interactions between nodes vary across covariate magnitudes.
+}
+\details{
+Separate penalized regressions are used to approximate
+MRF parameters, where the regression for node \code{j} includes an
+intercept and coefficients for the abundance (families \code{gaussian} or \code{poisson})
+or presence-absence (family \code{binomial}) of all other
+nodes (\code{/j}) in \code{data}. If covariates are included, coefficients
+are also estimated for the effect of the covariate on \code{j}, and for the
+effects of the covariate on interactions between \code{j} and all other nodes
+(\code{/j}). Note that interaction coefficients must be estimated between variables that
+are on roughly the same scale, as the resulting parameter estimates are
+unified into a Markov Random Field using the specified \code{symmetrise} function.
+Counts for \code{poisson} variables, which are often not on the same scale,
+will therefore be standardised using a root mean square transformation
+\code{x = x / sqrt(mean(x ^ 2))}. These transformed counts
+will be used in a \code{(family = "gaussian")}
+model and their respective scaling factors returned so that coefficients
+can be unscaled for interpretation (this unscaling is
+performed automatatically by other functions including \code{\link{predict_MRF}}
+and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
+if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
+models. For more information on this process, use
+\code{vignette("Gaussian_Poisson_CRFs")}
+\cr
+\cr
+Note that since the number of parameters to estimate in each node-wise regression
+quickly increases with increasing numbers of nodes and covariates,
+LASSO penalization is used to regularize
+regressions. This is done by minimising the cross-validated
+mean error for each node separately using \code{\link[glmnet]{cv.glmnet}}. In this way,
+we maximise the log-likelihood of each node
+separately before unifying the nodes into a graph.
 }
 \examples{
 data("Bird.parasites")
@@ -89,5 +125,7 @@ Foundations and Trends in Machine Learning 4, 267-373.
 \seealso{
 Cheng et al. (2014), Sutton & McCallum (2012) and Clark et al. (2018)
 for overviews of Conditional Random Fields. See \code{\link[glmnet]{cv.glmnet}} for
-details of cross-validated optimization using LASSO penalty
+details of cross-validated optimization using LASSO penalty. Worked examples to showcase
+this function can be found using \code{vignette("Bird_Parasite_CRF")} and
+\code{vignette("Gaussian_Poisson_CRFs")}
 }

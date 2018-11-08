@@ -45,15 +45,16 @@ step will generally be unable to proceed.}
 \item{coords}{A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 representing the spatial coordinates of each observation in \code{data}. Ideally, these
 coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-are used to create smoothed spatial regression splines via the call
-\code{mgcv::smooth.construct2(object = mgcv::s(Latitude, Longitude, bs = "gp", k = max_k), data = coords, knots = NULL)}.
-Here, \code{max_k} controls the basis dimension of the smoothed term and
+are used to create smoothed spatial regression splines via
+\code{\link[mgcv]{smooth.construct2}}.
+Here, the basis dimension of the smoothed term
 is chosen based on the number of unique GPS coordinates in \code{coords}.
-If this number is less than \code{100}, it is used as \code{max_k}, while if it is more than
-\code{100}, a \code{max_k} of \code{100} is used (this parameter needs to be large in order
-to ensure enough degrees of freedom for estimating 'wiggliness' of the smooth term; see
+If this number is less than \code{100}, then this number is used. If the number of
+unique coordiantes is more than \code{100}, a value of \code{100} is used
+(this parameter needs to be large in order to ensure enough degrees of freedom
+for estimating 'wiggliness' of the smooth term; see
 \code{\link[mgcv]{choose.k}} for details).
-These regression splines will be included in each node-wise regression as additional penalized covariates.
+These splines will be included in each node-wise regression as additional penalized covariates.
 This ensures that resulting node interaction parameters are estimated after accounting for
 possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
@@ -63,7 +64,7 @@ the \code{\link{predict_MRF}} function}
 }
 \value{
 A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
-the inclusion of a \code{dataframe} called \code{mrf_data}. This data contains all prepped covariates
+the inclusion of a \code{dataframe} called \code{mrf_data}. This contains all prepped covariates
 including the added spatial regression
 splines, and should be used as \code{data} when generating predictions
 via \code{\link{predict_MRF}} or \code{\link{predict_MRFnetworks}}
@@ -91,5 +92,6 @@ Applied Statistics 52(1):1-18.
 }
 \seealso{
 See \code{\link[mgcv]{smooth.construct2}} and \code{\link[mgcv]{smooth.construct.gp.smooth.spec}}
-for details of Gaussian process spatial regression splines
+for details of Gaussian process spatial regression splines. Worked examples to showcase
+this function can be found using \code{vignette("Bird_Parasite_CRF")}
 }

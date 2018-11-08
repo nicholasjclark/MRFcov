@@ -2,14 +2,15 @@
 % Please edit documentation in R/predict_MRFnetworks.R
 \name{predict_MRFnetworks}
 \alias{predict_MRFnetworks}
-\title{Extract predicted network metrics for observations in a given dataset}
+\title{Extract predicted network metrics for observations in a given dataset using
+equations from a fitted \code{MRFcov} object}
 \usage{
 predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric,
   cached_predictions = NULL, prep_covariates, n_cores)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
-left-most variables are variables that are represented by nodes (i.e. species) in the graph.
+left-most variables are variables that are represented by nodes in the graph.
 Colnames from this sample dataset must exactly match the colnames in the dataset that
 was used to fit the \code{MRF_mod}}
 
@@ -38,7 +39,7 @@ by cross-multiplication (\code{TRUE} by default; use \code{FALSE} for predicting
 networks from \code{\link{MRFcov_spatial}} objects)}
 
 \item{n_cores}{Positive integer stating the number of processing cores to split the job across.
-Default is \code{parallel::detect_cores() - 1}}
+Default is \code{1} (no parallelisation)}
 }
 \value{
 Either a \code{matrix} with \code{nrow = nrow(data)},
@@ -49,18 +50,18 @@ adjacency matrix predicted at each observation in \code{data}
 \description{
 This function uses outputs from fitted \code{\link{MRFcov}}
 and \code{\link{bootstrap_MRF}} models to
-generate species' linear predictions for each observation in \code{data} and
+generate linear predictions for each observation in \code{data} and
 calculate probabilistic network metrics from weighted adjacency matrices.
 }
 \details{
-Species interaction parameters are predicted for each observation in \code{data}
+Interaction parameters are predicted for each observation in \code{data}
 and then converted into a weighted, undirected adjacency matrix
 using \code{\link[igraph]{graph.adjacency}}. Note that the network is probabilistic,
-as species' occurrences/abundances are predicted using fitted model equations from
-\code{MRF_mod}. If a species' linear prediction for a given observation falls below the
-user-specified \code{cutoff}, the species is considered absent from the community and cannot
+as node occurrences/abundances are predicted using fitted model equations from
+\code{MRF_mod}. If a linear prediction for a given observation falls below the
+user-specified \code{cutoff}, the node is considered absent from the community and cannot
 participate in the network. After correcting for the linear predictions,
-The specified network metric (degree centrality,
+the specified network metric (degree centrality,
 eigencentrality, or betweenness) for each observation in \code{data}
 is then calculated and returned in a \code{matrix}. If \code{metric} is not
 supplied, the weighted, undirected adjacency matrices are returned in a \code{list}
