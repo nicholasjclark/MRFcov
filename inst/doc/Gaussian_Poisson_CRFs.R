@@ -3,7 +3,7 @@ cov <- rnorm(500, 0.2)
 cov2 <- rnorm(500, 4)
 sp.2 <- ceiling(rnorm(500, 1) + (cov * 2))
 sp.2[sp.2 < 0] <- 0
-poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 4) + cov2 * 10.5),
+poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 4) + (cov2 * 10.5) + (sp.2 * -0.15)),
                         sp.2 = sp.2, sp.3 = ceiling((sp.2 * 1.5) + rnorm(500, 0.1)))
 poiss.dat[poiss.dat < 0] <- 0
 poiss.dat$cov <- cov
