@@ -387,28 +387,28 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
       clusterEvalQ(cl, library(glmnet))
       mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
-        mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
+        mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                              y = mrf_data[,i], family = family, alpha = 1,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                              penalty.factor = penalties[-y.vars],
-                             intercept = TRUE, standardize = TRUE, maxit = 25000),
+                             intercept = TRUE, standardize = TRUE, maxit = 25000)),
                    silent = TRUE)
 
         if(inherits(mod, 'try-error')){
-          mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
+          mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                            y = mrf_data[,i], family = family, alpha = 1,
                            nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            penalty.factor = penalties[-y.vars],
-                           intercept = TRUE, standardize = TRUE, maxit = 55000),
+                           intercept = TRUE, standardize = TRUE, maxit = 55000)),
                      silent = TRUE)
         }
 
         if(inherits(mod, 'try-error')){
-          mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
+          mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                            y = mrf_data[,i], family = family, alpha = 1,
                            nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
-                           intercept = TRUE, standardize = TRUE, maxit = 55000),
+                           intercept = TRUE, standardize = TRUE, maxit = 55000)),
                      silent = TRUE)
         }
 
@@ -439,28 +439,28 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     #If parallel is not supported or n_cores = 1, use lapply instead
       mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
         y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
-        mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
+        mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                              y = mrf_data[,i], family = family, alpha = 1,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                              penalty.factor = penalties[-y.vars],
-                             intercept = TRUE, standardize = TRUE, maxit = 25000),
+                             intercept = TRUE, standardize = TRUE, maxit = 25000)),
                    silent = TRUE)
 
         if(inherits(mod, 'try-error')){
-          mod <- try(cv.glmnet(x = mrf_data[, -y.vars],
+          mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                                y = mrf_data[,i], family = family, alpha = 1,
                                nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                                penalty.factor = penalties[-y.vars],
-                               intercept = TRUE, standardize = TRUE, maxit = 55000),
+                               intercept = TRUE, standardize = TRUE, maxit = 55000)),
                      silent = TRUE)
         }
 
         if(inherits(mod, 'try-error')){
-          try(mod <- cv.glmnet(x = mrf_data[, -y.vars],
+          try(mod <- suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                            y = mrf_data[,i], family = family, alpha = 1,
                            nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
                            lambda = rev(seq(0.0001, 1, length.out = 100)),
-                           intercept = TRUE, standardize = TRUE, maxit = 55000),
+                           intercept = TRUE, standardize = TRUE, maxit = 55000)),
               silent = TRUE)
         }
 

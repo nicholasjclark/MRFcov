@@ -74,7 +74,11 @@ booted_MRF$mean_key_coefs$Microfilaria
 
 ## ------------------------------------------------------------------------
 adj_mats <- predict_MRFnetworks(data = Bird.parasites,
-                                MRF_mod = booted_MRF)
+                                MRF_mod = booted_MRF,
+                                metric = 'eigencentrality',
+                                cutoff = 0.33)
+colnames(adj_mats) <- colnames(Bird.parasites[, 1:4])
+apply(adj_mats, 2, summary)
 
 ## ----eval = FALSE--------------------------------------------------------
 #  Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)

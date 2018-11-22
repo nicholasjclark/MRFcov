@@ -27,14 +27,14 @@ data.paras = data.frame(data.paras) %>%
 data.paras <- data.paras[, c(12:15, 23)]
 ```
 
-You can visualise the dataset to see how analysis data needs to be structured. In short, for (`family = "binomial"`) models, node variable (i.e. species) occurrences should be included as binary variables (1s and 0s) as the left-most variables in `data`. Note that Gaussian continuous variables (`family = "gaussian"`) and Poisson non-negative counts (`family = "poisson"`) are also supported in `MRFcov`. Any covariates can be included as the right-most variables. It is recommended that these covariates all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have roughly `mean = 0` and `sd = 1`, as this makes LASSO variable selection and comparisons of effect sizes very straightforward
+You can visualise the dataset to see how analysis data needs to be structured. In short, for (`family = "binomial"`) models, node variable (i.e. species) occurrences should be included as binary variables (`1`s and `0`s) as the `n_nodes` left-most variables in `data`. Note that Gaussian continuous variables (`family = "gaussian"`) and Poisson non-negative counts (`family = "poisson"`) are also supported in `MRFcov`. Any covariates can be included as the right-most variables. It is recommended that these covariates all be on a similar scale, ideally using the `scale` function for continuous covariates (or similar) so that covariates have roughly `mean = 0` and `sd = 1`, as this makes LASSO variable selection and comparisons of effect sizes very straightforward
 ```{r eval=FALSE}
 help("Bird.parasites")
 View(Bird.parasites)
 ```
 
 ### Running MRFs and visualising interaction coefficients
-We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species (`4`). We also need to specify the family for the model (`binomial` in this case). We do not specify the level of penalisation used by the LASSO algorithm. Instead, this is optimised separately for each species through cross validation (using function `cv.glmnet` in the `glmnet` package). This ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we use 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
+We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species to be represented in the graphical model (`4`). We also need to specify the family for the model (`binomial` in this case). We do not specify the level of penalisation used by the LASSO algorithm. Instead, this is optimised separately for each species through cross validation (using function `cv.glmnet` in the `glmnet` package). This ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we use 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
 ```{r}
 MRF_fit <- MRFcov(data = Bird.parasites[, c(1:4)], n_nodes = 4, family = 'binomial')
 ```
@@ -47,17 +47,17 @@ plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)',
 ```
 
 ### Running CRFs using additional covariates
-We can now run a Conditional Random Fields (CRF) model using the provided continuous covariate (`scale.prop.zos`). Again, we use the default cross-validation method to optimise each species' regression. Note that any columns in `data` to the right of column `n_nodes` will be presumed to represent covariates if we don't specify an `n_covariates` argument
+We can now run a Conditional Random Fields (CRF) model using the provided continuous covariate (`scale.prop.zos`). Again, each species' regression is optimised separately using LASSO regularization. Note that any columns in `data` to the right of column `n_nodes` will be presumed to represent covariates if we don't specify an `n_covariates` argument
 ```{r}
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 ```
 
-Visualise the estimated species interaction coefficients as a heatmap. These represent predicted interactions when the covariate is set to its mean (i.e. in this case, when `scale.prop.zos` = 0)
+Visualise the estimated species interaction coefficients as a heatmap. These represent predicted interactions when the covariate is set to its mean (i.e. in this case, when `scale.prop.zos = 0`). If we had included other covariates, then this graph would represent interactions predicted when *all* covariates were set at their means
 ```{r}
 plotMRF_hm(MRF_mod = MRF_mod)
 ```
 
-Regression coefficients and their relative importances can be accessed as well. This call returns a matrix of the raw coefficient, as well as standardised coefficients (standardised by the `sd` of the covariate). Standardisation in this way helps to compare the relative influences of each parameter on the target species' occurrence probability. The list also contains contains each variable's relative importance (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients
+Regression coefficients and their relative importances can be accessed as well. This call returns a matrix of the raw coefficient, as well as standardised coefficients (standardised by the `sd` of the covariate). Standardisation in this way helps to compare the relative influences of each parameter on the target species' occurrence probability, but in general the two coefficients will be identical (unless users have not pre-scaled their covariates). The list also contains contains each variable's relative importance (calculated using the formula `B^2 / sum(B^2)`, where the vector of `B`s represents regression coefficients for predictor variables). Variables with an underscore (`_`) indicate an interaction between a covariate and another node, suggesting that conditional dependencies of the two nodes vary across environmental gradients. Because of this, it is recommended to avoid using column names with `_` in them
 ```{r}
 MRF_mod$key_coefs$Hzosteropis
 ```
@@ -92,7 +92,7 @@ quantile(mod_fits$mean_sensitivity[mod_fits$model != 'CRF'], probs = c(0.05, 0.9
 ```
 
 ### Bootstrapping the data and running models
-We now may want to fit models to bootstrapped subsets of the data to account for parameter uncertainty
+We now may want to fit models to bootstrapped subsets of the data to account for parameter uncertainty. Users can change the proportion of observations to include in each bootstrap run with the `sample_prop` option.
 ```{r}
 booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 10, n_cores = 1)
 ```
@@ -115,10 +115,14 @@ booted_MRF$mean_key_coefs$Plas
 booted_MRF$mean_key_coefs$Microfilaria
 ```
 
-Users can also use the `predict_MRFnetworks` function to calculate network statistics for each node in each observation or to generate adjacency matrices for each observation. By default, this function generates a list of `igraph` adjacency matrices, one for each row in `data`, which can be used to make network plots using a host of other packages. Note, both this function and the `predict_MRF` function rely on `data` that has a structure exactly matching to the data that was used to fit the model. In other words, the column names and column order need to be identical
+Users can also use the `predict_MRFnetworks` function to calculate network statistics for each node in each observation or to generate adjacency matrices for each observation. By default, this function generates a list of `igraph` adjacency matrices, one for each row in `data`, which can be used to make network plots using a host of other packages. Note, both this function and the `predict_MRF` function rely on `data` that has a structure exactly matching to the data that was used to fit the model. In other words, the column names and column order need to be identical. The `cutoff` argument is important for binary problems, as this specifies the probability threshold for stating whether or not a species should be considered present at a site (and thus, whether their interactions will be present). Here, we state that a predicted occurrence above `0.33` is sufficient 
 ```{r}
 adj_mats <- predict_MRFnetworks(data = Bird.parasites,
-                                MRF_mod = booted_MRF)
+                                MRF_mod = booted_MRF,
+                                metric = 'eigencentrality',
+                                cutoff = 0.33)
+colnames(adj_mats) <- colnames(Bird.parasites[, 1:4])
+apply(adj_mats, 2, summary)
 ```
 
 ### Accounting for possible spatial autocorrelation

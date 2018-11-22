@@ -485,7 +485,9 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
             sample_data <- prep_MRF_covariates(sample_data, n_nodes)
             sample_coords <- booted_data$coords
-            mod <- suppressWarnings(MRFcov_spatial(data = sample_data,
+
+            # Use invisible to prevent printing of timing messages in each iteration
+            invisible(utils::capture.output(mod <- MRFcov_spatial(data = sample_data,
                                                    symmetrise = symmetrise,
                                                    coords = sample_coords,
                                                    n_nodes = n_nodes,
@@ -493,7 +495,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
                                                    prep_covariates = FALSE,
                                                    n_covariates = n_covariates,
                                                    family = family,
-                                                   bootstrap = TRUE))
+                                                   bootstrap = TRUE)))
 
           } else {
             sample_data <- shuffle_rows(data)
@@ -503,14 +505,14 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
             }
 
             sample_data <- prep_MRF_covariates(sample_data, n_nodes)
-            mod <- suppressWarnings(MRFcov(data = sample_data,
+            invisible(utils::capture.output(mod <- MRFcov(data = sample_data,
                                            symmetrise = symmetrise,
                                            n_nodes = n_nodes,
                                            n_cores = 1,
                                            prep_covariates = FALSE,
                                            n_covariates = n_covariates,
                                            family = family,
-                                           bootstrap = TRUE))
+                                           bootstrap = TRUE)))
           }
 
           list(direct_coefs = mod$direct_coefs,
