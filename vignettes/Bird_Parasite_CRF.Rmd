@@ -34,16 +34,26 @@ View(Bird.parasites)
 ```
 
 ### Running MRFs and visualising interaction coefficients
-We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species to be represented in the graphical model (`4`). We also need to specify the family for the model (`binomial` in this case). We do not specify the level of penalisation used by the LASSO algorithm. Instead, this is optimised separately for each species through cross validation (using function `cv.glmnet` in the `glmnet` package). This ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we use 3 cores, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
+We first test for interactions using a Markov Random Fields (MRF) model without covariates. We set `n_nodes` as the number of species to be represented in the graphical model (`4`). We also need to specify the family for the model (`binomial` in this case). We do not specify the level of penalisation used by the LASSO algorithm. Instead, this is optimised separately for each species through cross validation (using function `cv.glmnet` in the `glmnet` package). This ensures the log-likelihood of each species is properly maximised before unifying them into an undirected graph. Finally, it is important to note that for MRF model functions, we can specify the number of processing cores to split the job across (i.e. `n_cores`). In this case we will only use 1 core, but higher numbers *may* increase speed (if more cores are available). Check available cores using the `detectCores()` function in the `parallel` package
 ```{r}
 MRF_fit <- MRFcov(data = Bird.parasites[, c(1:4)], n_nodes = 4, family = 'binomial')
 ```
 
-Plot the estimated interaction coefficients as a heatmap using `plotMRF_hm`. Note that we can specify the names of nodes should we want to change them
+The message above can be useful for identifying nodes (i.e. species) that are very rare or very common, as these *can* be difficult to properly model. In this case, the `Microfilaria` node is fairly rare, and so the function automatically reverts to using leave-one-out cross-validation to optimise parameters. This can be slow, so be aware when attempting to use large datasets that contain many very rare or very common species. Now that the model has converged, we can plot the estimated interaction coefficients as a heatmap using `plotMRF_hm`. Note that we can specify the names of nodes should we want to change them
 ```{r}
 plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)', 
                              node_names = c('H. zosteropis', 'H. killangoi',
                                             'Plasmodium', 'Microfilaria'))
+```
+
+Note that other plotting methods an be used as desired. For instance, to plot these as a network instead, we can simply extract the adjacency matrix and plot it using standard `igraph` functions
+```{r}
+net <- igraph::graph.adjacency(MRF_mod$graph, weighted = T, mode = "undirected")
+igraph::plot.igraph(net, layout = igraph::layout.circle,
+                    edge.width = abs(igraph::E(net)$weight),
+                    edge.color = ifelse(igraph::E(net)$weight < 0, 
+                                        'blue',
+                                        'red'))
 ```
 
 ### Running CRFs using additional covariates

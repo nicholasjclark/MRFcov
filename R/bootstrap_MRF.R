@@ -36,8 +36,8 @@
 #'@param spatial Logical. If \code{TRUE}, spatial MRF / CRF models are bootstrapped using
 #'\code{\link{MRFcov_spatial}}. Note, GPS coordinates must be supplied as \code{coords} for spatial
 #'models to be run.
-#'These regression splines will be included in each node-wise regression as covariates.
-#'This ensures that resulting node interaction parameters are estimated after accounting for
+#'Smoothed spatial splines will be included in each node-wise regression as covariates.
+#'This ensures resulting node interaction parameters are estimated after accounting for
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
 #'the \code{\link{predict_MRF}} function
@@ -74,8 +74,7 @@
 #'
 #'@details \code{MRFcov} models are fit via cross-validation using
 #'\code{\link[glmnet]{cv.glmnet}}. For each model, the \code{data} is bootstrapped
-#'by shuffling row observations and fitting models to a subset of observations,
-#'using \code{\link[dplyr]{sample_n}},
+#'by shuffling row observations and fitting models to a subset of observations
 #'to account for uncertainty in parameter estimates.
 #'Parameter estimates from the set of bootstrapped models are summarised
 #'to present means and confidence intervals (as 95 percent quantiles).
