@@ -25,14 +25,14 @@ knitr::opts_chunk$set(
 ## Why Use Conditional Random Fields?
 In principle, `MRFcov` models that use species' occurrences or abundances as outcome variables are similar to [Joint Species Distribution models](https://methodsblog.wordpress.com/2015/12/22/warton_ovaskainen/) in that variance can be partitioned among abiotic and biotic effects. However, key differences are that `MRFcov` models can:  
   
-(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of biotic associationas and environmental covariates in driving abundanecs or occurrence probabilities  
+(1) Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of biotic associations and environmental covariates in driving abundances or occurrence probabilities  
   
-(2) Identify associations strengths, rather than simply determining whether they are "significantly different from zero"  
+(2) Identify association strengths, rather than simply determining whether they are "significantly different from zero"  
   
 (3) Estimate how associations are predicted to change across environmental gradients
   
   
-Models such as these are also better at isolating true species 'interactions' using presence-absence occurrence data than are traditional co-occurrence methods (such as the all-too-common null model randomisation approaches). See [this blogpost](https://rpubs.com/NickClark47/411878) for a more detailed explanation and proof of this statement.  
+Models such as these are also better at isolating true species 'interactions' using presence-absence occurrence data than are traditional null model co-occurrence methods (such as the all-too-common null model randomisation approaches). See [this blogpost](https://rpubs.com/NickClark47/411878) for a more detailed explanation and proof of this statement.  
   
   
 MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the  [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package.  
