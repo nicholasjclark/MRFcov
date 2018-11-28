@@ -38,6 +38,12 @@
 #'plotMRF_hm(MRF_mod = CRFmod)
 #'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)
 #'
+#'To plot as an igraph network instead, we can simply extract the adjacency matrix
+#'net <- igraph::graph.adjacency(CRFmod$graph, weighted = T, mode = "undirected")
+#'igraph::plot.igraph(net, layout = igraph::layout.circle,
+#'                    edge.width = abs(igraph::E(net)$weight),
+#'                    edge.color = ifelse(igraph::E(net)$weight < 0, 'blue', 'red'))
+#'
 #'@export
 #'
 plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
@@ -88,7 +94,6 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     warning('cannot plot observed occurrences and co-occurrences for bootstrapped models')
     plot_observed_vals <- FALSE
   }
-
 
   if(!plot_booted_coefs){
   n_nodes <- ncol(MRF_mod$graph)

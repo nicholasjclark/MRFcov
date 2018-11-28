@@ -1,5 +1,5 @@
-## Patch updates for release v1.0.36
-This update contains improved function definitions, descriptions and some edits to reduce memory usage of the bootstrap_MRF function
+## Patch updates for release v1.0.37
+This update contains improved documentation of examples for plotting, more detailed work-throughs in the vignettes, and...
 
 ## Test environments
 * OS X install: R 3.3.3

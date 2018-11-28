@@ -14,13 +14,13 @@ Why Use Conditional Random Fields?
 
 In principle, `MRFcov` models that use species' occurrences or abundances as outcome variables are similar to [Joint Species Distribution models](https://methodsblog.wordpress.com/2015/12/22/warton_ovaskainen/) in that variance can be partitioned among abiotic and biotic effects. However, key differences are that `MRFcov` models can:
 
-1.  Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of biotic associationas and environmental covariates in driving abundanecs or occurrence probabilities
+1.  Produce directly interpretable coefficients that allow users to determine the relative importances (i.e. effect sizes) of biotic associations and environmental covariates in driving abundances or occurrence probabilities
 
-2.  Identify associations strengths, rather than simply determining whether they are "significantly different from zero"
+2.  Identify association strengths, rather than simply determining whether they are "significantly different from zero"
 
 3.  Estimate how associations are predicted to change across environmental gradients
 
-Models such as these are also better at isolating true species 'interactions' using presence-absence occurrence data than are traditional co-occurrence methods (such as the all-too-common null model randomisation approaches). See [this blogpost](https://rpubs.com/NickClark47/411878) for a more detailed explanation and proof of this statement.
+Models such as these are also better at isolating true species 'interactions' using presence-absence occurrence data than are traditional null model co-occurrence methods (such as the all-too-common null model randomisation approaches). See [this blogpost](https://rpubs.com/NickClark47/411878) for a more detailed explanation and proof of this statement.
 
 MRF and CRF interaction parameters are approximated using separate regressions for individual species within a joint modelling framework. Because all combinations of covariates and additional species are included as predictor variables in node-specific regressions, variable selection is required to reduce overfitting and add sparsity. This is accomplished through LASSO penalization using functions in the [glmnet](https://cran.r-project.org/web/packages/glmnet/index.html) package.
 
@@ -83,41 +83,39 @@ We can explore regression coefficients to get a better understanding of just how
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.62155469        -3.2651934 -3.2651934
-#> 4   scale.prop.zos_Hkillangoi     0.19544415         1.8309672  1.8309672
-#> 5 scale.prop.zos_Microfilaria     0.07232675        -1.1138295 -1.1138295
-#> 3              scale.prop.zos     0.05388258        -0.9613764 -0.9613764
-#> 2                Microfilaria     0.04764041         0.9039761  0.9039761
+#> 1                  Hkillangoi     0.63879165        -2.1995866 -2.1995866
+#> 5 scale.prop.zos_Microfilaria     0.12949223        -0.9903377 -0.9903377
+#> 3                Microfilaria     0.11163736         0.9195307  0.9195307
+#> 4              scale.prop.zos     0.09608397        -0.8530744 -0.8530744
+#> 2                        Plas     0.01815760        -0.3708435 -0.3708435
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
-#>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                Hzosteropis     0.68188476        -3.2651934 -3.2651934
-#> 4 scale.prop.zos_Hzosteropis     0.21441458         1.8309672  1.8309672
-#> 2               Microfilaria     0.06160202        -0.9814109 -0.9814109
-#> 3             scale.prop.zos     0.04209757        -0.8113009 -0.8113009
+#>         Variable Rel_importance Standardised_coef   Raw_coef
+#> 1    Hzosteropis     0.78249057        -2.1995866 -2.1995866
+#> 2   Microfilaria     0.12844790        -0.8911791 -0.8911791
+#> 3 scale.prop.zos     0.08803982        -0.7378041 -0.7378041
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.64494833         1.5148566  1.5148566
-#> 3              scale.prop.zos     0.26326532        -0.9678452 -0.9678452
-#> 5 scale.prop.zos_Microfilaria     0.04766438         0.4118187  0.4118187
-#> 1                 Hzosteropis     0.03269272        -0.3410630 -0.3410630
-#> 4  scale.prop.zos_Hzosteropis     0.01142454        -0.2016176 -0.2016176
+#> 2                Microfilaria     0.63841905         1.8658732  1.8658732
+#> 3              scale.prop.zos     0.24709042        -1.1607994 -1.1607994
+#> 4 scale.prop.zos_Microfilaria     0.08000623         0.6605278  0.6605278
+#> 1                 Hzosteropis     0.02521872        -0.3708435 -0.3708435
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas     0.34066713         1.5148566  1.5148566
-#> 4             scale.prop.zos     0.18568793        -1.1184028 -1.1184028
-#> 5 scale.prop.zos_Hzosteropis     0.18417243        -1.1138295 -1.1138295
-#> 2                 Hkillangoi     0.14298451        -0.9814109 -0.9814109
-#> 1                Hzosteropis     0.12131126         0.9039761  0.9039761
-#> 6        scale.prop.zos_Plas     0.02517673         0.4118187  0.4118187
+#> 3                       Plas     0.44696797         1.8658732  1.8658732
+#> 4             scale.prop.zos     0.16058635        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.12591537        -0.9903377 -0.9903377
+#> 1                Hzosteropis     0.10855369         0.9195307  0.9195307
+#> 2                 Hkillangoi     0.10196290        -0.8911791 -0.8911791
+#> 6        scale.prop.zos_Plas     0.05601371         0.6605278  0.6605278
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method

@@ -27,6 +27,14 @@ plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)',
                                             'Plasmodium', 'Microfilaria'))
 
 ## ------------------------------------------------------------------------
+net <- igraph::graph.adjacency(MRF_mod$graph, weighted = T, mode = "undirected")
+igraph::plot.igraph(net, layout = igraph::layout.circle,
+                    edge.width = abs(igraph::E(net)$weight),
+                    edge.color = ifelse(igraph::E(net)$weight < 0, 
+                                        'blue',
+                                        'red'))
+
+## ------------------------------------------------------------------------
 MRF_mod <- MRFcov(data = Bird.parasites, n_nodes = 4, family = 'binomial')
 
 ## ------------------------------------------------------------------------

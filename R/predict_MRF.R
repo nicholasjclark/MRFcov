@@ -177,7 +177,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
       stopCluster(cl)
 
     } else {
-      predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(i){
+      predictions <- do.call(cbind, pbapply::pblapply(seq_len(n_nodes), function(i){
         rowSums(data * matrix(rep(t(MRF_mod$direct_coefs[i, -1]),
                                   NROW(data)), nrow = NROW(data), byrow = TRUE)) +
           MRF_mod$intercepts[i]

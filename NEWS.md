@@ -1,3 +1,6 @@
+# MRFcov 1.0.37
+*   More detailed work-throughs of examples in the vignettes
+
 # MRFcov 1.0.36
 *   Improved clarity of function definitions and descriptions
 *   Adjusted text size on plotMRF_hm for clearer presentation
