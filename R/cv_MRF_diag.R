@@ -211,6 +211,7 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
     #### Only a single model is needed ####
     # If cached_model not provided, generate models
     if(missing(cached_model)){
+      cat("Generating node-optimised Conditional Random Fields model", "\n", sep = "")
       if(family == 'binomial'){
         mrf <- MRFcov(data = data,
                       symmetrise =  symmetrise,
@@ -219,6 +220,7 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
                       family = 'binomial')
 
         if(compare_null){
+          cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
@@ -235,6 +237,7 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
                       family = 'poisson')
 
         if(compare_null){
+          cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
@@ -251,6 +254,7 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
                       family = 'gaussian')
 
         if(compare_null){
+          cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
           mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                              symmetrise =  symmetrise,
                              n_nodes = n_nodes,
@@ -361,16 +365,16 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
       plot_dat <- rbind(plot_dat, plot_dat_null)
 
       if(plot){
-        output <- plot_binom_cv_diag_optim(plot_dat, compare_null = TRUE)
+        plot_binom_cv_diag_optim(plot_dat, compare_null = TRUE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
 
     } else {
       if(plot){
-        output <- plot_binom_cv_diag_optim(plot_dat, compare_null = FALSE)
+        plot_binom_cv_diag_optim(plot_dat, compare_null = FALSE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
     }
   }
@@ -417,16 +421,16 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
       plot_dat <- rbind(plot_dat, plot_dat_null)
 
       if(plot){
-        output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = TRUE)
+        plot_gauss_cv_diag_optim(plot_dat, compare_null = TRUE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
 
     } else {
       if(plot){
-        output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = FALSE)
+        plot_gauss_cv_diag_optim(plot_dat, compare_null = FALSE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
     }
   }
@@ -489,20 +493,20 @@ cv_MRF_diag <- function(data, symmetrise, n_nodes, n_cores,
       plot_dat <- rbind(plot_dat, plot_dat_null)
 
       if(plot){
-        output <- plot_poiss_cv_diag_optim(plot_dat, compare_null = TRUE)
+        plot_poiss_cv_diag_optim(plot_dat, compare_null = TRUE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
 
     } else {
       if(plot){
-        output <- plot_poiss_cv_diag_optim(plot_dat, compare_null = FALSE)
+        plot_poiss_cv_diag_optim(plot_dat, compare_null = FALSE)
       } else {
-        output <- plot_dat
+        return(plot_dat)
       }
     }
   }
-  return(output)
+  #return(output)
 }
 
 #' Replicate cv_MRF_diag for node-optimised MRF / CRF models
@@ -676,7 +680,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
   }
 
   #### Replicate cv_MRF_diag n_fold_runs times, using the cached models in each run ####
-  cat("\nCalculating predictive performance across test folds using cross-validation", "\n", sep = "")
+  cat("\nCalculating predictive performance across test folds", "\n", sep = "")
   repped_cvs <- lapply(seq_len(n_fold_runs), function(x){
     cat("Processing cross-validation run ", x, " of ", n_fold_runs, " ...\n", sep = "")
     cv_MRF_diag(data = data, n_nodes = n_nodes,
@@ -692,17 +696,20 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
 
   #### Return either a plot or a dataframe of predictive metrics ####
   if(plot){
-    if(family == 'gaussian' || family == 'poisson'){
-      output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = compare_null)
+    if(family == 'gaussian'){
+      plot_gauss_cv_diag_optim(plot_dat, compare_null = compare_null)
+    }
+
+    if(family == 'poisson'){
+      plot_poiss_cv_diag_optim(plot_dat, compare_null = compare_null)
     }
 
     if(family == 'binomial'){
-      output <- plot_binom_cv_diag_optim(plot_dat, compare_null = compare_null)
+      plot_binom_cv_diag_optim(plot_dat, compare_null = compare_null)
     }
   } else {
-    output <- plot_dat
+    return(plot_dat)
   }
-  return(output)
   }
 
 
@@ -900,7 +907,7 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
   }
 
   #### Replicate cv_MRF_diag n_fold_runs times, using the cached models in each run ####
-  cat("\nCalculating predictive performance across test folds using cross-validation", "\n", sep = "")
+  cat("\nCalculating predictive performance across test folds", "\n", sep = "")
   repped_cvs <- lapply(seq_len(n_fold_runs), function(x){
     cat("Processing cross-validation run ", x, " of ", n_fold_runs, " ...\n", sep = "")
     cv_MRF_diag(data = data, n_nodes = n_nodes,
@@ -917,15 +924,18 @@ cv_MRF_diag_rep_spatial = function(data, coords, symmetrise, n_nodes, n_cores,
 
   #### Return either a plot or a dataframe of predictive metrics ####
   if(plot){
-    if(family == 'gaussian' || family == 'poisson'){
-      output <- plot_gauss_cv_diag_optim(plot_dat, compare_null = compare_null)
+    if(family == 'gaussian'){
+      plot_gauss_cv_diag_optim(plot_dat, compare_null = compare_null)
+    }
+
+    if(family == 'poisson'){
+      plot_poiss_cv_diag_optim(plot_dat, compare_null = compare_null)
     }
 
     if(family == 'binomial'){
-      output <- plot_binom_cv_diag_optim(plot_dat, compare_null = compare_null)
+      plot_binom_cv_diag_optim(plot_dat, compare_null = compare_null)
     }
   } else {
-    output <- plot_dat
+    return(plot_dat)
   }
-  return(output)
 }
