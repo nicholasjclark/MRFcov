@@ -48,7 +48,7 @@ plotMRF_hm(MRF_mod = MRF_fit, main = 'MRF (no covariates)',
 
 Note that other plotting methods an be used as desired. For instance, to plot these as a network instead, we can simply extract the adjacency matrix and plot it using standard `igraph` functions
 ```{r}
-net <- igraph::graph.adjacency(MRF_mod$graph, weighted = T, mode = "undirected")
+net <- igraph::graph.adjacency(MRF_fit$graph, weighted = T, mode = "undirected")
 igraph::plot.igraph(net, layout = igraph::layout.circle,
                     edge.width = abs(igraph::E(net)$weight),
                     edge.color = ifelse(igraph::E(net)$weight < 0, 
