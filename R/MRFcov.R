@@ -158,6 +158,10 @@ MRFcov <- function(data, symmetrise,
   }
 
   #### Basic checks on data arguments ####
+  if(is.null(colnames(data))){
+    colnames(data) <- paste0('Col', seq_len(ncol(data)))
+  }
+
   if(missing(n_nodes)) {
     warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
             call. = FALSE)
