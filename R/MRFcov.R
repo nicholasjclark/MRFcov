@@ -158,11 +158,7 @@ MRFcov <- function(data, symmetrise,
   }
 
   #### Basic checks on data arguments ####
-  if(is.null(colnames(data))){
-    colnames(data) <- paste0('Col', seq_len(ncol(data)))
-  }
-
-  if(missing(n_nodes)) {
+if(missing(n_nodes)) {
     warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
             call. = FALSE)
     n_nodes <- ncol(data)
@@ -176,6 +172,15 @@ MRFcov <- function(data, symmetrise,
         stop('Please provide a positive integer for n_nodes',
              call. = FALSE)
       }
+    }
+  }
+
+  if(is.null(colnames(data))){
+    if(n_nodes < ncol(data)){
+      colnames(data) <- c(paste0('sp', seq_len(n_nodes)),
+                          paste0('cov', seq_len(ncol(data) - n_nodes)))
+    } else {
+      colnames(data) <- paste0('sp', seq_len(n_nodes))
     }
   }
 

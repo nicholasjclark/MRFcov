@@ -128,10 +128,6 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   }
 
   #### Basic checks on data arguments ####
-  if(is.null(colnames(data))){
-    colnames(data) <- paste0('Col', seq_len(ncol(data)))
-  }
-
   if(missing(n_nodes)) {
     warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
             call. = FALSE)
@@ -146,6 +142,15 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
         stop('Please provide a positive integer for n_nodes',
              call. = FALSE)
       }
+    }
+  }
+
+  if(is.null(colnames(data))){
+    if(n_nodes < ncol(data)){
+    colnames(data) <- c(paste0('sp', seq_len(n_nodes)),
+                        paste0('cov', seq_len(ncol(data) - n_nodes)))
+    } else {
+      colnames(data) <- paste0('sp', seq_len(n_nodes))
     }
   }
 
