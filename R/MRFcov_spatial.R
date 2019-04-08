@@ -145,6 +145,15 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     }
   }
 
+  if(is.null(colnames(data))){
+    if(n_nodes < ncol(data)){
+    colnames(data) <- c(paste0('sp', seq_len(n_nodes)),
+                        paste0('cov', seq_len(ncol(data) - n_nodes)))
+    } else {
+      colnames(data) <- paste0('sp', seq_len(n_nodes))
+    }
+  }
+
   if(n_nodes < 2){
     stop('Cannot generate a graphical model with less than 2 nodes',
          call. = FALSE)
@@ -386,7 +395,8 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
       #Each node-wise regression will be optimised separately using cv, reducing user-bias
       clusterEvalQ(cl, library(glmnet))
       mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
-        y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
+        #y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
+        y.vars <- which(endsWith(colnames(mrf_data), colnames(mrf_data)[i]) == T)
         mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                              y = mrf_data[,i], family = family, alpha = 1,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
@@ -438,7 +448,8 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     cat('Fitting MRF models in sequence using 1 core ...\n')
     #If parallel is not supported or n_cores = 1, use lapply instead
       mrf_mods <- pbapply::pblapply(seq_len(n_nodes), function(i) {
-        y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
+        #y.vars <- which(grepl(colnames(mrf_data)[i], colnames(mrf_data)) == T)
+        y.vars <- which(endsWith(colnames(mrf_data), colnames(mrf_data)[i]) == T)
         mod <- try(suppressWarnings(cv.glmnet(x = mrf_data[, -y.vars],
                              y = mrf_data[,i], family = family, alpha = 1,
                              nfolds = n_folds[i], weights = rep(1, nrow(mrf_data)),
