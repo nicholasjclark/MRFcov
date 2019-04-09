@@ -86,8 +86,7 @@
 #'# Perform 100 bootstrap replicates in total
 #'bootedCRF <- bootstrap_MRF(data = Bird.parasites,
 #'                           n_nodes = 4,
-#'                           family = 'binomial',
-#'                           n_cores = 3)
+#'                           family = 'binomial')
 #'
 #'
 #'# Using spatial coordinates for a spatial CRF
