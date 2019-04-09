@@ -325,6 +325,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     mrf_sds <- rep(1, length(mrf_sds))
   } else {
     mrf_sds[mrf_sds < 1] <- 1
+    mrf_sds[is.na(mrf_sds)] <- 1
   }
 
   #### Gather parameter values needed for indexing and naming output objects ####
