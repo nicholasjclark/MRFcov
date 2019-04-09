@@ -321,7 +321,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                            dplyr::summarise_all(dplyr::funs(sd(.)))))
 
-  if(range(mrf_sds)[2] > 1.5){
+  if(range(mrf_sds, na.rm = TRUE)[2] > 1.5){
     mrf_sds <- rep(1, length(mrf_sds))
   } else {
     mrf_sds[mrf_sds < 1] <- 1
