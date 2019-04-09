@@ -40,7 +40,9 @@ of observations this can make it generally difficult to
 estimate occurrence probabilities (on the extreme end, this can result in intercept-only
 models being fitted for the nodes in question). The function will issue a warning in this case.
 If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
-step will generally be unable to proceed.}
+step will generally be unable to proceed. For \code{family = 'poisson'} models, all returned
+coefficients are estimated on the identity scale AFTER using a nonparanormal transformation.
+See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
 }
@@ -53,17 +55,16 @@ A \code{list} containing:
     indirect effects of each covariate on pairwise node interactions
    \item \code{direct_coefs}: \code{matrix} of direct effects of each parameter on
    each outcome node. For \code{family = 'binomial'} models, all coefficients are
-   estimated on the logit scale. For \code{family = 'poisson'} models, coefficients
-   are estimated on the identity scale AFTER standardising variables using the
-   root mean square transformation. See \code{vignette("Gaussian_Poisson_CRFs")} for
-   details of interpretation
+   estimated on the logit scale.
    \item \code{param_names}: Character string of covariate parameter names
    \item \code{mod_type}: A character stating the type of model that was fit
    (used in other functions)
    \item \code{mod_family}: A character stating the family of model that was fit
    (used in other functions)
-   \item \code{poiss_sc_factors}: A vector of the root mean square scaling factors
-   used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
+   \item \code{poiss_sc_factors}: A matrix of the estimated negative binomial or
+   poisson parameters for each raw  node variable (only returned if \code{family = "poisson"}).
+   These are needed for converting coefficients back to their original distribution, and are
+   used for prediction purposes only
    }
 }
 \description{
@@ -85,11 +86,11 @@ effects of the covariate on interactions between \code{j} and all other nodes
 are on roughly the same scale, as the resulting parameter estimates are
 unified into a Markov Random Field using the specified \code{symmetrise} function.
 Counts for \code{poisson} variables, which are often not on the same scale,
-will therefore be standardised using a root mean square transformation
-\code{x = x / sqrt(mean(x ^ 2))}. These transformed counts
+will therefore be normalised with a nonparanormal transformation
+\code{x = qnorm(rank(log2(x + 0.01)) / (length(x) + 1))}. These transformed counts
 will be used in a \code{(family = "gaussian")}
-model and their respective scaling factors returned so that coefficients
-can be unscaled for interpretation (this unscaling is
+model and their respective raw distribution parameters returned so that coefficients
+can be back-transformed for interpretation (this back-transformation is
 performed automatatically by other functions including \code{\link{predict_MRF}}
 and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
 if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting

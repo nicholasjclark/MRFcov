@@ -1,5 +1,5 @@
 ## Patch updates for release v1.0.37
-This update contains improved documentation of examples for plotting, more detailed work-throughs in the vignettes, and...
+This update contains improved documentation of examples for plotting, more detailed work-throughs in the vignettes, and a modification to the normalisation technique for Poisson variables.
 
 ## Test environments
 * OS X install: R 3.3.3

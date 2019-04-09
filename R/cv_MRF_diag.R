@@ -614,53 +614,53 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
   #### Generate cached model(s) to avoid unneccessary refit in each run of n_fold_runs ####
   cat("Generating node-optimised Conditional Random Fields model", "\n", sep = "")
   if(family == 'binomial'){
-    mrf <- suppressWarnings(MRFcov(data = data,
+    invisible(capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  family = 'binomial'))
+                  family = 'binomial')))
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         family = 'binomial'))
+                         family = 'binomial')))
     }
   }
 
   if(family == 'poisson'){
-    mrf <- suppressWarnings(MRFcov(data = data,
+    invisible(capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  family = 'poisson'))
+                  family = 'poisson')))
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         family = 'poisson'))
+                         family = 'poisson')))
     }
   }
 
   if(family == 'gaussian'){
-    mrf <- suppressWarnings(MRFcov(data = data,
+    invisible(capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
-                  family = 'gaussian'))
+                  family = 'gaussian')))
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      mrf_null <- suppressWarnings(MRFcov(data = data[ ,1:n_nodes],
+      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
-                         family = 'gaussian'))
+                         family = 'gaussian')))
     }
   }
 

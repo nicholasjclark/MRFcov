@@ -38,7 +38,9 @@
 #'estimate occurrence probabilities (on the extreme end, this can result in intercept-only
 #'models being fitted for the nodes in question). The function will issue a warning in this case.
 #'If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
-#'step will generally be unable to proceed.
+#'step will generally be unable to proceed. For \code{family = 'poisson'} models, all returned
+#'coefficients are estimated on the identity scale AFTER using a nonparanormal transformation.
+#'See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
@@ -256,14 +258,41 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
   }
 
-  #### Use sqrt mean transformation for Poisson variables ####
+  #### Use paranormal transformation for Poisson variables ####
   if(family == 'poisson'){
-    cat('Poisson variables will be standardised by their square root means. Please
-        refer to the "poiss_sc_factors" for coefficient interpretations ...\n')
-    square_root_mean = function(x) {sqrt(mean(x ^ 2))}
-    poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
-    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
-                               function(x) x / square_root_mean(x))
+    cat('Poisson variables will be transformed using a nonparanormal...\n')
+
+    #square_root_mean = function(x) {sqrt(mean(x ^ 2))}
+    #poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
+    #data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
+    #                           function(x) x / square_root_mean(x))
+
+    # Function to estimate parameters of a nb distribution
+    nb_params = function(x){
+      MASS::fitdistr(x, densfun = "negative binomial")$estimate
+    }
+
+    # Function to estimate parameters of a poisson distribution
+    poiss_params = function(x){
+      MASS::fitdistr(x, densfun = "poisson")$estimate
+    }
+
+    # Function to transform counts using nonparanormal
+    paranorm = function(x){
+      ranks <- rank(log2(x + 0.01))
+      qnorm(ranks / (length(x) + 1))
+    }
+
+    # Calculate raw parameters
+    suppressWarnings(poiss_sc_factors <- try(apply(data[, 1:n_nodes],
+                                                   2, nb_params), silent = TRUE))
+
+    if(inherits(poiss_sc_factors, 'try-error')){
+      suppressWarnings(poiss_sc_factors <- apply(data[, 1:n_nodes],
+                                                 2, poiss_params))
+    }
+
+    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2, paranorm)
     family <- 'gaussian'
     return_poisson <- TRUE
 
@@ -321,10 +350,11 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                            dplyr::summarise_all(dplyr::funs(sd(.)))))
 
-  if(range(mrf_sds)[2] > 1.5){
+  if(range(mrf_sds, na.rm = TRUE)[2] > 1.5){
     mrf_sds <- rep(1, length(mrf_sds))
   } else {
     mrf_sds[mrf_sds < 1] <- 1
+    mrf_sds[is.na(mrf_sds)] <- 1
   }
 
   #### Gather parameter values needed for indexing and naming output objects ####

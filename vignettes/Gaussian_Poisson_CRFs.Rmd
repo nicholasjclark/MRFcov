@@ -13,7 +13,7 @@ cov <- rnorm(500, 0.2)
 cov2 <- rnorm(500, 4)
 sp.2 <- ceiling(rnorm(500, 1) + (cov * 2))
 sp.2[sp.2 < 0] <- 0
-poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 4) + (cov2 * 10.5) + (sp.2 * -0.15)),
+poiss.dat <- data.frame(sp.1 = ceiling(rnorm(500, 4) + (cov2 * 15.5) + (sp.2 * -0.15)),
                         sp.2 = sp.2, sp.3 = ceiling((sp.2 * 1.5) + rnorm(500, 0.1)))
 poiss.dat[poiss.dat < 0] <- 0
 poiss.dat$cov <- cov
@@ -46,19 +46,19 @@ plot(poiss.dat$sp.2, poiss.dat$sp.1 * mean.coef,
      ylab = 'Predicted')
 ```
 
-To overcome the issue of possible differences in ranges for Poisson variables, `MRFcov` uses a standardization method whereby each variable is divided by its square root mean (e.g. `x / sqrt(mean(x ^ 2))`) prior to fitting the model. The model is then fitted by considering the variables as Gaussian (e.g., there is no link function for these models). In doing so, the variables are all converted to similar ranges without adding too much noise (though this standardisation should always be recognised as a limitation). Any Poisson models that are fit will return an additional item called `poiss_sc_factors`, which will be necessary to convert outputs back to the variables' original scales
+To overcome the issue of possible differences in ranges for Poisson variables, `MRFcov` uses a nonparanormal transformation method whereby each variable is `log2(x + 0.1)` transformed and mapped to a normal distribution via a copula approach prior to fitting the model([see here for more information](http://www.jmlr.org/papers/v10/liu09a.html)). The model is then fitted by considering the variables as Gaussian (e.g., there is no link function for these models). In doing so, the variables are all normalised without adding too much noise (though this transformation should always be recognised as a limitation). Any Poisson models that are fit will return an additional item called `poiss_sc_factors`, which will be necessary to back-transform outputs back to the variables' original distributions. This is done by estimating each variable's negative binomial or poisson parameters, depending on which distribution was more appropriate
 ```{r}
 library(MRFcov)
 poiss.crf <- MRFcov(data = poiss.dat, n_nodes = 3, family = 'poisson')
 poiss.crf$poiss_sc_factors
 ```
 
-Our coefficient for the effect of `cov2` on `sp.1` above was `10.5`. To see how the model did in isolating this effect, we need to convert the coefficient back to the original scale using the correct scaling factor
+Our coefficient for the effect of `cov2` on `sp.1` above was `15.5`. To see how the model did in isolating this effect, we can get an *approximation* by converting the effect using the `sd` of the raw variable (this is because the model was fitted to normalised variables that were at unit variance)
 ```{r}
-poiss.crf$direct_coefs$cov2[1] * poiss.crf$poiss_sc_factors[1]
+sd(poiss.dat[,1]) * poiss.crf$direct_coefs$cov2[1]
 ```
 
-Not bad! Other functions within the package will automatically use these scaling factors when calculating predictions so that outcomes are converted to the correct range. For example, we can use our fitted model to predict the raw data and generate similar plots to those that we created above
+Not bad, but again this is an approximation. However for generating predictions, `MRFcov` will first generate the normalised predictions and then map these to each raw variable's appropriate distribution (either negative binomial or poisson, depending on which was more appropriate). This is a better way to ensure that outcomes are converted to the correct range. For example, we can use our fitted model to predict the raw data and generate similar plots to those that we created above
 ```{r}
 poiss.preds <- predict_MRF(data = poiss.dat, MRF_mod = poiss.crf,
                            n_cores = 1)
@@ -86,4 +86,4 @@ range(poiss.cv$Deviance[poiss.cv$model != 'CRF'])
 
 Lower deviance for the CRF model confirms the idea that inclusion of covariates is supported.  
   
-Please note that the type of standardisation used above **only applies to Poisson models!!** Gaussian variables are not standardised before fitting CRFs / MRFs, so users should inspect the ranges of their variables and consider using the `scale` function to standardise beforehand if need be. The reason Gaussian models do not do this by default is that there are many options for normalisation / standardisation for Gaussian data and so users may wish to have more control over how this is done before fitting models
+Please note that the type of normalisation used above **only applies to Poisson models!!** Gaussian variables are not standardised before fitting CRFs / MRFs, so users should inspect the ranges of their variables and consider using the `scale` function to standardise beforehand if need be. The reason Gaussian models do not do this by default is that there are many options for normalisation / standardisation for Gaussian data and so users may wish to have more control over how this is done before fitting models

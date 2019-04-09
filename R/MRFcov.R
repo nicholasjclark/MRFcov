@@ -38,7 +38,9 @@
 #'estimate occurrence probabilities (on the extreme end, this can result in intercept-only
 #'models being fitted for the nodes in question). The function will issue a warning in this case.
 #'If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
-#'step will generally be unable to proceed.
+#'step will generally be unable to proceed. For \code{family = 'poisson'} models, all returned
+#'coefficients are estimated on the identity scale AFTER using a nonparanormal transformation.
+#'See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} containing:
@@ -49,17 +51,16 @@
 #'     indirect effects of each covariate on pairwise node interactions
 #'    \item \code{direct_coefs}: \code{matrix} of direct effects of each parameter on
 #'    each outcome node. For \code{family = 'binomial'} models, all coefficients are
-#'    estimated on the logit scale. For \code{family = 'poisson'} models, coefficients
-#'    are estimated on the identity scale AFTER standardising variables using the
-#'    root mean square transformation. See \code{vignette("Gaussian_Poisson_CRFs")} for
-#'    details of interpretation
+#'    estimated on the logit scale.
 #'    \item \code{param_names}: Character string of covariate parameter names
 #'    \item \code{mod_type}: A character stating the type of model that was fit
 #'    (used in other functions)
 #'    \item \code{mod_family}: A character stating the family of model that was fit
 #'    (used in other functions)
-#'    \item \code{poiss_sc_factors}: A vector of the root mean square scaling factors
-#'    used to standardise \code{poisson} variables (only returned if \code{family = "poisson"})
+#'    \item \code{poiss_sc_factors}: A matrix of the estimated negative binomial or
+#'    poisson parameters for each raw  node variable (only returned if \code{family = "poisson"}).
+#'    These are needed for converting coefficients back to their original distribution, and are
+#'    used for prediction purposes only
 #'    }
 #'
 #'
@@ -91,11 +92,11 @@
 #'are on roughly the same scale, as the resulting parameter estimates are
 #'unified into a Markov Random Field using the specified \code{symmetrise} function.
 #'Counts for \code{poisson} variables, which are often not on the same scale,
-#'will therefore be standardised using a root mean square transformation
-#'\code{x = x / sqrt(mean(x ^ 2))}. These transformed counts
+#'will therefore be normalised with a nonparanormal transformation
+#'\code{x = qnorm(rank(log2(x + 0.01)) / (length(x) + 1))}. These transformed counts
 #'will be used in a \code{(family = "gaussian")}
-#'model and their respective scaling factors returned so that coefficients
-#'can be unscaled for interpretation (this unscaling is
+#'model and their respective raw distribution parameters returned so that coefficients
+#'can be back-transformed for interpretation (this back-transformation is
 #'performed automatatically by other functions including \code{\link{predict_MRF}}
 #'and \code{\link{cv_MRF_diag}}). Gaussian variables are not automatically transformed, so
 #'if they cover quite different ranges and scales, then it is recommended to scale them prior to fitting
@@ -286,14 +287,41 @@ MRFcov <- function(data, symmetrise,
 
   }
 
-  #### Use sqrt mean transformation for Poisson variables ####
+  #### Use paranormal transformation for Poisson variables ####
   if(family == 'poisson'){
-    cat('Poisson variables will be standardised by their square root means. Please
-        refer to the "poiss_sc_factors" for coefficient interpretations ...\n')
-    square_root_mean = function(x) {sqrt(mean(x ^ 2))}
-    poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
-    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
-                               function(x) x / square_root_mean(x))
+    cat('Poisson variables will be transformed using a nonparanormal...\n')
+
+    #square_root_mean = function(x) {sqrt(mean(x ^ 2))}
+    #poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
+    #data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
+    #                           function(x) x / square_root_mean(x))
+
+    # Function to estimate parameters of a nb distribution
+    nb_params = function(x){
+      MASS::fitdistr(x, densfun = "negative binomial")$estimate
+    }
+
+    # Function to estimate parameters of a poisson distribution
+    poiss_params = function(x){
+      MASS::fitdistr(x, densfun = "poisson")$estimate
+    }
+
+    # Function to transform counts using nonparanormal
+    paranorm = function(x){
+      ranks <- rank(log2(x + 0.01))
+      qnorm(ranks / (length(x) + 1))
+    }
+
+    # Calculate raw parameters
+    suppressWarnings(poiss_sc_factors <- try(apply(data[, 1:n_nodes],
+                                                   2, nb_params), silent = TRUE))
+
+    if(inherits(poiss_sc_factors, 'try-error')){
+      suppressWarnings(poiss_sc_factors <- apply(data[, 1:n_nodes],
+                                                 2, poiss_params))
+    }
+
+    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2, paranorm)
     family <- 'gaussian'
     return_poisson <- TRUE
 
@@ -316,10 +344,11 @@ MRFcov <- function(data, symmetrise,
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%
                            dplyr::summarise_all(dplyr::funs(sd(.)))))
 
-  if(range(mrf_sds)[2] > 1.5){
+  if(range(mrf_sds, na.rm = TRUE)[2] > 1.5){
     mrf_sds <- rep(1, length(mrf_sds))
   } else {
     mrf_sds[mrf_sds < 1] <- 1
+    mrf_sds[is.na(mrf_sds)] <- 1
   }
 
   #### Gather parameter values needed for indexing and naming output objects ####

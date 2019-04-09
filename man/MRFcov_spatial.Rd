@@ -40,7 +40,9 @@ of observations this can make it generally difficult to
 estimate occurrence probabilities (on the extreme end, this can result in intercept-only
 models being fitted for the nodes in question). The function will issue a warning in this case.
 If nodes occur in more than 95 percent of observations, this will return an error as the cross-validation
-step will generally be unable to proceed.}
+step will generally be unable to proceed. For \code{family = 'poisson'} models, all returned
+coefficients are estimated on the identity scale AFTER using a nonparanormal transformation.
+See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation}
 
 \item{coords}{A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 representing the spatial coordinates of each observation in \code{data}. Ideally, these

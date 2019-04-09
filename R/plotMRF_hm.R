@@ -38,8 +38,8 @@
 #'plotMRF_hm(MRF_mod = CRFmod)
 #'plotMRF_hm(MRF_mod = CRFmod, plot_observed_vals = TRUE, data = Bird.parasites)
 #'
-#'To plot as an igraph network instead, we can simply extract the adjacency matrix
-#'net <- igraph::graph.adjacency(CRFmod$graph, weighted = T, mode = "undirected")
+#'#To plot as an igraph network instead, we can simply extract the adjacency matrix
+#'net <- igraph::graph.adjacency(CRFmod$graph, weighted = TRUE, mode = "undirected")
 #'igraph::plot.igraph(net, layout = igraph::layout.circle,
 #'                    edge.width = abs(igraph::E(net)$weight),
 #'                    edge.color = ifelse(igraph::E(net)$weight < 0, 'blue', 'red'))

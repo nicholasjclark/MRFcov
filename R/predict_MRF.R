@@ -148,12 +148,18 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
   n_obs <- nrow(data)
   node_names <- colnames(data[, 1:n_nodes])
 
-  # For poisson, scale prediction node variables using the same
-  # scale factors as in the original MRF_mod
+  # For poisson, back-transform prediction node variables using the paranormal
+  # as in the original MRF_mod
   if(MRF_mod$mod_family == 'poisson'){
-    for(i in seq_len(n_nodes)){
-      data[, i] <- data[, i] / MRF_mod$poiss_sc_factors[[i]]
+    paranorm = function(x){
+     ranks <- rank(log2(x + 0.01))
+     qnorm(ranks / (length(x) + 1))
     }
+   data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2, paranorm)
+
+    #for(i in seq_len(n_nodes)){
+      #data[, i] <- data[, i] / MRF_mod$poiss_sc_factors[[i]]
+    #}
   }
 
   # Prep the dataset by cross-multiplication (TRUE by default; FALSE when used in other functions)
@@ -188,9 +194,25 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
   # Convert negative predictions to zeros
     predictions[predictions < 0] <- 0
 
-  # Back-convert linear predictions using the poisson scale factors
-    for(i in seq_len(n_nodes)){
-        predictions[, i] <- predictions[, i] * MRF_mod$poiss_sc_factors[[i]]
+  # Back-transform linear predictions using the poisson scale factors
+    #for(i in seq_len(n_nodes)){
+        #predictions[, i] <- predictions[, i] * MRF_mod$poiss_sc_factors[[i]]
+    #}
+    ranks <- apply(predictions, 2, rank)
+
+    # If raw nodes were negative binomially distributed, use qbinom
+    if(length(nrow(MRF_mod$poiss_sc_factors)) != 0){
+      predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
+        qnbinom(p = ranks[,x] / (nrow(ranks) + 1),
+                size = MRF_mod$poiss_sc_factors[1, x],
+                mu = MRF_mod$poiss_sc_factors[2, x])
+    }))
+      # Else use qpois
+    } else {
+      predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
+        qpois(p = ranks[,x] / (nrow(ranks) + 1),
+                lambda = MRF_mod$poiss_sc_factors[x])
+      }))
     }
 
 } else if((MRF_mod$mod_family == 'binomial')){
