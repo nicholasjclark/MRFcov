@@ -96,8 +96,7 @@
 #'bootedSpatial <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
 #'                              family = 'binomial',
 #'                              spatial = TRUE,
-#'                              coords = coords,
-#'                              n_cores = 3)}
+#'                              coords = coords)}
 #'@export
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
