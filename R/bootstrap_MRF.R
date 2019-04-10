@@ -83,12 +83,12 @@
 #'\donttest{
 #'data("Bird.parasites")
 #'
-#'# Perform 5 bootstrap replicates in total
+#'# Perform 2 quick bootstrap replicates using 70% of observations
 #'bootedCRF <- bootstrap_MRF(data = Bird.parasites,
 #'                           n_nodes = 4,
 #'                           family = 'binomial',
-#'                           sample_prop = 0.8,
-#'                           n_bootstraps = 5)
+#'                           sample_prop = 0.7,
+#'                           n_bootstraps = 2)
 #'
 #'
 #'# Small example of using spatial coordinates for a spatial CRF
@@ -100,7 +100,7 @@
 #'                              spatial = TRUE,
 #'                              coords = coords,
 #'                              sample_prop = 0.5,
-#'                              n_bootsraps = 2)}
+#'                              n_bootstraps = 2)}
 #'@export
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,

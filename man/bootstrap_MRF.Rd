@@ -98,20 +98,24 @@ to present means and confidence intervals (as 95 percent quantiles).
 \donttest{
 data("Bird.parasites")
 
-# Perform 100 bootstrap replicates in total
+# Perform 5 bootstrap replicates in total
 bootedCRF <- bootstrap_MRF(data = Bird.parasites,
                           n_nodes = 4,
-                          family = 'binomial')
+                          family = 'binomial',
+                          sample_prop = 0.8,
+                          n_bootstraps = 5)
 
 
-# Using spatial coordinates for a spatial CRF
+# Small example of using spatial coordinates for a spatial CRF
 Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
 Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
 coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
 bootedSpatial <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
                              family = 'binomial',
                              spatial = TRUE,
-                             coords = coords)}
+                             coords = coords,
+                             sample_prop = 0.5,
+                             n_bootsraps = 2)}
 }
 \seealso{
 \code{\link{MRFcov}}, \code{\link{MRFcov_spatial}},
