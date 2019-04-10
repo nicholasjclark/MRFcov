@@ -111,8 +111,7 @@ coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
 bootedSpatial <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
                              family = 'binomial',
                              spatial = TRUE,
-                             coords = coords,
-                             n_cores = 3)}
+                             coords = coords)}
 }
 \seealso{
 \code{\link{MRFcov}}, \code{\link{MRFcov_spatial}},

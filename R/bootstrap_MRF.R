@@ -83,20 +83,24 @@
 #'\donttest{
 #'data("Bird.parasites")
 #'
-#'# Perform 100 bootstrap replicates in total
+#'# Perform 5 bootstrap replicates in total
 #'bootedCRF <- bootstrap_MRF(data = Bird.parasites,
 #'                           n_nodes = 4,
-#'                           family = 'binomial')
+#'                           family = 'binomial',
+#'                           sample_prop = 0.8,
+#'                           n_bootstraps = 5)
 #'
 #'
-#'# Using spatial coordinates for a spatial CRF
+#'# Small example of using spatial coordinates for a spatial CRF
 #'Latitude <- sample(seq(120, 140, length.out = 100), nrow(Bird.parasites), TRUE)
 #'Longitude <- sample(seq(-19, -22, length.out = 100), nrow(Bird.parasites), TRUE)
 #'coords <- data.frame(Latitude = Latitude, Longitude = Longitude)
 #'bootedSpatial <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4,
 #'                              family = 'binomial',
 #'                              spatial = TRUE,
-#'                              coords = coords)}
+#'                              coords = coords,
+#'                              sample_prop = 0.5,
+#'                              n_bootsraps = 2)}
 #'@export
 #'
 bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
@@ -220,14 +224,41 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     data <- as.data.frame(data)
   }
 
-  # If Poisson, use sqrt mean transformation for node variables
+  #### Use paranormal transformation for Poisson variables ####
   if(family == 'poisson'){
-    warning('Poisson variables will be standardised by their square root means. Please
-            refer to the "poiss_sc_factors" for coefficient interpretations')
-    square_root_mean = function(x) {sqrt(mean(x ^ 2))}
-    poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
-    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
-                               function(x) x / square_root_mean(x))
+    cat('Poisson variables will be transformed using a nonparanormal...\n')
+
+    #square_root_mean = function(x) {sqrt(mean(x ^ 2))}
+    #poiss_sc_factors <- apply(data[, 1:n_nodes], 2, square_root_mean)
+    #data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2,
+    #                           function(x) x / square_root_mean(x))
+
+    # Function to estimate parameters of a nb distribution
+    nb_params = function(x){
+      MASS::fitdistr(x, densfun = "negative binomial")$estimate
+    }
+
+    # Function to estimate parameters of a poisson distribution
+    poiss_params = function(x){
+      MASS::fitdistr(x, densfun = "poisson")$estimate
+    }
+
+    # Function to transform counts using nonparanormal
+    paranorm = function(x){
+      ranks <- rank(log2(x + 0.01))
+      qnorm(ranks / (length(x) + 1))
+    }
+
+    # Calculate raw parameters
+    suppressWarnings(poiss_sc_factors <- try(apply(data[, 1:n_nodes],
+                                                   2, nb_params), silent = TRUE))
+
+    if(inherits(poiss_sc_factors, 'try-error')){
+      suppressWarnings(poiss_sc_factors <- apply(data[, 1:n_nodes],
+                                                 2, poiss_params))
+    }
+
+    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2, paranorm)
     family <- 'gaussian'
     return_poisson <- TRUE
 
@@ -244,8 +275,8 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     stop('sample_prop must be a proportion ranging from 0.1 to 1')
   }
 
-  shuffle_rows <- function(empty){
-    dplyr::sample_n(data, nrow(data) * sample_prop, FALSE)
+  shuffle_rows <- function(x){
+    dplyr::sample_n(x, nrow(x) * sample_prop, FALSE)
   }
 
   #### Function to impute covariate NAs from normal distribution (mean = 0; sd = 1) ####
@@ -357,15 +388,17 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
         sample_data <- sample(seq_len(100), 1)
 
         if(spatial){
-          booted_data <- shuffle_rows(data)
-          sample_data <- booted_data$data
+          booted_data <- shuffle_rows(cbind(data, coords))
+          sample_data <- booted_data[, 1:(ncol(booted_data) - ncol(coords))]
 
           if(nas_present){
             sample_data <- impute_nas(sample_data)
           }
 
           sample_data <- prep_MRF_covariates(sample_data, n_nodes)
-          sample_coords <- booted_data$coords
+          sample_coords <- booted_data[, ((ncol(booted_data) + 1) -
+                                            ncol(coords)):ncol(booted_data)]
+
           mod <- suppressWarnings(MRFcov_spatial(data = sample_data,
                                          symmetrise = symmetrise,
                                          coords = sample_coords,
@@ -473,15 +506,16 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
           sample_data <- sample(seq_len(100), 1)
 
           if(spatial){
-            booted_data <- shuffle_rows(data)
-            sample_data <- booted_data$data
+            booted_data <- shuffle_rows(cbind(data, coords))
+            sample_data <- booted_data[, 1:(ncol(booted_data) - ncol(coords))]
 
             if(nas_present){
               sample_data <- impute_nas(sample_data)
             }
 
             sample_data <- prep_MRF_covariates(sample_data, n_nodes)
-            sample_coords <- booted_data$coords
+            sample_coords <- booted_data[, ((ncol(booted_data) + 1) -
+                                              ncol(coords)):ncol(booted_data)]
 
             # Use invisible to prevent printing of timing messages in each iteration
             invisible(utils::capture.output(mod <- MRFcov_spatial(data = sample_data,
