@@ -280,7 +280,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     # Function to transform counts using nonparanormal
     paranorm = function(x){
       ranks <- rank(log2(x + 0.01))
-      qnorm(ranks / (length(x) + 1))
+      stats::qnorm(ranks / (length(x) + 1))
     }
 
     # Calculate raw parameters

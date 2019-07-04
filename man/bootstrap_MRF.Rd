@@ -4,8 +4,9 @@
 \alias{bootstrap_MRF}
 \title{Bootstrap observations to estimate MRF parameter coefficients}
 \usage{
-bootstrap_MRF(data, n_bootstraps, sample_seed, symmetrise, n_nodes, n_cores,
-  n_covariates, family, sample_prop, spatial = FALSE, coords = NULL)
+bootstrap_MRF(data, n_bootstraps, sample_seed, symmetrise, n_nodes,
+  n_cores, n_covariates, family, sample_prop, spatial = FALSE,
+  coords = NULL)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}

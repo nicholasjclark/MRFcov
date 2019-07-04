@@ -153,7 +153,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
   if(MRF_mod$mod_family == 'poisson'){
     paranorm = function(x){
      ranks <- rank(log2(x + 0.01))
-     qnorm(ranks / (length(x) + 1))
+     stats::qnorm(ranks / (length(x) + 1))
     }
    data[, 1:n_nodes] <- apply(data[, 1:n_nodes], 2, paranorm)
 
@@ -203,14 +203,14 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
     # If raw nodes were negative binomially distributed, use qbinom
     if(length(nrow(MRF_mod$poiss_sc_factors)) != 0){
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
-        qnbinom(p = ranks[,x] / (nrow(ranks) + 1),
+        stats::qnbinom(p = ranks[,x] / (nrow(ranks) + 1),
                 size = MRF_mod$poiss_sc_factors[1, x],
                 mu = MRF_mod$poiss_sc_factors[2, x])
     }))
       # Else use qpois
     } else {
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
-        qpois(p = ranks[,x] / (nrow(ranks) + 1),
+        stats::qpois(p = ranks[,x] / (nrow(ranks) + 1),
                 lambda = MRF_mod$poiss_sc_factors[x])
       }))
     }
