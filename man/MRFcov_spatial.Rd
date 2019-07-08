@@ -5,7 +5,7 @@
 \title{Spatially structured Markov Random Fields with covariates}
 \usage{
 MRFcov_spatial(data, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, coords, bootstrap = FALSE)
+  n_covariates, family, coords, prep_splines = TRUE, bootstrap = FALSE)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
@@ -61,6 +61,9 @@ This ensures that resulting node interaction parameters are estimated after acco
 possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
 the \code{\link{predict_MRF}} function}
+
+\item{prep_splines}{Logical. If spatial splines are already included in  \code{data}, set to
+\code{FALSE}. Default is \code{TRUE}}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
 }
