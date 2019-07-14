@@ -47,7 +47,7 @@ See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation}
 \item{coords}{A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 representing the spatial coordinates of each observation in \code{data}. Ideally, these
 coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-are used to create smoothed spatial regression splines via
+are used to create smoothed Gaussian Process spatial regression splines via
 \code{\link[mgcv]{smooth.construct2}}.
 Here, the basis dimension of the smoothed term
 is chosen based on the number of unique GPS coordinates in \code{coords}.
