@@ -1,11 +1,5 @@
-## Resubmission
-This is a resubmission. In this version I have:
-
-* Re-built the vignettes so that files in 'vignettes' directory are not newer than files in 'inst/doc'
-* Fixed all undefined global functions
-
-## Patch updates for release v1.0.37
-This update contains improved documentation of examples for plotting, more detailed work-throughs in the vignettes and an improvement to the normalisation technique for count variables.
+## Patch updates for release v1.0.39
+This update contains improvements to the way infinite values are detected
 
 ## Test environments
 * OS X install: R 3.6.0
