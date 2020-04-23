@@ -165,7 +165,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
                          size = 8 * 0.352777778) +
       ggplot2::scale_fill_gradient2(low = "mediumblue", high = 'red4', mid = "white",
                                     midpoint = 0, space = "Lab",
-                                    name = "Correlation\ncoefficient") +
+                                    name = "Association\ncoefficient") +
       ggplot2::theme_dark() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
                                                          size = 7.5, hjust = 1),
@@ -190,7 +190,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     ggplot2::geom_tile(color = "gray40") +
     ggplot2::scale_fill_gradient2(low = "mediumblue", high = 'red4', mid = "white",
                          midpoint = 0, space = "Lab",
-                         name = "Correlation\ncoefficient") +
+                         name = "Association\ncoefficient") +
     ggplot2::theme_dark() +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
                                      size = 7.5, hjust = 1),
@@ -271,7 +271,7 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
       ggplot2::facet_wrap(~ Factor, ncol = 3) +
       ggplot2::scale_fill_gradient2(low = 'mediumblue', high = "red4", mid = 'white',
                            midpoint = 0, space = "Lab",
-                           name = "Correlation\ncoefficient") +
+                           name = "Association\ncoefficient") +
       ggplot2::theme_dark() +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, vjust = 1,
                                        size = 7.5, hjust = 1),

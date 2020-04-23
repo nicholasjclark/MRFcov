@@ -7,14 +7,15 @@
 \title{MRF cross validation and assessment of predictive performance}
 \usage{
 cv_MRF_diag(data, symmetrise, n_nodes, n_cores, sample_seed, n_folds,
-  n_fold_runs, n_covariates, compare_null, family, plot = TRUE, cached_model,
-  cached_predictions, mod_labels = NULL)
+  n_fold_runs, n_covariates, compare_null, family, plot = TRUE,
+  cached_model, cached_predictions, mod_labels = NULL)
 
 cv_MRF_diag_rep(data, symmetrise, n_nodes, n_cores, sample_seed, n_folds,
   n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
 
-cv_MRF_diag_rep_spatial(data, coords, symmetrise, n_nodes, n_cores, sample_seed,
-  n_folds, n_fold_runs, n_covariates, compare_null, family, plot = TRUE)
+cv_MRF_diag_rep_spatial(data, coords, symmetrise, n_nodes, n_cores,
+  sample_seed, n_folds, n_fold_runs, n_covariates, compare_null, family,
+  plot = TRUE)
 }
 \arguments{
 \item{data}{Dataframe. The input data where the \code{n_nodes}

@@ -151,7 +151,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     }
   }
 
-  if(any(!is.finite(as.matrix(data)))){
+  if(any(is.infinite(as.matrix(data)))){
     stop('No infinite values permitted in data', call. = FALSE)
   }
 
@@ -161,7 +161,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
            call. = FALSE)
     }
 
-    if(any(!is.finite(as.matrix(coords)))){
+    if(any(is.infinite(as.matrix(coords)))){
       stop('No infinite values permitted in coords', call. = FALSE)
       }
 
@@ -246,7 +246,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     # Function to transform counts using nonparanormal
     paranorm = function(x){
       ranks <- rank(log2(x + 0.01))
-      qnorm(ranks / (length(x) + 1))
+      stats::qnorm(ranks / (length(x) + 1))
     }
 
     # Calculate raw parameters

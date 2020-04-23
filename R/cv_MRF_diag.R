@@ -614,7 +614,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
   #### Generate cached model(s) to avoid unneccessary refit in each run of n_fold_runs ####
   cat("Generating node-optimised Conditional Random Fields model", "\n", sep = "")
   if(family == 'binomial'){
-    invisible(capture.output(mrf <- MRFcov(data = data,
+    invisible(utils::capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
@@ -622,7 +622,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+      invisible(utils::capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
@@ -631,7 +631,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
   }
 
   if(family == 'poisson'){
-    invisible(capture.output(mrf <- MRFcov(data = data,
+    invisible(utils::capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
@@ -639,7 +639,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+      invisible(utils::capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,
@@ -648,7 +648,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
   }
 
   if(family == 'gaussian'){
-    invisible(capture.output(mrf <- MRFcov(data = data,
+    invisible(utils::capture.output(mrf <- MRFcov(data = data,
                   symmetrise =  symmetrise,
                   n_nodes = n_nodes,
                   n_cores = n_cores,
@@ -656,7 +656,7 @@ cv_MRF_diag_rep = function(data, symmetrise, n_nodes, n_cores,
 
     if(compare_null){
       cat("\nGenerating Markov Random Fields model (no covariates)", "\n", sep = "")
-      invisible(capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
+      invisible(utils::capture.output(mrf_null <- MRFcov(data = data[ ,1:n_nodes],
                          symmetrise =  symmetrise,
                          n_nodes = n_nodes,
                          n_cores = n_cores,

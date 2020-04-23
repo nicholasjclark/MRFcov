@@ -44,7 +44,7 @@
 #'@param coords A two-column \code{dataframe} (with \code{nrow(coords) == nrow(data)})
 #'representing the spatial coordinates of each observation in \code{data}. Ideally, these
 #'coordinates will represent Latitude and Longitude GPS points for each observation. The coordinates
-#'are used to create smoothed spatial regression splines via
+#'are used to create smoothed Gaussian Process spatial regression splines via
 #'\code{\link[mgcv]{smooth.construct2}}.
 #'Here, the basis dimension of the smoothed term
 #'is chosen based on the number of unique GPS coordinates in \code{coords}.
@@ -58,6 +58,8 @@
 #'possible spatial autocorrelation. Note that interpretation of spatial autocorrelation is difficult,
 #'and so it is recommended to compare predictive capacities spatial and non-spatial CRFs through
 #'the \code{\link{predict_MRF}} function
+#'@param prep_splines Logical. If spatial splines are already included in  \code{data}, set to
+#'\code{FALSE}. Default is \code{TRUE}
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
 #'
 #'@return A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
@@ -84,7 +86,7 @@
 #'@export
 #'
 MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, coords, bootstrap = FALSE) {
+                   family, coords, prep_splines = TRUE, bootstrap = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -193,6 +195,11 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     prep_covariates <- FALSE
   }
 
+  if(missing(n_covariates) & prep_splines == FALSE){
+    stop('n_covariates must be specified when prep_splines = FALSE',
+         call. = FALSE)
+  }
+
   if(missing(n_covariates) & prep_covariates == FALSE){
     n_covariates <- (ncol(data) - n_nodes) / (n_nodes + 1)
   }
@@ -280,7 +287,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
     # Function to transform counts using nonparanormal
     paranorm = function(x){
       ranks <- rank(log2(x + 0.01))
-      qnorm(ranks / (length(x) + 1))
+      stats::qnorm(ranks / (length(x) + 1))
     }
 
     # Calculate raw parameters
@@ -312,6 +319,9 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
   #### Set penalty factors and calculate gaussian process spatial splines ####
   penalties <- rep(1, ncol(mrf_data))
+
+  # Prep the spatial splines, if necessary
+  if(prep_splines){
 
   if(!any(names(coords) %in% c('Latitude', 'Longitude'))){
     colnames(coords) <- c('Latitude', 'Longitude')
@@ -345,6 +355,7 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
   mrf_data <- cbind(mrf_data, spat.splines)
   mrf_data <- as.matrix(mrf_data)
   penalties <- c(penalties, rep(1, ncol(spat.splines)))
+  }
 
   #### Extract sds of variables for later back-conversion of coefficients ####
   mrf_sds <- as.vector(t(data.frame(mrf_data) %>%

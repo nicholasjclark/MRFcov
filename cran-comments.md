@@ -1,8 +1,8 @@
-## Patch updates for release v1.0.37
-This update contains improved documentation of examples for plotting, more detailed work-throughs in the vignettes and an improvement to the normalisation technique for count variables.
+## Patch updates for release v1.0.39
+This update contains improvements to the way infinite values are detected
 
 ## Test environments
-* OS X install: R 3.3.3
+* OS X install: R 3.6.0
 * win-builder: R-devel
 
 ## R CMD check results
