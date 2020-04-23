@@ -100,7 +100,15 @@ vignette("Bird_Parasite_CRF")
 vignette("Gaussian_Poisson_CRFs")
 ```
 
-Clark *et al* 2018 [*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)&nbsp;|&nbsp;[PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf)
+Clark *et al* 2018 [*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)&nbsp;|&nbsp;[PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf)  
+  
+Peel *et al* 2019 [*Emerging Microbes & Infections*](https://www.tandfonline.com/doi/full/10.1080/22221751.2019.1661217?af=R)  
+  
+Fountain-Jones *et al* 2019 [*Journal of Animal Ecology*](https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2656.13154)  
+  
+Clark *et al* 2020 [*Transboundary and Emerging Diseases*](https://onlinelibrary.wiley.com/doi/abs/10.1111/tbed.13565)  
+  
+Clark *et al* 2020 [*Parasites & Vectors*](https://parasitesandvectors.biomedcentral.com/articles/10.1186/s13071-020-04016-2)
 
 ## References
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model with covariates. *Biometrics* 70:943-953.   
@@ -109,6 +117,14 @@ Clark, N.J., Wells, K., Lindberg, O. (2018). Unravelling changing interspecific 
   
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016). Co-infections and environmental conditions drive the distributions of blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470. [Blogpost](http://nicholasjclark.weebly.com/malariafilaria-coinfections.html) &nbsp;|&nbsp;[PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2016-journal_of_animal_ecology.pdf)  
   
+Clark, N.J., S. Tozer, C. Wood, S.M. Firestone, M. Stevenson, C. Caraguel, A.L. Chaber, J. Heller, R.J. Soares Magalhães. 2020. Unravelling animal exposure profiles of human Q fever cases in Queensland, Australia using natural language processing. *Transboundary and Emerging Diseases* DOI: https://doi.org/10.1111/tbed.13565.  
+  
+Clark, N.J., K. Owada, E. Ruberanziza, G. Ortu, I. Umulisa, U. Bayisenge, J.B. Mbonigaba, J.B. Mucaca, W. Lancaster, A. Fenwick, R.J. Soares Magalhães, A. Mbituyumuremyi. 2020. Parasite associations predict infection risk: incorporating co-infections in predictive models for neglected tropical diseases. *Parasites & Vectors* 13:1-16.  
+  
+Fountain‐Jones, N.M., N.J. Clark, A.C. Kinsley, M. Carstensen, J. Forester, T.J. Johnson, E. Miller, S. Moore, T.M. Wolf, M.E. Craft. 2019. Microbial associations and spatial proximity predict North American moose (*Alces alces*) gastrointestinal community composition. *Journal of Animal Ecology* 89:817-828.  
+  
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.  
+  
+Peel, A.J., K. Wells, J. Giles, V. Boyd, A. Burroughs, D. Edson, G. Crameri, M. L. Baker, H. Field, L-F. Wang, H. McCallum, R. K. Plowright, N. Clark. 2019. Synchronous shedding of multiple bat paramyxoviruses coincides with peak periods of Hendra virus spillover. *Emerging Microbes & Infections* 8:1314-1323  
   
 *This project is licensed under the terms of the GNU General Public License (GNU GPLv3)*
