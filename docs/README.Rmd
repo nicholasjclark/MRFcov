@@ -123,6 +123,8 @@ Clark, N.J., S. Tozer, C. Wood, S.M. Firestone, M. Stevenson, C. Caraguel, A.L. 
   
 Clark, N.J., K. Owada, E. Ruberanziza, G. Ortu, I. Umulisa, U. Bayisenge, J.B. Mbonigaba, J.B. Mucaca, W. Lancaster, A. Fenwick, R.J. Soares Magalhães, A. Mbituyumuremyi. 2020. Parasite associations predict infection risk: incorporating co-infections in predictive models for neglected tropical diseases. *Parasites & Vectors* 13:1-16.  
   
+Clark, N.J., J.T. Kerry, C.I. Fraser. 2020. Rapid winter warming could disrupt coastal marine fish community structure. *Nature Climate Change* DOI: https://doi.org/10.1038/s41558-020-0838-5  
+  
 Fountain‐Jones, N.M., N.J. Clark, A.C. Kinsley, M. Carstensen, J. Forester, T.J. Johnson, E. Miller, S. Moore, T.M. Wolf, M.E. Craft. 2019. Microbial associations and spatial proximity predict North American moose (*Alces alces*) gastrointestinal community composition. *Journal of Animal Ecology* 89:817-828.  
   
 Lindberg, O. (2016). Markov Random Fields in Cancer Mutation Dependencies. Master's of Science Thesis. University of Turku, Turku, Finland.  
