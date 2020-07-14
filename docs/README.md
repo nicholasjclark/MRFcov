@@ -158,39 +158,39 @@ gradients
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.67766590        -2.4824213 -2.4824213
-#> 5 scale.prop.zos_Microfilaria     0.12231915        -1.0546659 -1.0546659
-#> 4              scale.prop.zos     0.09261337        -0.9177080 -0.9177080
-#> 3                Microfilaria     0.09150414         0.9121958  0.9121958
-#> 2                        Plas     0.01224480        -0.3336903 -0.3336903
+#> 1                  Hkillangoi     0.66669619        -2.3575954 -2.3575954
+#> 5 scale.prop.zos_Microfilaria     0.12456440        -1.0190659 -1.0190659
+#> 3                Microfilaria     0.10069285         0.9162302  0.9162302
+#> 4              scale.prop.zos     0.09345144        -0.8826698 -0.8826698
+#> 2                        Plas     0.01192427        -0.3152980 -0.3152980
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
 #>         Variable Rel_importance Standardised_coef   Raw_coef
-#> 1    Hzosteropis     0.78670369        -2.4824213 -2.4824213
-#> 2   Microfilaria     0.12692885        -0.9971261 -0.9971261
-#> 3 scale.prop.zos     0.08634649        -0.8224173 -0.8224173
+#> 1    Hzosteropis     0.77978660        -2.3575954 -2.3575954
+#> 2   Microfilaria     0.13062068        -0.9649112 -0.9649112
+#> 3 scale.prop.zos     0.08959272        -0.7991306 -0.7991306
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.64492298         1.5278142  1.5278142
-#> 3              scale.prop.zos     0.26823224        -0.9853082 -0.9853082
-#> 4 scale.prop.zos_Microfilaria     0.04685747         0.4118187  0.4118187
-#> 1                 Hzosteropis     0.03076478        -0.3336903 -0.3336903
+#> 2                Microfilaria     0.65406752         1.5007070  1.5007070
+#> 3              scale.prop.zos     0.26133972        -0.9486092 -0.9486092
+#> 4 scale.prop.zos_Microfilaria     0.04925415         0.4118187  0.4118187
+#> 1                 Hzosteropis     0.02887175        -0.3152980 -0.3152980
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas      0.3487383         1.5278142  1.5278142
-#> 4             scale.prop.zos      0.1868767        -1.1184028 -1.1184028
-#> 5 scale.prop.zos_Hzosteropis      0.1661837        -1.0546659 -1.0546659
-#> 2                 Hkillangoi      0.1485452        -0.9971261 -0.9971261
-#> 1                Hzosteropis      0.1243182         0.9121958  0.9121958
-#> 6        scale.prop.zos_Plas      0.0253379         0.4118187  0.4118187
+#> 3                       Plas     0.34746555         1.5007070  1.5007070
+#> 4             scale.prop.zos     0.19298184        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis     0.16022285        -1.0190659 -1.0190659
+#> 2                 Hkillangoi     0.14364637        -0.9649112 -0.9649112
+#> 1                Hzosteropis     0.12951770         0.9162302  0.9162302
+#> 6        scale.prop.zos_Plas     0.02616568         0.4118187  0.4118187
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes
@@ -216,6 +216,9 @@ Diseases*](https://onlinelibrary.wiley.com/doi/abs/10.1111/tbed.13565)
 
 Clark *et al* 2020 [*Parasites &
 Vectors*](https://parasitesandvectors.biomedcentral.com/articles/10.1186/s13071-020-04016-2)
+
+Clark *et al* 2020 [*Nature Climate
+Change*](https://www.nature.com/articles/s41558-020-0838-5)
 
 ## References
 
