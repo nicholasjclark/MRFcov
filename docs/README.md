@@ -158,39 +158,40 @@ gradients
 ``` r
 MRF_mod$key_coefs$Hzosteropis
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 1                  Hkillangoi     0.66669619        -2.3575954 -2.3575954
-#> 5 scale.prop.zos_Microfilaria     0.12456440        -1.0190659 -1.0190659
-#> 3                Microfilaria     0.10069285         0.9162302  0.9162302
-#> 4              scale.prop.zos     0.09345144        -0.8826698 -0.8826698
-#> 2                        Plas     0.01192427        -0.3152980 -0.3152980
+#> 1                  Hkillangoi     0.64623474        -2.3087824 -2.3087824
+#> 5 scale.prop.zos_Microfilaria     0.12980415        -1.0347421 -1.0347421
+#> 3                Microfilaria     0.10143149         0.9146907  0.9146907
+#> 4              scale.prop.zos     0.09788426        -0.8985542 -0.8985542
+#> 2                        Plas     0.01785290        -0.3837446 -0.3837446
 ```
 
 ``` r
 MRF_mod$key_coefs$Hkillangoi
 #>         Variable Rel_importance Standardised_coef   Raw_coef
-#> 1    Hzosteropis     0.77978660        -2.3575954 -2.3575954
-#> 2   Microfilaria     0.13062068        -0.9649112 -0.9649112
-#> 3 scale.prop.zos     0.08959272        -0.7991306 -0.7991306
+#> 1    Hzosteropis     0.79853150        -2.3087824 -2.3087824
+#> 2   Microfilaria     0.11897509        -0.8911791 -0.8911791
+#> 3 scale.prop.zos     0.08154704        -0.7378041 -0.7378041
 ```
 
 ``` r
 MRF_mod$key_coefs$Plas
 #>                      Variable Rel_importance Standardised_coef   Raw_coef
-#> 2                Microfilaria     0.65406752         1.5007070  1.5007070
-#> 3              scale.prop.zos     0.26133972        -0.9486092 -0.9486092
-#> 4 scale.prop.zos_Microfilaria     0.04925415         0.4118187  0.4118187
-#> 1                 Hzosteropis     0.02887175        -0.3152980 -0.3152980
+#> 2                Microfilaria     0.63590587         1.8658732  1.8658732
+#> 3              scale.prop.zos     0.24611774        -1.1607994 -1.1607994
+#> 5 scale.prop.zos_Microfilaria     0.07969128         0.6605278  0.6605278
+#> 1                 Hzosteropis     0.02689758        -0.3837446 -0.3837446
+#> 4  scale.prop.zos_Hzosteropis     0.01023366        -0.2367016 -0.2367016
 ```
 
 ``` r
 MRF_mod$key_coefs$Microfilaria
 #>                     Variable Rel_importance Standardised_coef   Raw_coef
-#> 3                       Plas     0.34746555         1.5007070  1.5007070
-#> 4             scale.prop.zos     0.19298184        -1.1184028 -1.1184028
-#> 5 scale.prop.zos_Hzosteropis     0.16022285        -1.0190659 -1.0190659
-#> 2                 Hkillangoi     0.14364637        -0.9649112 -0.9649112
-#> 1                Hzosteropis     0.12951770         0.9162302  0.9162302
-#> 6        scale.prop.zos_Plas     0.02616568         0.4118187  0.4118187
+#> 3                       Plas      0.4423652         1.8658732  1.8658732
+#> 4             scale.prop.zos      0.1589327        -1.1184028 -1.1184028
+#> 5 scale.prop.zos_Hzosteropis      0.1360445        -1.0347421 -1.0347421
+#> 1                Hzosteropis      0.1063078         0.9146907  0.9146907
+#> 2                 Hkillangoi      0.1009129        -0.8911791 -0.8911791
+#> 6        scale.prop.zos_Plas      0.0554369         0.6605278  0.6605278
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes
@@ -246,6 +247,10 @@ Bayisenge, J.B. Mbonigaba, J.B. Mucaca, W. Lancaster, A. Fenwick, R.J.
 Soares Magalhães, A. Mbituyumuremyi. 2020. Parasite associations predict
 infection risk: incorporating co-infections in predictive models for
 neglected tropical diseases. *Parasites & Vectors* 13:1-16.
+
+Clark, N.J., J.T. Kerry, C.I. Fraser. 2020. Rapid winter warming could
+disrupt coastal marine fish community structure. *Nature Climate Change*
+DOI: <https://doi.org/10.1038/s41558-020-0838-5>
 
 Fountain‐Jones, N.M., N.J. Clark, A.C. Kinsley, M. Carstensen, J.
 Forester, T.J. Johnson, E. Miller, S. Moore, T.M. Wolf, M.E. Craft.
