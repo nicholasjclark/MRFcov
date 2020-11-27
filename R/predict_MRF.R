@@ -203,21 +203,26 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
       }))
     }
     colnames(predictions) <- node_names
+    colnames(dist_mappings) <- colnames(predictions)
 
-    ranks <- apply(predictions, 2, rank)
+    # Compare predictions to draws from the node's estimated discrete distribution
+    # for the copula mapping
+    ranks <- apply(rbind(predictions, apply(dist_mappings, 2, paranorm)), 2, rank)
+    ranks <- ranks / (max(ranks) + 1)
+    ranks <- ranks[1:nrow(predictions),]
 
     # If raw nodes were negative binomially distributed, use qbinom to
     # draw predictions based on rank quantiles
     if(length(nrow(MRF_mod$poiss_sc_factors)) != 0){
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
-        stats::qnbinom(p = ranks[,x] / (nrow(ranks) + 1),
+        stats::qnbinom(p = ranks[,x],
                 size = MRF_mod$poiss_sc_factors[1, x],
                 mu = MRF_mod$poiss_sc_factors[2, x])
     }))
       # Else use qpois
     } else {
       predictions <- do.call(cbind, lapply(seq_len(n_nodes), function(x){
-        stats::qpois(p = ranks[,x] / (nrow(ranks) + 1),
+        stats::qpois(p = ranks[,x],
                 lambda = MRF_mod$poiss_sc_factors[x])
       }))
     }
