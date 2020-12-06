@@ -1,5 +1,5 @@
-## Patch updates for release v1.0.39
-This update contains improvements to the way infinite values are detected
+## Patch updates for release v1.0.40
+This update contains improvments to the nonparanormal mapping of predictions for discrete variables
 
 ## Test environments
 * OS X install: R 3.6.0

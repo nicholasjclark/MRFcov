@@ -1,3 +1,6 @@
+# MRFcov 1.0.40
+*   Improved nonparanormal mapping of predictions for discrete variables
+
 # MRFcov 1.0.39
 *   Improvement for the detection of infinite values in data and coordinates
 
