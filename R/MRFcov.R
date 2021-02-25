@@ -42,6 +42,7 @@
 #'coefficients are estimated on the identity scale AFTER using a nonparanormal transformation.
 #'See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
+#'@param progress_bar Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.
 #'
 #'@return A \code{list} containing:
 #'\itemize{
@@ -120,7 +121,7 @@
 #'
 MRFcov <- function(data, symmetrise,
                    prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, bootstrap = FALSE) {
+                   family, bootstrap = FALSE, progress_bar = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -364,6 +365,14 @@ MRFcov <- function(data, symmetrise,
 
   #### If n_cores > 1, check for parallel loading before initiating parallel clusters ####
   if(n_cores > 1){
+
+    # Progress bar significantly slows estimation, set to FALSE unless specified
+    if(progress_bar){
+      pbapply::pboptions(style = 1, char = "+", type = 'timer')
+    } else {
+      pbapply::pboptions(type="none")
+    }
+
     #Initiate the n_cores parallel clusters
     cl <- makePSOCKcluster(n_cores)
     setDefaultCluster(cl)

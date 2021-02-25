@@ -61,6 +61,7 @@
 #'@param prep_splines Logical. If spatial splines are already included in  \code{data}, set to
 #'\code{FALSE}. Default is \code{TRUE}
 #'@param bootstrap Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage
+#'@param progress_bar Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.
 #'
 #'@return A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with
 #'the inclusion of a \code{dataframe} called \code{mrf_data}. This contains all prepped covariates
@@ -86,7 +87,7 @@
 #'@export
 #'
 MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
-                   family, coords, prep_splines = TRUE, bootstrap = FALSE) {
+                   family, coords, prep_splines = TRUE, bootstrap = FALSE, progress_bar = FALSE) {
 
   #### Specify default parameter values and initiate warnings ####
   if(!(family %in% c('gaussian', 'poisson', 'binomial')))
@@ -381,6 +382,14 @@ MRFcov_spatial <- function(data, symmetrise, prep_covariates, n_nodes, n_cores, 
 
   #### If n_cores > 1, check for parallel loading before initiating parallel clusters ####
   if(n_cores > 1){
+
+    # Progress bar significantly slows estimation, set to FALSE unless specified
+    if(progress_bar){
+      pbapply::pboptions(style = 1, char = "+", type = 'timer')
+    } else {
+      pbapply::pboptions(type="none")
+    }
+
     #Initiate the n_cores parallel clusters
     cl <- makePSOCKcluster(n_cores)
     setDefaultCluster(cl)

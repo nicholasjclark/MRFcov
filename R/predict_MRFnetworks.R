@@ -30,6 +30,7 @@
 #'networks from \code{\link{MRFcov_spatial}} objects)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
 #'Default is \code{1} (no parallelisation)
+#'@param progress_bar Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.
 #'
 #'@return Either a \code{matrix} with \code{nrow = nrow(data)},
 #'containing each species' predicted network metric at each observation in \code{data}, or
@@ -64,7 +65,7 @@
 #'
 predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
                                cached_predictions = NULL, prep_covariates,
-                               n_cores){
+                               n_cores, progress_bar = FALSE){
 
   if(missing(n_cores)){
     n_cores <- 1
@@ -157,7 +158,8 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   if(MRF_mod$mod_family == "binomial"){
     if(is.null(cached_predictions)){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE, n_cores = n_cores)$Probability_predictions
+                         prep_covariates = FALSE, n_cores = n_cores,
+                         progress_bar = progress_bar)$Probability_predictions
     } else {
       preds <- cached_predictions$Probability_predictions
     }
@@ -165,7 +167,8 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   } else {
     if(is.null(cached_predictions)){
     preds <- predict_MRF(pred.prepped.dat, MRF_mod_booted,
-                         prep_covariates = FALSE, n_cores = n_cores)
+                         prep_covariates = FALSE, n_cores = n_cores,
+                         progress_bar = progress_bar)
     } else {
       preds <- cached_predictions
       }

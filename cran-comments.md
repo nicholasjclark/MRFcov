@@ -1,4 +1,4 @@
-## Patch updates for release v1.0.40
+## Patch updates for release v1.1
 This update contains improvments to the nonparanormal mapping of predictions for discrete variables
 
 ## Test environments

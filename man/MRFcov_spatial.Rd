@@ -5,7 +5,8 @@
 \title{Spatially structured Markov Random Fields with covariates}
 \usage{
 MRFcov_spatial(data, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, coords, prep_splines = TRUE, bootstrap = FALSE)
+  n_covariates, family, coords, prep_splines = TRUE, bootstrap = FALSE,
+  progress_bar = FALSE)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
@@ -66,6 +67,8 @@ the \code{\link{predict_MRF}} function}
 \code{FALSE}. Default is \code{TRUE}}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
+
+\item{progress_bar}{Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.}
 }
 \value{
 A \code{list} of all elements contained in a returned \code{\link{MRFcov}} object, with

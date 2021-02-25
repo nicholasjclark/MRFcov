@@ -94,7 +94,7 @@ MRF_mod$key_coefs$Plas
 MRF_mod$key_coefs$Microfilaria
 ```
 
-To work through more in-depth tutorials and examples, see the vignettes in the package and check out papers that have been published using the method
+To work through more in-depth tutorials and examples, see the vignettes in the package and check out some of the papers that have been published using the method
 ```{r eval=FALSE}
 vignette("Bird_Parasite_CRF")
 vignette("Gaussian_Poisson_CRFs")
