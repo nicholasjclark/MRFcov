@@ -34,7 +34,6 @@ Imports: purrr,
     mgcv,
     MASS
 License: GPL-3
-URL: https://github.com/nicholasjclark/MRFcov
 Encoding: UTF-8
 RoxygenNote: 6.1.1
 LazyData: true
