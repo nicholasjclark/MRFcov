@@ -4,8 +4,17 @@
 \alias{MRFcov}
 \title{Markov Random Fields with covariates}
 \usage{
-MRFcov(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
-  family, bootstrap = FALSE, progress_bar = FALSE)
+MRFcov(
+  data,
+  symmetrise,
+  prep_covariates,
+  n_nodes,
+  n_cores,
+  n_covariates,
+  family,
+  bootstrap = FALSE,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}

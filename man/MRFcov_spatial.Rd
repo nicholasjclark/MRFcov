@@ -4,9 +4,19 @@
 \alias{MRFcov_spatial}
 \title{Spatially structured Markov Random Fields with covariates}
 \usage{
-MRFcov_spatial(data, symmetrise, prep_covariates, n_nodes, n_cores,
-  n_covariates, family, coords, prep_splines = TRUE, bootstrap = FALSE,
-  progress_bar = FALSE)
+MRFcov_spatial(
+  data,
+  symmetrise,
+  prep_covariates,
+  n_nodes,
+  n_cores,
+  n_covariates,
+  family,
+  coords,
+  prep_splines = TRUE,
+  bootstrap = FALSE,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}

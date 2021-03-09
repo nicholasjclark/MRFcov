@@ -4,8 +4,13 @@
 \alias{predict_MRF}
 \title{Predict training observations from fitted MRFcov models}
 \usage{
-predict_MRF(data, MRF_mod, prep_covariates = TRUE, n_cores,
-  progress_bar = FALSE)
+predict_MRF(
+  data,
+  MRF_mod,
+  prep_covariates = TRUE,
+  n_cores,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{Dataframe. The input data to be predicted, where the \code{n_nodes}

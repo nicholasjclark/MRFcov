@@ -5,9 +5,17 @@
 \title{Extract predicted network metrics for observations in a given dataset using
 equations from a fitted \code{MRFcov} object}
 \usage{
-predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric,
-  cached_predictions = NULL, prep_covariates, n_cores,
-  progress_bar = FALSE)
+predict_MRFnetworks(
+  data,
+  MRF_mod,
+  cutoff,
+  omit_zeros,
+  metric,
+  cached_predictions = NULL,
+  prep_covariates,
+  n_cores,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
