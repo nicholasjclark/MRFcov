@@ -10,6 +10,8 @@ There were no ERRORs or WARNINGs.
 
 An ERROR appears in the win-builder check for r-devel-windows-ix86+x86_64, likely owing to failures on r-devel-windows-ix86+x86_64 due to missing dependencies that need compilation. A test using `rhub::check( platform="windows-x86_64-devel", env_vars=c(R_COMPILE_AND_INSTALL_PACKAGES = "always"))` passes the win-builder check
 
+Previously three top level files were non-standard. These have been moved to .Rbuildignore and now are not flagged in R RMD checks
+
 Previously the version of this update was not sufficient for CRAN requirements: Insufficient package version (submitted: 1.0.4, existing: 1.0.37). This has been changed (new version is 1.0.38)
 
 A URL in the one of the vignettes previously did not have https. The CRAN note was
