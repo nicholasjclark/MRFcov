@@ -15,6 +15,7 @@
 #'by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other functions)
 #'@param n_cores Positive integer stating the number of processing cores to split the job across.
 #'Default is \code{1} (no parallelisation)
+#'@param progress_bar Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.
 #'@return A \code{matrix} containing predictions for each observation in \code{data}. If
 #'\code{family = "binomial"}, a second element containing binary
 #'predictions for nodes is returned.
@@ -59,7 +60,8 @@
 #'
 #'@export
 #'
-predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
+predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
+                        progress_bar = FALSE){
 
   if(missing(n_cores)){
     n_cores <- 1
@@ -67,6 +69,14 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores){
 
   #### If n_cores > 1, check parallel library loading ####
   if(n_cores > 1){
+
+    # Progress bar significantly slows estimation, set to FALSE unless specified
+    if(progress_bar){
+      pbapply::pboptions(style = 1, char = "+", type = 'timer')
+    } else {
+      pbapply::pboptions(type="none")
+    }
+
     #Initiate the n_cores parallel clusters
     cl <- makePSOCKcluster(n_cores)
     setDefaultCluster(cl)

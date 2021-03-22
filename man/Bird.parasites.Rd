@@ -4,7 +4,8 @@
 \name{Bird.parasites}
 \alias{Bird.parasites}
 \title{Blood parasite occurrences in New Caledonian birds.}
-\format{A data frame with 449 rows and 5 variables:
+\format{
+A data frame with 449 rows and 5 variables:
 \describe{
   \item{Hzosteropis}{binary occurrence of \emph{Haemoproteus zosteropis}}
   \item{Hkillangoi}{binary occurrence of \emph{Haemoproteus killangoi}}
@@ -12,9 +13,10 @@
   \item{Microfilaria}{binary occurrence of Microfilaria species}
   \item{scale.prop.zos}{scaled numeric variable representing relative abundance
   of \emph{Zosterops} host species}
-}}
+}
+}
 \source{
-\url{http://dx.doi.org/10.5061/dryad.pp6k4}
+\doi{10.5061/dryad.pp6k4}
 }
 \usage{
 Bird.parasites

@@ -5,8 +5,17 @@
 \title{Extract predicted network metrics for observations in a given dataset using
 equations from a fitted \code{MRFcov} object}
 \usage{
-predict_MRFnetworks(data, MRF_mod, cutoff, omit_zeros, metric,
-  cached_predictions = NULL, prep_covariates, n_cores)
+predict_MRFnetworks(
+  data,
+  MRF_mod,
+  cutoff,
+  omit_zeros,
+  metric,
+  cached_predictions = NULL,
+  prep_covariates,
+  n_cores,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{Dataframe. The sample data where the
@@ -40,6 +49,8 @@ networks from \code{\link{MRFcov_spatial}} objects)}
 
 \item{n_cores}{Positive integer stating the number of processing cores to split the job across.
 Default is \code{1} (no parallelisation)}
+
+\item{progress_bar}{Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.}
 }
 \value{
 Either a \code{matrix} with \code{nrow = nrow(data)},

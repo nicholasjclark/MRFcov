@@ -26,7 +26,7 @@ test_that("binary data should only have two possible values", {
 })
 
 inf.dat <- Bird.parasites
-inf.dat[1,1] <- 'Inf'
+inf.dat[1,1] <- Inf
 
 test_that("infinite values are not allowed", {
   expect_success(expect_error(MRFcov(data = inf.dat, n_nodes = 4,

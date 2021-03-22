@@ -4,7 +4,13 @@
 \alias{predict_MRF}
 \title{Predict training observations from fitted MRFcov models}
 \usage{
-predict_MRF(data, MRF_mod, prep_covariates = TRUE, n_cores)
+predict_MRF(
+  data,
+  MRF_mod,
+  prep_covariates = TRUE,
+  n_cores,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{Dataframe. The input data to be predicted, where the \code{n_nodes}
@@ -20,6 +26,8 @@ by cross-multiplication (\code{TRUE} by default; \code{FALSE} when used in other
 
 \item{n_cores}{Positive integer stating the number of processing cores to split the job across.
 Default is \code{1} (no parallelisation)}
+
+\item{progress_bar}{Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.}
 }
 \value{
 A \code{matrix} containing predictions for each observation in \code{data}. If

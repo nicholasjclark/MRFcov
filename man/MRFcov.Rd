@@ -4,8 +4,17 @@
 \alias{MRFcov}
 \title{Markov Random Fields with covariates}
 \usage{
-MRFcov(data, symmetrise, prep_covariates, n_nodes, n_cores, n_covariates,
-  family, bootstrap = FALSE)
+MRFcov(
+  data,
+  symmetrise,
+  prep_covariates,
+  n_nodes,
+  n_cores,
+  n_covariates,
+  family,
+  bootstrap = FALSE,
+  progress_bar = FALSE
+)
 }
 \arguments{
 \item{data}{A \code{dataframe}. The input data where the \code{n_nodes}
@@ -45,6 +54,8 @@ coefficients are estimated on the identity scale AFTER using a nonparanormal tra
 See \code{vignette("Gaussian_Poisson_CRFs")} for details of interpretation}
 
 \item{bootstrap}{Logical. Used by \code{\link{bootstrap_MRF}} to reduce memory usage}
+
+\item{progress_bar}{Logical. Progress bar in pbapply is used if \code{TRUE}, but this slows estimation.}
 }
 \value{
 A \code{list} containing:

@@ -1,6 +1,8 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^README\.Rmd$
-^README-.*\.png$
-^docs$
-^cran-comments.md$
+^doc$
+^Meta$
+^CRAN-RELEASE
+^cran-comments.md
+^docs
+^CRAN-RELEASE$
