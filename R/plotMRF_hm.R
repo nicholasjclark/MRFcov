@@ -144,10 +144,10 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
    label <- matrix(NA, n_nodes, n_nodes)
     for(i in seq_len(n_nodes)){
       for(j in 2:n_nodes){
-        label[i, j] <- nrow(data %>% dplyr::filter(data[, i] == 1 & data[,j] == 1))
+        label[i, j] <- nrow(data %>% dplyr::filter(data[, i, drop = TRUE] == 1 & data[,j, drop = TRUE] == 1))
       }
 
-      label[i, i] <- nrow(data %>% dplyr::filter(data[, i] == 1 &
+      label[i, i] <- nrow(data %>% dplyr::filter(data[, i, drop = TRUE] == 1 &
                                             rowSums(data[, c(seq_len(n_nodes)[-i])]) == 0))
     }
 
