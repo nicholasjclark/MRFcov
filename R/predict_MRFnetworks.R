@@ -123,7 +123,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
     MRF_mod_booted$direct_coefs <- MRF_mod$direct_coef_means
     MRF_mod_booted$mod_family <- MRF_mod$mod_family
     MRF_mod_booted$mod_type <- 'MRFcov'
-    if(length(MRF_mod$indirect_coefs) > 0){
+    if(length(MRF_mod$indirect_coef_mean) > 0){
       for(i in seq_along(MRF_mod$indirect_coef_mean)){
         MRF_mod_booted$indirect_coefs[[i]] <- list(MRF_mod$indirect_coef_mean[[i]],"")[1]
         }
@@ -186,7 +186,7 @@ predict_MRFnetworks = function(data, MRF_mod, cutoff, omit_zeros, metric,
   base.interactions <- MRF_mod_booted$graph
 
   # If covariates exist, incorporate their modifications to species' interactions
-  if(length(MRF_mod$indirect_coefs) > 0){
+  if(length(MRF_mod_booted$indirect_coefs) > 0){
     total.interactions <- lapply(seq_len(nrow(data)), function(x){
       cov.mods <- list()
       for(i in seq_along(MRF_mod_booted$indirect_coefs)){
