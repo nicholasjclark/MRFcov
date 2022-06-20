@@ -276,7 +276,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   }
 
   shuffle_rows <- function(x){
-    dplyr::sample_n(x, nrow(x) * sample_prop, FALSE)
+    dplyr::sample_n(x, nrow(x) * sample_prop, replace = TRUE)
   }
 
   #### Function to impute covariate NAs from normal distribution (mean = 0; sd = 1) ####

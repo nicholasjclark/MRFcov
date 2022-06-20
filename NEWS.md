@@ -1,3 +1,6 @@
+# MRFcov 1.0.39
+*   Patch to use replace = TRUE for bootstrapping
+
 # MRFcov 1.0.38
 *   Improved nonparanormal mapping of predictions for discrete variables
 *   Option to remove progress bar in multicore estimation, significantly speeding up analysis runs
