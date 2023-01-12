@@ -28,7 +28,7 @@
 #'@param n_cores Integer. The number of cores to spread the job across using
 #'\code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)
 #'@param n_covariates Positive integer. The number of covariates in \code{data},
-#'before cross-multiplication. Default is \code{ncol(data) - n_nodes}
+#'before cross-multiplication. Default is \code{NCOL(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})
 #'@param sample_prop Positive probability value indicating the proportion of rows to sample from
@@ -165,7 +165,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
       stop('No infinite values permitted in coords', call. = FALSE)
       }
 
-    if(ncol(coords) > 2){
+    if(NCOL(coords) > 2){
       stop('coords should have only two columns, ideally labelled `Latitude` and `Longitude`')
       }
   }
@@ -174,9 +174,9 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
   #### Basic checks on data arguments ####
   if(missing(n_nodes)) {
-    warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
+    warning('n_nodes not specified. using NCOL(data) as default, assuming no covariates',
             call. = FALSE)
-    n_nodes <- ncol(data)
+    n_nodes <- NCOL(data)
     n_covariates <- 0
   } else {
     if(sign(n_nodes) != 1){
@@ -189,7 +189,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   }
 
   if(missing(n_covariates)){
-    n_covariates <- ncol(data) - n_nodes
+    n_covariates <- NCOL(data) - n_nodes
   } else {
     if(sign(n_covariates) != 1){
       stop('Please provide a positive integer for n_covariates')
@@ -201,7 +201,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
   }
 
   if(n_covariates > 0){
-  if(any(is.na(data[,(n_nodes + 1):ncol(data)]))){
+  if(any(is.na(data[,(n_nodes + 1):NCOL(data)]))){
     warning('NAs detected in covariate columns. These will be imputed from rnorm(mean=0,sd=1)',
             call. = FALSE)
     nas_present <- TRUE
@@ -389,15 +389,15 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
         if(spatial){
           booted_data <- shuffle_rows(cbind(data, coords))
-          sample_data <- booted_data[, 1:(ncol(booted_data) - ncol(coords))]
+          sample_data <- booted_data[, 1:(NCOL(booted_data) - NCOL(coords))]
 
           if(nas_present){
             sample_data <- impute_nas(sample_data)
           }
 
           sample_data <- prep_MRF_covariates(sample_data, n_nodes)
-          sample_coords <- booted_data[, ((ncol(booted_data) + 1) -
-                                            ncol(coords)):ncol(booted_data)]
+          sample_coords <- booted_data[, ((NCOL(booted_data) + 1) -
+                                            NCOL(coords)):NCOL(booted_data)]
 
           mod <- suppressWarnings(MRFcov_spatial(data = sample_data,
                                          symmetrise = symmetrise,
@@ -438,14 +438,14 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     #Calculate mean coefficient estimates across bootstrap samples
     direct_coef_means <- apply(array(unlist(direct_coef_list),
                               c(nrow(booted_mrfs[[1]]$direct_coefs),
-                                ncol(booted_mrfs[[1]]$direct_coefs),
+                                NCOL(booted_mrfs[[1]]$direct_coefs),
                                 length(booted_mrfs))), c(1, 2), mean)
 
     rownames(direct_coef_means) <- rownames(booted_mrfs[[1]]$direct_coefs)
     colnames(direct_coef_means) <- colnames(booted_mrfs[[1]]$direct_coefs)
 
     #Calculate proportion of bootstrap models in which each cofficient is non-zero
-    n_total_covariates <- ncol(booted_mrfs[[1]]$direct_coefs)
+    n_total_covariates <- NCOL(booted_mrfs[[1]]$direct_coefs)
 
     prop_covs_retained <- matrix(0, n_nodes, n_total_covariates)
     for(i in seq_len(n_nodes)){
@@ -507,15 +507,15 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
           if(spatial){
             booted_data <- shuffle_rows(cbind(data, coords))
-            sample_data <- booted_data[, 1:(ncol(booted_data) - ncol(coords))]
+            sample_data <- booted_data[, 1:(NCOL(booted_data) - NCOL(coords))]
 
             if(nas_present){
               sample_data <- impute_nas(sample_data)
             }
 
             sample_data <- prep_MRF_covariates(sample_data, n_nodes)
-            sample_coords <- booted_data[, ((ncol(booted_data) + 1) -
-                                              ncol(coords)):ncol(booted_data)]
+            sample_coords <- booted_data[, ((NCOL(booted_data) + 1) -
+                                              NCOL(coords)):NCOL(booted_data)]
 
             # Use invisible to prevent printing of timing messages in each iteration
             invisible(utils::capture.output(mod <- MRFcov_spatial(data = sample_data,
@@ -555,13 +555,13 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
         direct_coef_means <- apply(array(unlist(direct_coef_list),
                                   c(nrow(booted_mrfs[[1]]$direct_coefs),
-                                    ncol(booted_mrfs[[1]]$direct_coefs),
+                                    NCOL(booted_mrfs[[1]]$direct_coefs),
                                     length(booted_mrfs))), c(1, 2), mean)
         rownames(direct_coef_means) <- rownames(booted_mrfs[[1]]$direct_coefs)
         colnames(direct_coef_means) <- colnames(booted_mrfs[[1]]$direct_coefs)
 
         #Calculate proportion of bootstrap samps in which each direct coefficient occurs
-        n_total_covariates <- ncol(booted_mrfs[[1]]$direct_coefs)
+        n_total_covariates <- NCOL(booted_mrfs[[1]]$direct_coefs)
 
         prop_covs_retained <- matrix(0, n_nodes, n_total_covariates)
         for(i in seq_len(n_nodes)){
@@ -623,7 +623,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
   all_direct_coef_means <- apply(array(unlist(all_direct_coef_list),
                             c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
-                              ncol(lambda_results[[1]]$raw_coefs[[1]]),
+                              NCOL(lambda_results[[1]]$raw_coefs[[1]]),
                               total_reps)), c(1, 2), mean)
   rownames(all_direct_coef_means) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
   colnames(all_direct_coef_means) <- colnames(lambda_results[[1]]$raw_coefs[[1]])
@@ -637,7 +637,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
   all_direct_coef_upper90 <- apply(array(unlist(all_direct_coef_list),
                                 c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
-                                  ncol(lambda_results[[1]]$raw_coefs[[1]]),
+                                  NCOL(lambda_results[[1]]$raw_coefs[[1]]),
                                   total_reps)), c(1, 2),
                            function(x){quantile(x, probs = 0.95)})
   rownames(all_direct_coef_upper90) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
@@ -645,7 +645,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
 
   all_direct_coef_lower90 <- apply(array(unlist(all_direct_coef_list),
                                  c(nrow(lambda_results[[1]]$raw_coefs[[1]]),
-                                   ncol(lambda_results[[1]]$raw_coefs[[1]]),
+                                   NCOL(lambda_results[[1]]$raw_coefs[[1]]),
                                    total_reps)), c(1, 2),
                            function(x){quantile(x, probs = 0.05)})
   rownames(all_direct_coef_lower90) <- rownames(lambda_results[[1]]$raw_coefs[[1]])
