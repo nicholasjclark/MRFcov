@@ -229,36 +229,16 @@ plotMRF_hm = function(MRF_mod, node_names, main, plot_observed_vals, data){
     }
 
     #Extract summary statistics of interaction coefficients
-    if(length(MRF_mod$indirect_coef_mean) != 0){
-    upper_tri <- get_upper_tri(MRF_mod$direct_coef_means[1:n_nodes, 2:(n_nodes + 1)] +
-                                 (Reduce(`+`, MRF_mod$indirect_coef_mean) /
-                                    length(MRF_mod$indirect_coef_mean)))
-    } else {
-      upper_tri <- get_upper_tri(MRF_mod$direct_coef_means[1:n_nodes, 2:(n_nodes + 1)])
-    }
+    upper_tri <- get_upper_tri(MRF_mod$direct_coef_means[1:n_nodes, 2:(n_nodes + 1)])
 
     melted_cormat <- reshape2::melt(upper_tri, na.rm = T)
     melted_cormat$Factor <- 'Mean'
 
-    if(length(MRF_mod$indirect_coef_mean) != 0){
-    upper_tri.upper <- get_upper_tri(MRF_mod$direct_coef_upper90[1:n_nodes, 2:(n_nodes + 1)] +
-                                       (Reduce(`+`, MRF_mod$indirect_coef_mean) /
-                                          length(MRF_mod$indirect_coef_mean)))
-    } else {
-      upper_tri.upper <- get_upper_tri(MRF_mod$direct_coef_upper90[1:n_nodes, 2:(n_nodes + 1)])
-    }
-
+    upper_tri.upper <- get_upper_tri(MRF_mod$direct_coef_upper90[1:n_nodes, 2:(n_nodes + 1)])
     melted_cormat.upper <- reshape2::melt(upper_tri.upper, na.rm = T)
     melted_cormat.upper$Factor <- 'Upper (95%)'
 
-    if(length(MRF_mod$indirect_coef_mean) != 0){
-    upper_tri.lower <- get_upper_tri(MRF_mod$direct_coef_lower90[1:n_nodes, 2:(n_nodes + 1)] +
-                                       (Reduce(`+`, MRF_mod$indirect_coef_mean) /
-                                          length(MRF_mod$indirect_coef_mean)))
-    } else {
-      upper_tri.lower <- get_upper_tri(MRF_mod$direct_coef_lower90[1:n_nodes, 2:(n_nodes + 1)])
-    }
-
+    upper_tri.lower <- get_upper_tri(MRF_mod$direct_coef_lower90[1:n_nodes, 2:(n_nodes + 1)])
     melted_cormat.lower <- reshape2::melt(upper_tri.lower, na.rm = T)
     melted_cormat.lower$Factor <- 'Lower (5%)'
 
