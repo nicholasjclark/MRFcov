@@ -286,7 +286,11 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
 
 #### Return the appropriate predictions based on family ####
   if((MRF_mod$mod_family == 'binomial')){
-    binary_predictions <- ifelse(predictions >= 0.5, 1, 0)
+    binary_predictions <- matrix(NA, nrow = NROW(predictions),
+                                 ncol = NCOL(predictions))
+    for(i in 1:NCOL(predictions)){
+      binary_predictions[,i] <- rbinom(NROW(predictions), size = 1, prob = predictions[,i])
+    }
     return(list(Probability_predictions = round(predictions, 4),
            Binary_predictions = binary_predictions))
 

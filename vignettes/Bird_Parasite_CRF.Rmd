@@ -104,7 +104,7 @@ quantile(mod_fits$mean_sensitivity[mod_fits$model != 'CRF'], probs = c(0.05, 0.9
 ### Bootstrapping the data and running models
 We now may want to fit models to bootstrapped subsets of the data to account for parameter uncertainty. Users can change the proportion of observations to include in each bootstrap run with the `sample_prop` option.
 ```{r}
-booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 10, n_cores = 1)
+booted_MRF <- bootstrap_MRF(data = Bird.parasites, n_nodes = 4, family = 'binomial', n_bootstraps = 10, n_cores = 1, sample_prop = 0.9)
 ```
 
 ### Exploring regression coefficients and interpreting results

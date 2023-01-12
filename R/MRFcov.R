@@ -20,7 +20,7 @@
 #'or \code{mean} (take the mean of the two coefficients). Default is \code{mean}
 #'@param prep_covariates Logical. If \code{TRUE}, covariate columns will be cross-multiplied
 #'with nodes to prep the dataset for MRF models. Note this is only useful when additional
-#'covariates are provided. Therefore, if \code{n_nodes < ncol(data)},
+#'covariates are provided. Therefore, if \code{n_nodes < NCOL(data)},
 #'default is \code{TRUE}. Otherwise, default is \code{FALSE}. See
 #'\code{\link{prep_MRF_covariates}} for more information
 #'@param n_nodes Positive integer. The index of the last column in \code{data}
@@ -30,7 +30,7 @@
 #'@param n_cores Positive integer. The number of cores to spread the job across using
 #'\code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)
 #'@param n_covariates Positive integer. The number of covariates in \code{data}, before cross-multiplication.
-#'Default is \code{ncol(data) - n_nodes}
+#'Default is \code{NCOL(data) - n_nodes}
 #'@param family The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 #'non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"}).
 #'If using (\code{family = "binomial"}), please note that if nodes occur in less than 5 percent
@@ -161,9 +161,9 @@ MRFcov <- function(data, symmetrise,
 
   #### Basic checks on data arguments ####
   if(missing(n_nodes)) {
-    warning('n_nodes not specified. using ncol(data) as default, assuming no covariates',
+    warning('n_nodes not specified. using NCOL(data) as default, assuming no covariates',
             call. = FALSE)
-    n_nodes <- ncol(data)
+    n_nodes <- NCOL(data)
     n_covariates <- 0
   } else {
     if(sign(n_nodes) != 1){
@@ -178,9 +178,9 @@ MRFcov <- function(data, symmetrise,
   }
 
   if(is.null(colnames(data))){
-    if(n_nodes < ncol(data)){
+    if(n_nodes < NCOL(data)){
       colnames(data) <- c(paste0('sp', seq_len(n_nodes)),
-                          paste0('cov', seq_len(ncol(data) - n_nodes)))
+                          paste0('cov', seq_len(NCOL(data) - n_nodes)))
     } else {
       colnames(data) <- paste0('sp', seq_len(n_nodes))
     }
@@ -215,20 +215,20 @@ MRFcov <- function(data, symmetrise,
     }
   }
 
-  if(missing(prep_covariates) & n_nodes < ncol(data)){
+  if(missing(prep_covariates) & n_nodes < NCOL(data)){
     prep_covariates <- TRUE
   }
 
-  if(missing(prep_covariates) & n_nodes == ncol(data)){
+  if(missing(prep_covariates) & n_nodes == NCOL(data)){
     prep_covariates <- FALSE
   }
 
   if(missing(n_covariates) & prep_covariates == FALSE){
-    n_covariates <- (ncol(data) - n_nodes) / (n_nodes + 1)
+    n_covariates <- (NCOL(data) - n_nodes) / (n_nodes + 1)
   }
 
   if(missing(n_covariates) & prep_covariates == TRUE){
-    n_covariates <- ncol(data) - n_nodes
+    n_covariates <- NCOL(data) - n_nodes
   }
 
   #### Specify default number of folds for cv.glmnet based on data size ####
@@ -358,7 +358,7 @@ MRFcov <- function(data, symmetrise,
 
   #Gather covariate names
   if(n_covariates > 0){
-    cov_names <- colnames(mrf_data)[(n_nodes + 1):ncol(mrf_data)]
+    cov_names <- colnames(mrf_data)[(n_nodes + 1):NCOL(mrf_data)]
   } else {
     cov_names <- NULL
   }
@@ -460,7 +460,7 @@ MRFcov <- function(data, symmetrise,
       # If still getting errors, this is likely a very sparse node. Return
       # an intercept-only cv.glmnet model instead
       if(inherits(mod, 'try-error')){
-        zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+        zero_coefs <- rep(0, NCOL(mrf_data[, -y.vars]))
         names(zero_coefs) <- colnames(mrf_data[, -y.vars])
         zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
         zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
@@ -509,7 +509,7 @@ MRFcov <- function(data, symmetrise,
       }
 
       if(inherits(mod, 'try-error')){
-        zero_coefs <- rep(0, ncol(mrf_data[, -y.vars]))
+        zero_coefs <- rep(0, NCOL(mrf_data[, -y.vars]))
         names(zero_coefs) <- colnames(mrf_data[, -y.vars])
         zero_coef_matrix <- Matrix::Matrix(zero_coefs, sparse = TRUE)
         zero_coef_matrix@Dimnames <- list(names(zero_coefs),'s0')
@@ -652,7 +652,7 @@ MRFcov <- function(data, symmetrise,
     direct_coefs[, 2:(n_nodes + 1)] <- interaction_matrix_sym[[1]]
 
     #Replace unsymmetric indirect interaction coefficients with symmetric versions
-    covs_to_sym <- ncol(direct_coefs) - (1 + n_nodes + n_covariates)
+    covs_to_sym <- NCOL(direct_coefs) - (1 + n_nodes + n_covariates)
     covs_to_sym_end <- seq(n_nodes, covs_to_sym,
                            by = n_nodes) + (1 + n_nodes + n_covariates)
     covs_to_sym_beg <- covs_to_sym_end - (n_nodes - 1)
@@ -676,7 +676,7 @@ MRFcov <- function(data, symmetrise,
   #### Calculate relative importances of coefficients by scaling each coef
   #by the input variable's standard deviation ####
   if(!bootstrap){
-    scaled_direct_coefs <- sweep(as.matrix(direct_coefs[, 2 : ncol(direct_coefs)]),
+    scaled_direct_coefs <- sweep(as.matrix(direct_coefs[, 2 : NCOL(direct_coefs)]),
                                  MARGIN = 2, mrf_sds, `/`)
     coef_rel_importances <- t(apply(scaled_direct_coefs, 1, function(i) (i^2) / sum(i^2)))
     mean_key_coefs <- lapply(seq_len(n_nodes), function(x){
