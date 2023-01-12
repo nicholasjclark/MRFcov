@@ -41,7 +41,7 @@ prep_MRF_covariates <- function(data, n_nodes){
   }
 
   #### If no covariates included, return the original dataframe
-  if(n_nodes == ncol(data)){
+  if(n_nodes == NCOL(data)){
     output <- data
   } else {
 
@@ -51,11 +51,11 @@ prep_MRF_covariates <- function(data, n_nodes){
   node_observations <- data[, 1:n_nodes]
 
   #Gather covariate column vectors
-  cov_observations <- data.frame(data[, (n_nodes + 1):ncol(data)])
-  colnames(cov_observations) <- colnames(data[(n_nodes + 1):ncol(data)])
+  cov_observations <- data.frame(data[, (n_nodes + 1):NCOL(data)])
+  colnames(cov_observations) <- colnames(data[(n_nodes + 1):NCOL(data)])
 
   #Multiply each covariate by all node variables and create suffixed colnames
-  n.covs <- ncol(cov_observations)
+  n.covs <- NCOL(cov_observations)
   mult_cov_list <- lapply(1:n.covs, function (i){
     mult_covs <- cov_observations[,i] * node_observations
     colnames(mult_covs) <- paste(colnames(cov_observations)[i],
