@@ -4,7 +4,8 @@
 #'using coefficients from an \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} object.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
-#'
+#'@importFrom stats rbinom
+
 #'@param data Dataframe. The input data to be predicted, where the \code{n_nodes}
 #'left-most variables are are variables that are represented by nodes in the graph from
 #'the \code{MRF_mod} model.
@@ -85,7 +86,7 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
     test_load1 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
 
     #If errors produced, iterate through other options for library loading
-    if(class(test_load1) == "try-error") {
+    if(inherits(test_load1, "try-error")) {
 
       #Try finding unique library paths using system.file()
       pkgLibs <- unique(c(sub("/glmnet$", "", system.file(package = "glmnet"))))
@@ -95,13 +96,13 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
       #Check again for errors loading libraries
       test_load2 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
 
-      if(class(test_load2) == "try-error"){
+      if(inherits(test_load2, "try-error")){
 
         #Try loading the user's .libPath() directly
         clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
         test_load3 <- try(clusterEvalQ(cl, library(glmnet)), silent = TRUE)
 
-        if(class(test_load3) == "try-error"){
+        if(inherits(test_load3, "try-error")){
 
           #Give up and use lapply instead!
           parallel_compliant <- FALSE
@@ -293,6 +294,8 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
                                        size = 1,
                                        prob = predictions[,i])
     }
+    binary_predictions <- data.frame(binary_predictions)
+    colnames(binary_predictions) <- node_names
     return(list(Probability_predictions = round(predictions, 4),
            Binary_predictions = binary_predictions))
 

@@ -8,5 +8,7 @@ This update contains improvements code (changing `ncol` to `NCOL` where appropri
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
+An error was found when multiple processes were spawned during `donttest` runs on `CRAN`: `Error in .check_ncores(length(names)) : 3 simultaneous processes spawned`. This has been fixed
+
 Maintainer: 'Nicholas J Clark <nicholas.j.clark1214@gmail.com>'
 

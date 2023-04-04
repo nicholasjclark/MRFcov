@@ -46,7 +46,7 @@ columns in \code{data}, corresponding to no additional covariates}
 \code{\link[parallel]{makePSOCKcluster}}. Default is 1 (no parallelisation)}
 
 \item{n_covariates}{Positive integer. The number of covariates in \code{data},
-before cross-multiplication. Default is \code{ncol(data) - n_nodes}}
+before cross-multiplication. Default is \code{NCOL(data) - n_nodes}}
 
 \item{family}{The response type. Responses can be quantitative continuous (\code{family = "gaussian"}),
 non-negative counts (\code{family = "poisson"}) or binomial 1s and 0s (\code{family = "binomial"})}

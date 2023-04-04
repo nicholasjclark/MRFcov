@@ -1,5 +1,6 @@
 # MRFcov 1.0.39
 *   Patch to use replace = TRUE for bootstrapping
+*   Use probabilistic sampling for more realistic prediction metrics
 
 # MRFcov 1.0.38
 *   Improved nonparanormal mapping of predictions for discrete variables
