@@ -4,7 +4,8 @@
 #'using coefficients from an \code{\link{MRFcov}} or \code{\link{MRFcov_spatial}} object.
 #'
 #'@importFrom parallel makePSOCKcluster setDefaultCluster clusterExport stopCluster clusterEvalQ detectCores parLapply
-#'
+#'@importFrom stats rbinom
+
 #'@param data Dataframe. The input data to be predicted, where the \code{n_nodes}
 #'left-most variables are are variables that are represented by nodes in the graph from
 #'the \code{MRF_mod} model.
@@ -288,9 +289,13 @@ predict_MRF <- function(data, MRF_mod, prep_covariates = TRUE, n_cores,
   if((MRF_mod$mod_family == 'binomial')){
     binary_predictions <- matrix(NA, nrow = NROW(predictions),
                                  ncol = NCOL(predictions))
-    for(i in 1:NCOL(predictions)){
-      binary_predictions[,i] <- rbinom(NROW(predictions), size = 1, prob = predictions[,i])
+    for(i in 1:NCOL(binary_predictions)){
+      binary_predictions[,i] <- rbinom(n = NROW(binary_predictions),
+                                       size = 1,
+                                       prob = predictions[,i])
     }
+    binary_predictions <- data.frame(binary_predictions)
+    colnames(binary_predictions) <- node_names
     return(list(Probability_predictions = round(predictions, 4),
            Binary_predictions = binary_predictions))
 
