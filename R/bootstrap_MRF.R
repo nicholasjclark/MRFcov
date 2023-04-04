@@ -319,7 +319,7 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
     test_load1 <- try(clusterEvalQ(cl, library(purrr)), silent = TRUE)
 
     #If errors produced, iterate through other options for library loading
-    if(class(test_load1) == "try-error") {
+    if(inherits(test_load1, "try-error")) {
 
       #Try finding unique library paths using system.file()
       pkgLibs <- unique(c(sub("/purrr$", "", system.file(package = "purrr"))))
@@ -329,13 +329,13 @@ bootstrap_MRF <- function(data, n_bootstraps, sample_seed, symmetrise,
       #Check again for errors loading libraries
       test_load2 <- try(clusterEvalQ(cl, library(purrr)), silent = TRUE)
 
-      if(class(test_load2) == "try-error"){
+      if(inherits(test_load2, "try-error")){
 
         #Try loading the user's .libPath() directly
         clusterEvalQ(cl,.libPaths(as.character(.libPaths())))
         test_load3 <- try(clusterEvalQ(cl, library(penalized)), silent = TRUE)
 
-        if(class(test_load3) == "try-error"){
+        if(inherits(test_load3, "try-error")){
 
           #Give up and use lapply instead!
           parallel_compliant <- FALSE
