@@ -73,7 +73,7 @@
 #'@references Clark, NJ, Wells, K and Lindberg, O.
 #'Unravelling changing interspecific interactions across environmental gradients
 #'using Markov random fields. (2018). Ecology doi: 10.1002/ecy.2221
-#'\href{http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf}{Full text here}.
+#'\href{https://www.researchgate.net/publication/325184442_Unravelling_changing_interspecific_interactions_across_environmental_gradients_using_Markov_random_fields}{Full text here}.
 #'
 #'
 #'@examples

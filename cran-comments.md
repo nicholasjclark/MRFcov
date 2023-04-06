@@ -8,7 +8,11 @@ This update contains improvements code (changing `ncol` to `NCOL` where appropri
 ## R CMD check results
 There were no ERRORs or WARNINGs. 
 
-An error was found when multiple processes were spawned during `donttest` runs on `CRAN`: `Error in .check_ncores(length(names)) : 3 simultaneous processes spawned`. This has been fixed
+An invalid URL was fixed in the following files: `man/MRFcov.Rd`, `man/cv_MRF_diag.Rd`, `man/predict_MRF.Rd`
+
+The citation has been changed to the updated `bibentry` type, following recommendations from `CRAN` checks
+
+Previously, an error was found when multiple processes were spawned during `donttest` runs on `CRAN`: `Error in .check_ncores(length(names)) : 3 simultaneous processes spawned`. This has been fixed
 
 Maintainer: 'Nicholas J Clark <nicholas.j.clark1214@gmail.com>'
 
