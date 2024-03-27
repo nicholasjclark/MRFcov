@@ -9,7 +9,7 @@
 version](https://badge.fury.io/gh/nicholasjclark%2FMRFcov.svg)](https://github.com/nicholasjclark/MRFcov)
 
 [Releases](https://github.com/nicholasjclark/MRFcov/releases)   |   [Reporting
-Issues](https://github.com/nicholasjclark/MRFcov/issues)   |   [Application Blog]([http://nicholasjclark.weebly.com/biotic-interactions.html](https://communities.springernature.com/posts/winter-warming-has-larger-and-more-widespread-effects-on-fish-communities))
+Issues](https://github.com/nicholasjclark/MRFcov/issues)   |   [Application Blog](https://communities.springernature.com/posts/winter-warming-has-larger-and-more-widespread-effects-on-fish-communities)
 <img align="right" src=http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/nclark-network-changes_orig.gif alt="animated gif" width="360" height="235"/>
 
 `MRFcov` (described by Clark *et al*, published in [*Ecology Statistical
