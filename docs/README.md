@@ -1,13 +1,15 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
+<img src="man/figures/MRFcov_logo.png" width = 120 alt="MRFcov R package logo"/>
+
 # *MRFcov*: Markov Random Fields with additional covariates in R
 
 [![DOI](https://zenodo.org/badge/116616159.svg)](https://zenodo.org/badge/latestdoi/116616159)[![GitHub
 version](https://badge.fury.io/gh/nicholasjclark%2FMRFcov.svg)](https://github.com/nicholasjclark/MRFcov)
 
 [Releases](https://github.com/nicholasjclark/MRFcov/releases)   |   [Reporting
-Issues](https://github.com/nicholasjclark/MRFcov/issues)   |   [Blogpost](http://nicholasjclark.weebly.com/biotic-interactions.html)
+Issues](https://github.com/nicholasjclark/MRFcov/issues)   |   [Application Blog]([http://nicholasjclark.weebly.com/biotic-interactions.html](https://communities.springernature.com/posts/winter-warming-has-larger-and-more-widespread-effects-on-fish-communities))
 <img align="right" src=http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/nclark-network-changes_orig.gif alt="animated gif" width="360" height="235"/>
 
 `MRFcov` (described by Clark *et al*, published in [*Ecology Statistical
