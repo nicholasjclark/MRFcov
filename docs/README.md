@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-<img src="man/figures/MRFcov_logo.png" width = 120 alt="MRFcov R package logo"/>
+<img src="../man/figures/MRFcov_logo.png" width = 120 alt="MRFcov R package logo"/>
 
 # *MRFcov*: Markov Random Fields with additional covariates in R
 
@@ -197,7 +197,7 @@ MRF_mod$key_coefs$Microfilaria
 ```
 
 To work through more in-depth tutorials and examples, see the vignettes
-in the package and check out papers that have been published using the
+in the package and check out some of the recent papers that have been published using the
 method
 
 ``` r
@@ -206,13 +206,15 @@ vignette("Gaussian_Poisson_CRFs")
 ```
 
 Clark *et al* 2018
-[*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221) | [PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2018-ecology.pdf)
+[*Ecology*](https://esajournals.onlinelibrary.wiley.com/doi/full/10.1002/ecy.2221)
 
 Peel *et al* 2019 [*Emerging Microbes &
 Infections*](https://www.tandfonline.com/doi/full/10.1080/22221751.2019.1661217?af=R)
 
 Fountain-Jones *et al* 2019 [*Journal of Animal
 Ecology*](https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2656.13154)
+
+Gallen *et al* 2019 [*Journal of Animal Ecology*](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13089)
 
 Clark *et al* 2020 [*Transboundary and Emerging
 Diseases*](https://onlinelibrary.wiley.com/doi/abs/10.1111/tbed.13565)
@@ -223,7 +225,11 @@ Vectors*](https://parasitesandvectors.biomedcentral.com/articles/10.1186/s13071-
 Clark *et al* 2020 [*Nature Climate
 Change*](https://www.nature.com/articles/s41558-020-0838-5)
 
-## References
+Brian & Aldridge 2021 [*Journal of Animal Ecology*](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2656.13436)
+
+Sallam *et al* 2023 [*Parasites & Vectors*](https://link.springer.com/article/10.1186/s13071-022-05530-1)
+
+## Key references
 
 Cheng, J., Levina, E., Wang, P. & Zhu, J. (2014). A sparse Ising model
 with covariates. *Biometrics* 70:943-953.
@@ -234,9 +240,7 @@ random fields. *Ecology* DOI: <https://doi.org/10.1002/ecy.2221>
 
 Clark, N.J., K. Wells, D. Dimitrov, and S.M. Clegg. (2016).
 Co-infections and environmental conditions drive the distributions of
-blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470.
-[Blogpost](http://nicholasjclark.weebly.com/malariafilaria-coinfections.html)
- | [PDF](http://nicholasjclark.weebly.com/uploads/4/4/9/4/44946407/clark_et_al-2016-journal_of_animal_ecology.pdf)
+blood parasites in wild birds. *Journal of Animal Ecology* 85:1461-1470
 
 Clark, N.J., S. Tozer, C. Wood, S.M. Firestone, M. Stevenson, C.
 Caraguel, A.L. Chaber, J. Heller, R.J. Soares Magalhães. 2020.
